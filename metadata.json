@@ -1,0 +1,6 @@
+{
+  "name": "BongoStream Premium",
+  "description": "BongoStream Premium - বাংলাদেশের সেরা হাই-পারফরম্যান্স লাইভ টিভি স্ট্রিমিং ও আইপিটিভি প্ল্যাটফর্ম। দ্রুততম সময়ে ২২০০+ লাইভ চ্যানেল উপভোগ করুন কোনো বাফারিং ছাড়াই।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
