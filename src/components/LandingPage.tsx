@@ -28,8 +28,33 @@ import {
 } from 'lucide-react';
 import { Channel } from '../types';
 
-// Magnificent SVG circular representation matching the user's high-contrast sports circular logo perfectly.
-export function FreeWorldCupBDLogo({ className = "w-32 h-32" }: { className?: string }) {
+export function StatsDisplay() {
+  const [stats, setStats] = useState({ totalRegistrations: 0, totalLogins: 0, activeUsers: 0 });
+  useEffect(() => {
+    fetch('/api/stats').then(res => res.json()).then(setStats);
+    const interval = setInterval(() => {                
+        fetch('/api/stats').then(res => res.json()).then(setStats);
+    }, 10000); // Poll every 10s
+    return () => clearInterval(interval);
+  }, []);                
+
+  return (
+    <div className="grid grid-cols-3 gap-3 md:gap-4">
+      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center shadow-lg">
+        <span className="text-lg md:text-xl font-black text-white">{stats.totalRegistrations}</span>
+        <span className="text-[9px] text-slate-400 block uppercase tracking-wider mt-0.5">সব রেজিস্ট্রেশন</span>
+      </div>
+      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center shadow-lg">
+        <span className="text-lg md:text-xl font-black text-white">{stats.totalLogins}</span>
+        <span className="text-[9px] text-slate-400 block uppercase tracking-wider mt-0.5">সব লগইন</span>
+      </div>
+      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center shadow-lg">
+        <span className="text-lg md:text-xl font-black text-emerald-400">{stats.activeUsers}</span>
+        <span className="text-[9px] text-slate-400 block uppercase tracking-wider mt-0.5">বর্তমানে লাইভ</span>
+      </div>
+    </div>
+  )
+}
   const customLogoUrl = localStorage.getItem('site_logo_url') || '';
   const siteNameBangla = localStorage.getItem('site_name_bangla') || 'বিডি লাইভ টিভি';
   const siteNameEnglish = localStorage.getItem('site_name_english') || 'BD LIVE TV';
@@ -615,6 +640,10 @@ export default function LandingPage({
           </div>
         </div>
       </header>
+
+      <section className="max-w-7xl mx-auto px-4 md:px-6 py-6 z-10 relative">
+        <StatsDisplay />
+      </section>
 
       {/* Hero & Logo Visual Block */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 pt-12 pb-6 flex flex-col items-center justify-center text-center relative z-10">

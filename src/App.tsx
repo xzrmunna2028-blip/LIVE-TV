@@ -12,7 +12,7 @@ import {
 import { Channel, PlaylistInfo } from './types';
 import CustomPlayer from './components/CustomPlayer';
 import ChannelCard from './components/ChannelCard';
-import LandingPage, { FreeWorldCupBDLogo } from './components/LandingPage';
+import LandingPage, { FreeWorldCupBDLogo, StatsDisplay } from './components/LandingPage';
 import AuthModal from './components/AuthModal';
 import LiveChat from './components/LiveChat';
 import ProfileEditModal from './components/ProfileEditModal';
@@ -99,14 +99,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Authenticated Admin portal gatekeeper token
-  const [isAdminAuthorized, setIsAdminAuthorized] = useState<boolean>(() => {
-    return localStorage.getItem('bongo_admin_authorized') === 'true';
-  });
-
-  // Performance-focused dynamic viewport rendering slice count (resolves lag entirely)
-  const [visibleCount, setVisibleCount] = useState<number>(80);
-
   // --- Beautiful APK / Web Custom Update System States ---
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [updateProgress, setUpdateProgress] = useState<number>(0);
@@ -115,6 +107,34 @@ export default function App() {
   const [appVersion, setAppVersion] = useState<string>(() => {
     return localStorage.getItem('free_world_cup_app_version') || 'v1.0.0';
   });
+
+  // Poll for version updates
+  useEffect(() => {
+    const checkVersion = () => {
+      fetch('/api/version')
+        .then(res => res.json())
+        .then(data => {
+          if (data.version && data.version !== appVersion) {
+            setIsUpdateBroadcastActive(true);
+            localStorage.setItem('is_update_broadcast_active', 'true');
+            localStorage.setItem('latest_available_version', data.version);
+          }
+        })
+        .catch(err => console.error('Error checking version:', err));
+    };
+
+    checkVersion();
+    const interval = setInterval(checkVersion, 30000); // Poll every 30s
+    return () => clearInterval(interval);
+  }, [appVersion]);
+
+  // Authenticated Admin portal gatekeeper token
+  const [isAdminAuthorized, setIsAdminAuthorized] = useState<boolean>(() => {
+    return localStorage.getItem('bongo_admin_authorized') === 'true';
+  });
+
+  // Performance-focused dynamic viewport rendering slice count (resolves lag entirely)
+  const [visibleCount, setVisibleCount] = useState<number>(80);
 
   // Dynamic broadcast flag - only shows the "Check Update" / "Update Available" badges when enabled by owner
   const [isUpdateBroadcastActive, setIsUpdateBroadcastActive] = useState<boolean>(() => {
@@ -619,8 +639,9 @@ export default function App() {
   }, [isUpdating]);
 
   const handleApplyUpdateAndReload = () => {
-    localStorage.setItem('free_world_cup_app_version', 'v1.1.0');
-    setAppVersion('v1.1.0');
+    const newVersion = localStorage.getItem('latest_available_version') || 'v1.1.0';
+    localStorage.setItem('free_world_cup_app_version', newVersion);
+    setAppVersion(newVersion);
     setIsUpdating(false);
     window.location.reload();
   };
@@ -1146,29 +1167,17 @@ export default function App() {
             onSubmit={(e) => {
               e.preventDefault();
               const f = e.currentTarget;
-              const em = (f.elements.namedItem('admin_email') as HTMLInputElement).value.trim();
               const pw = (f.elements.namedItem('admin_password') as HTMLInputElement).value;
               
-              if (em === 'admin@bongostream.live' && pw === 'MUNNA12061') {
+              if (pw === 'MUNNA12061') {
                 setIsAdminAuthorized(true);
                 localStorage.setItem('bongo_admin_authorized', 'true');
               } else {
-                alert('দুঃখিত, আপনি ভুল এডমিন অথেনটিকেশন ইমেইল অথবা পাসওয়ার্ড দিয়েছেন!');
+                alert('দুঃখিত, আপনি ভুল এডমিন পাসওয়ার্ড দিয়েছেন!');
               }
             }}
             className="flex flex-col gap-4 border-none"
           >
-            <div>
-              <label className="text-[9px] text-slate-450 font-extrabold block mb-1 uppercase tracking-wider font-sans">Security Email ID</label>
-              <input
-                name="admin_email"
-                type="email"
-                required
-                placeholder="admin@bongostream.live"
-                className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 outline-none focus:border-slate-800 transition-colors"
-              />
-            </div>
-
             <div>
               <label className="text-[9px] text-slate-450 font-extrabold block mb-1 uppercase tracking-wider font-sans">Gateway Password</label>
               <input
@@ -3228,7 +3237,7 @@ export default function App() {
         </div>
       </div>
 
-      {false ? (
+      {isAdminConsoleOpen ? (
             <div className="mt-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 text-left shadow-2xl animate-fade-in text-slate-200">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3 mb-4">
                 <div>
@@ -3246,7 +3255,8 @@ export default function App() {
                     { id: 'channels', label: '২. চ্যানেল ও প্লেলিস্ট' },
                     { id: 'ads', label: '৩. বিজ্ঞাপন ম্যানেজার' },
                     { id: 'moderation', label: '৪. ইউজার ও কুসংস্কার' },
-                    { id: 'system', label: '৫. নোটিশ ও ওভারলে' }
+                    { id: 'system', label: '৫. নোটিশ ও ওভারলে' },
+                    { id: 'stats', label: '৬. পরিসংখ্যান (Stats)' }
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -3834,6 +3844,14 @@ export default function App() {
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* TAB 6: STATS */}
+              {adminActiveTab === 'stats' && (
+                <div className="flex flex-col gap-4 animate-fade-in font-sans">
+                  <h4 className="text-sm font-bold text-slate-300">রিয়েল-টাইম পরিসংখ্যান</h4>
+                  <StatsDisplay />
                 </div>
               )}
             </div>

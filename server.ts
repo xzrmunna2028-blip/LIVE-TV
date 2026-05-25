@@ -793,8 +793,16 @@ app.post('/api/verify-channel', async (req, res) => {
   }
 });
 
+// GET currently available app version for dynamic OTA update checking
+app.get('/api/version', (req, res) => {
+  res.json({ version: 'v1.1.0' });
+});
+
 // BRAND CONFIG & REAL-TIME PRESENCE STORAGE FOR MULTIPLE USERS
 const BRAND_CONFIG_FILE = path.join(process.cwd(), 'brand_config.json');
+
+// STATS PERSISTENCE
+const STATS_FILE = path.join(process.cwd(), 'site_stats.json');
 
 // GET brand settings (persisted server-side on disk)
 app.get('/api/branding', (req, res) => {
@@ -812,6 +820,55 @@ app.get('/api/branding', (req, res) => {
     siteNameEnglish: 'BD LIVE TV',
     marqueeText: 'স্বাগতম Free World Cup BD-তে! 📺 সম্পুর্ণ ফ্রিতে স্পোর্টস প্লেয়ারে উপভোগ করুন প্রিয় সব লাইভ ওয়ার্ল্ড কাপ, ঘরোয়া ও আন্তর্জাতিক খেলাধুলা এবং বিনোদন চ্যানেল। কোনো চ্যানেল সাময়িকভাবে বন্ধ থাকলে রিফ্রেশ বাটনে ক্লিক করুন অথবা প্লেয়ারে অন্য লিংক অপশন সিলেক্ট করুন। আমরা নিয়মিত নতুন নতুন লাইভ চ্যানেল ও ফিড এড করছি। আমাদের সাথেই থাকুন!'
   });
+});
+
+// GET site stats
+app.get('/api/stats', (req, res) => {
+  try {
+    let stats = { totalRegistrations: 0, totalLogins: 0 };
+    if (fs.existsSync(STATS_FILE)) {
+      stats = JSON.parse(fs.readFileSync(STATS_FILE, 'utf-8'));
+    }
+    
+    // Also include active users count from memory
+    const now = Date.now();
+    const activeUsers = Object.values(activePresences).filter(u => now - u.lastSeen < 15000).length;
+
+    return res.json({ ...stats, activeUsers });
+  } catch (e) {
+    console.error('Error reading stats:', e);
+    return res.json({ totalRegistrations: 0, totalLogins: 0, activeUsers: 0 });
+  }
+});
+
+// POST increment registration
+app.post('/api/stats/register', (req, res) => {
+  try {
+    let stats = { totalRegistrations: 0, totalLogins: 0 };
+    if (fs.existsSync(STATS_FILE)) {
+      stats = JSON.parse(fs.readFileSync(STATS_FILE, 'utf-8'));
+    }
+    stats.totalRegistrations++;
+    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2), 'utf-8');
+    return res.json({ success: true, stats });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// POST increment login
+app.post('/api/stats/login', (req, res) => {
+  try {
+    let stats = { totalRegistrations: 0, totalLogins: 0 };
+    if (fs.existsSync(STATS_FILE)) {
+      stats = JSON.parse(fs.readFileSync(STATS_FILE, 'utf-8'));
+    }
+    stats.totalLogins++;
+    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2), 'utf-8');
+    return res.json({ success: true, stats });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
 });
 
 // POST save brand settings onto the server globally

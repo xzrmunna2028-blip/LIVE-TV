@@ -98,7 +98,7 @@ export default function CustomPlayer({ channel, onReportWorkingState }: CustomPl
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(1); // Set to max volume
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState<'video-contain' | 'video-cover' | 'video-fill'>('video-contain');

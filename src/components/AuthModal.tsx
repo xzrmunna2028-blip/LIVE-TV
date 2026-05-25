@@ -38,7 +38,7 @@ interface AuthModalProps {
 
 const DEMO_AVATARS = [
   {
-    name: 'Bongo Static (B)',
+    name: 'Free World Cup BD Static (B)',
     value: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%230284c7" /><stop offset="100%" stop-color="%236366f1" /></linearGradient></defs><circle cx="64" cy="64" r="64" fill="url(%23g1)" /><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="64" fill="%23ffffff">B</text></svg>`
   },
   {
@@ -151,15 +151,17 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
 
       // Check default administrator preset info
       if (emailLower === 'member@bongostream.live' && (loginPassword === 'bongo1234' || loginPassword === 'MUNNA12061')) {
+        fetch('/api/stats/login', { method: 'POST' }).catch(console.error);
+
         const adminUser = {
-          name: 'বঙ্গ মেম্বার (Bongo Member)',
+          name: 'ফ্রী ওয়ার্ল্ড কাপ বিডি মেম্বার (Free World Cup BD Member)',
           username: 'bongomember',
           badge: 'Premium VIP',
           flag: '🇧🇩',
           avatar: '👑',
           phone: '+8801700000000'
         };
-        setSuccessMsg('লগইন সফল হয়েছে! বঙ্গস্ট্রিমে আপনাকে স্বাগতম।');
+        setSuccessMsg('লগইন সফল হয়েছে! ফ্রী ওয়ার্ল্ড কাপ বিডি-তে আপনাকে স্বাগতম।');
         setTimeout(() => {
           onLoginSuccess(adminUser);
           onClose();
@@ -172,6 +174,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
       const matched = usersDb.find(u => u.email === emailLower && u.password === loginPassword);
 
       if (matched) {
+        fetch('/api/stats/login', { method: 'POST' }).catch(console.error);
         setSuccessMsg(`স্বাগতম ফিরে আসার জন্য, ${matched.name}!`);
         setTimeout(() => {
           onLoginSuccess({
@@ -280,6 +283,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
 
       // Save user profile info natively
       saveUserToDatabase(newUser);
+      
+      // Update registration stats
+      fetch('/api/stats/register', { method: 'POST' }).catch(console.error);
+
       setSuccessMsg('অ্যাকউন্ট তৈরি সফল হয়েছে! স্বয়ংক্রিয়ভাবে প্রবেশ করানো হচ্ছে...');
       
       setTimeout(() => {
@@ -324,7 +331,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
               <Tv className="w-5 h-5 text-white animate-pulse" />
             </div>
             <div>
-              <span className="font-black text-sm text-white tracking-tight uppercase leading-none block">BongoStream VIP</span>
+              <span className="font-black text-sm text-white tracking-tight uppercase leading-none block">Free World Cup BD VIP</span>
               <p className="text-[10px] text-emerald-450 font-sans tracking-wide font-bold mt-0.5">রেজিস্ট্রেশন করে সম্পূর্ণ ফ্রিতে লাইভ দেখুন</p>
             </div>
           </div>
@@ -648,7 +655,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                 </div>
                 
                 <p className="text-[10px] text-slate-400 leading-normal font-sans">
-                  বঙ্গস্ট্রিমের সকল খবরের আপডেট, নতুন রিলিজ ও ফ্রি এন্ড্রয়েড এপিকে (APK Version) আমাদের অফিসিয়াল আপডেট চ্যানেলে প্রকাশ করা হয়। সাইন আপ সম্পন্ন করার জন্য আপনাকে অবশ্যই নিচের লিঙ্কে ক্লিক করে গ্রুপে যুক্ত থাকতে হবে।
+                  ফ্রী ওয়ার্ল্ড কাপ বিডি-র সকল খবরের আপডেট, নতুন রিলিজ ও ফ্রি এন্ড্রয়েড এপিকে (APK Version) আমাদের অফিসিয়াল আপডেট চ্যানেলে প্রকাশ করা হয়। সাইন আপ সম্পন্ন করার জন্য আপনাকে অবশ্যই নিচের লিঙ্কে ক্লিক করে গ্রুপে যুক্ত থাকতে হবে।
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-2 mt-1">
@@ -714,7 +721,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                   required
                 />
                 <div className="text-[11px] leading-relaxed text-slate-400">
-                  আমি সজ্ঞানে বঙ্গস্ট্রিমে সম্প্রচার সেশন সুরক্ষায়{' '}
+                  আমি সজ্ঞানে ফ্রী ওয়ার্ল্ড কাপ বিডি-তে সম্প্রচার সেশন সুরক্ষায়{' '}
                   <button
                     type="button"
                     onClick={() => setShowGuidelines(true)}
@@ -759,7 +766,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                   <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl space-y-1">
                     <p className="font-extrabold text-[12px]">🛑 সামাজিক মাধ্যমে সরাসরি সম্প্রচার নিষিদ্ধ:</p>
                     <p className="text-[11px] font-sans">
-                      বঙ্গস্ট্রীমের (BongoStream) কোনো লাইভ টিভি চ্যানেল, স্পোর্টস স্ট্রীম কিংবা সম্প্রচারিত কন্টেন্ট সরাসরি ইউটিউব (YouTube), ফেসবুক (Facebook), টিকটক (TikTok), ইনস্টাগ্রাম কিংবা কোনো পাবলিক সোশ্যাল মিডিয়া পেজে লাইভ কাস্ট করা সম্পুর্ণভাবে জরিমানাযোগ্য অফেন্স।
+                      ফ্রী ওয়ার্ল্ড কাপ বিডি (Free World Cup BD)-এর কোনো লাইভ টিভি চ্যানেল, স্পোর্টস স্ট্রীম কিংবা সম্প্রচারিত কন্টেন্ট সরাসরি ইউটিউব (YouTube), ফেসবুক (Facebook), টিকটক (TikTok), ইনস্টাগ্রাম কিংবা কোনো পাবলিক সোশ্যাল মিডিয়া পেজে লাইভ কাস্ট করা সম্পুর্ণভাবে জরিমানাযোগ্য অফেন্স।
                     </p>
                   </div>
 
@@ -814,7 +821,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
           {/* Safety disclaimer */}
           <div className="mt-5 text-center">
             <span className="text-[10px] text-slate-500">
-              নিরাপদ এনক্রিপশন প্রটোকল দ্বারা বঙ্গস্ট্রীম সেশনটি পরিচালিত হচ্ছে।
+              নিরাপদ এনক্রিপশন প্রটোকল দ্বারা ফ্রী ওয়ার্ল্ড কাপ বিডি সেশনটি পরিচালিত হচ্ছে।
             </span>
           </div>
 

@@ -33,6 +33,11 @@ interface ChatMessage {
   time: string;
   isMe?: boolean;
   isAdmin?: boolean;
+  replyTo?: {
+    id: string;
+    text: string;
+    username: string;
+  };
 }
 
 interface LiveChatProps {
@@ -84,11 +89,7 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
   }, []);
 
   // Poll state (Local Storage based real time synchronization)
-  const [activePoll, setActivePoll] = useState<{
-    question: string;
-    options: { text: string; votes: number }[];
-    votedIndex?: number;
-  } | null>(null);
+  // [REMOVED AS PER REQUEST]
 
   // Pinned comment state
   const [pinnedMsg, setPinnedMsg] = useState<{
@@ -102,6 +103,7 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
 
   // Selected message for user reporting popup
   const [reportingMessage, setReportingMessage] = useState<ChatMessage | null>(null);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [selectedReportReason, setSelectedReportReason] = useState('হ্যারেজমেন্ট / কটূক্তি করা');
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -111,40 +113,34 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
 
   // Load real-time messages from shared store & coordinate online spectator increments
   useEffect(() => {
+    const channel = new BroadcastChannel('bongo_live_chat');
+    
     const loadRealMessages = () => {
       try {
         const dbRaw = localStorage.getItem('bongo_live_chat_messages_db');
-        const db = dbRaw ? JSON.parse(dbRaw) : [];
-        setMessages(db);
+        if (dbRaw) {
+          const db = JSON.parse(dbRaw);
+          setMessages(db);
+        }
       } catch (e) {
-        setMessages([]);
+        console.error("Failed to load chat messages", e);
       }
     };
 
     loadRealMessages();
+    
+    channel.onmessage = (event) => {
+      setMessages(event.data);
+    };
 
     // Trigger open chat audience count once on mount / open
     if (isOpen) {
       const counts = Number(localStorage.getItem('bongo_chat_open_counts') || '0');
       localStorage.setItem('bongo_chat_open_counts', String(counts + 1));
     }
-
-    // Standard listener for local storage changes across tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'bongo_live_chat_messages_db') {
-        loadRealMessages();
-      }
-    };
     
-    // Polling backup to keep updates instantaneous
-    const pollTimer = setInterval(() => {
-      loadRealMessages();
-    }, 1500);
-
-    window.addEventListener('storage', handleStorageChange);
     return () => {
-      clearInterval(pollTimer);
-      window.removeEventListener('storage', handleStorageChange);
+      channel.close();
     };
   }, [isOpen, channelGroup]);
 
@@ -161,24 +157,6 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
     } catch {
       // Fallback
     }
-
-    // Load active Poll
-    try {
-      const savedPoll = localStorage.getItem('chat_active_poll');
-      if (savedPoll) {
-        const parsed = JSON.parse(savedPoll);
-        // Verify user voting persistence inside this local state
-        const votedIdx = localStorage.getItem(`chat_poll_vote_${parsed.question}`);
-        setActivePoll({
-          ...parsed,
-          votedIndex: votedIdx !== null ? parseInt(votedIdx, 10) : undefined
-        });
-      } else {
-        setActivePoll(null);
-      }
-    } catch {
-      // Fallback
-    }
   }, [channelGroup]);
 
   // Listen to any administrative changes on muting / pinning
@@ -186,18 +164,6 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
     const handleStorageUpdate = (e: StorageEvent) => {
       if (e.key === 'chat_pinned_comment') {
         setPinnedMsg(e.newValue ? JSON.parse(e.newValue) : null);
-      }
-      if (e.key === 'chat_active_poll') {
-        if (e.newValue) {
-          const parsed = JSON.parse(e.newValue);
-          const votedIdx = localStorage.getItem(`chat_poll_vote_${parsed.question}`);
-          setActivePoll({
-            ...parsed,
-            votedIndex: votedIdx !== null ? parseInt(votedIdx, 10) : undefined
-          });
-        } else {
-          setActivePoll(null);
-        }
       }
     };
     window.addEventListener('storage', handleStorageUpdate);
@@ -209,7 +175,7 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isOpen, pinnedMsg, activePoll]);
+  }, [messages, isOpen, pinnedMsg]);
 
   function formatTime(date: Date) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -354,19 +320,28 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
       text: inputText.trim(),
       time: formatTime(new Date()),
       isMe: true,
-      isAdmin: isCurrentAdmin
+      isAdmin: isCurrentAdmin,
+      replyTo: replyingTo ? { id: replyingTo.id, text: replyingTo.text, username: replyingTo.username } : undefined
     };
 
     try {
       const dbRaw = localStorage.getItem('bongo_live_chat_messages_db');
       const db = dbRaw ? JSON.parse(dbRaw) : [];
       db.push(myMessage);
-      if (db.length > 100) {
+      if (db.length > 50) {
         db.shift();
       }
       localStorage.setItem('bongo_live_chat_messages_db', JSON.stringify(db));
-      setMessages(db);
+      setMessages(db); // Successfully saved and updated
+      
+      // Sync across channels
+      const channel = new BroadcastChannel('bongo_live_chat');
+      channel.postMessage(db);
+      channel.close();
+      
     } catch (e) {
+      console.error("Failed to persist message", e);
+      // Still update local state, but persistence failed
       setMessages(prev => [...prev, myMessage]);
     }
     
@@ -383,35 +358,11 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
 
     setInputText('');
     setShowEmojiTray(false);
+    setReplyingTo(null);
   };
 
   const handleEmojiClick = (emojiTag: string) => {
     setInputText(prev => prev + " " + emojiTag + " ");
-  };
-
-  // Cast Live poll votes
-  const handleVotePollOption = (idx: number) => {
-    if (!activePoll || activePoll.votedIndex !== undefined) return;
-
-    // Persist vote
-    const nextOptions = [...activePoll.options];
-    nextOptions[idx].votes = nextOptions[idx].votes + 1;
-
-    const nextPoll = {
-      ...activePoll,
-      options: nextOptions,
-    };
-
-    setActivePoll({
-      ...nextPoll,
-      votedIndex: idx
-    });
-
-    localStorage.setItem(`chat_poll_vote_${activePoll.question}`, String(idx));
-    localStorage.setItem('chat_active_poll', JSON.stringify(nextPoll));
-
-    // Boost total spectator votes visually
-    setOnlineCount(prev => prev + 1);
   };
 
   // Handle Admin controls triggers
@@ -489,6 +440,7 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
     setModeratingMessage(null);
   };
 
+
   // Handle report submission
   const handleReportAction = (reason: string) => {
     if (!reportingMessage) return;
@@ -533,8 +485,6 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
 
   if (!isOpen) return null;
 
-  // Compute live percentages for Poll Option Cards
-  const totalPollVotes = activePoll ? activePoll.options.reduce((acc, curve) => acc + curve.votes, 0) : 0;
 
   return (
     <div 
@@ -567,68 +517,7 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
       </div>
 
       {/* --- LIVE INTERACTIVE POLL DISPLAY ELEMENT --- */}
-      {activePoll && (
-        <div id="active-live-chat-poll" className="bg-gradient-to-r from-slate-950 to-indigo-950/20 border-b border-indigo-950/80 p-3 select-none">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest flex items-center gap-1 font-sans">
-              <Activity className="w-3 h-3 text-indigo-400 animate-pulse" />
-              <span>LIVE POLL • লাইভ জনমত</span>
-            </span>
-            {isCurrentAdmin && (
-              <button 
-                onClick={() => {
-                  setActivePoll(null);
-                  localStorage.removeItem('chat_active_poll');
-                }}
-                className="text-[8px] bg-rose-500/10 text-rose-455 hover:bg-rose-500/20 px-1 py-0.2 rounded font-sans cursor-pointer transition-colors"
-              >
-                রিসেট পোল
-              </button>
-            )}
-          </div>
-          <h4 className="text-[11px] font-black text-slate-100 leading-normal mb-2">{activePoll.question}</h4>
-          
-          <div className="grid grid-cols-2 gap-1.5">
-            {activePoll.options.map((opt, oIdx) => {
-              const pct = totalPollVotes > 0 ? Math.round((opt.votes / totalPollVotes) * 100) : 0;
-              const isVoted = activePoll.votedIndex === oIdx;
-              const hasVotedAny = activePoll.votedIndex !== undefined;
-
-              return (
-                <button
-                  key={oIdx}
-                  disabled={hasVotedAny}
-                  onClick={() => handleVotePollOption(oIdx)}
-                  className={`relative overflow-hidden text-left p-2 rounded-lg border text-[10px] transition-all duration-300 flex items-center justify-between font-bold cursor-pointer select-none
-                    ${isVoted
-                      ? 'bg-sky-500/10 border-sky-400 text-sky-400'
-                      : hasVotedAny
-                        ? 'bg-slate-950 border-slate-900 text-slate-450'
-                        : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300'
-                    }
-                  `}
-                >
-                  {/* Progress background bar */}
-                  <div 
-                    className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ease-out z-0
-                      ${isVoted ? 'bg-sky-400/10' : 'bg-slate-850'}
-                    `}
-                    style={{ width: hasVotedAny ? `${pct}%` : '0%' }}
-                  />
-
-                  <span className="relative z-10 block truncate max-w-[80%] font-semibold">
-                    {opt.text}
-                  </span>
-                  
-                  <span className="relative z-10 text-[9px] font-mono font-bold tracking-tight text-right">
-                    {hasVotedAny ? `${pct}%` : `${opt.votes} v`}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* [REMOVED AS PER REQUEST] */}
 
       {/* --- PINNED COMMENTS CONTAINER PANEL --- */}
       {pinnedMsg && (
@@ -676,87 +565,86 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
           </div>
         ) : (
           messages.map((msg) => {
-            const isMsgAdmin = msg.isAdmin || msg.username === 'bongomember';
+            const isMsgAdmin = msg.isAdmin || msg.username === 'fwcbdmember';
             
             return (
               <div 
                 key={msg.id} 
+                onClick={() => setReplyingTo(msg)}
                 className={`py-1 px-1.5 hover:bg-slate-800/25 rounded text-xs leading-relaxed animate-fade-in group relative select-all transition-colors
                   ${isMsgAdmin ? 'border-l-2 border-amber-500/80 bg-gradient-to-r from-amber-500/5 to-transparent' : ''}
                 `}
               >
-                <div className="flex items-start flex-wrap gap-x-1.5 gap-y-1">
-                  {/* Miniature Timestamp selector */}
-                  <span className="text-[9px] text-slate-500 font-mono select-none mt-0.5">
-                    {msg.time}
-                  </span>
+                <div className="flex items-start flex-wrap gap-x-2 gap-y-1">
+                  {/* User Profile Details */}
+                  <div className="shrink-0 mt-0.5" title={msg.username}>
+                    {renderAvatar(msg.avatar, msg.name, isMsgAdmin)}
+                  </div>
 
-                  {/* Flag indicator icon */}
-                  <span className="text-xs select-none" title={`দেশ: ${msg.flag}`}>
-                    {msg.flag}
-                  </span>
-
-                  {/* Clickable Username handle */}
-                  <span 
-                    onClick={() => {
-                      if (isMsgAdmin) return; // Cannot modify/report official admin
-                      if (isCurrentAdmin) {
-                        setModeratingMessage(msg);
-                      } else if (currentUser && msg.username !== currentUser.username) {
-                        setSelectedReportReason('হ্যারেজমেন্ট / কটূক্তি করা');
-                        setReportingMessage(msg);
-                      } else if (!currentUser) {
-                        alert('রিপোর্ট করতে প্রথমে লগইন করুন!');
-                      }
-                    }}
-                    className={`font-semibold cursor-pointer hover:underline inline-flex items-center gap-0.5 shrink-0
-                      ${isMsgAdmin ? 'text-amber-400 font-extrabold' : 'text-sky-450 font-extrabold'}
-                    `}
-                    title={
-                      isMsgAdmin 
-                        ? "অফিসিয়াল এডমিন" 
-                        : isCurrentAdmin 
-                          ? "চ্যাট মডারেশন নিয়ন্ত্রণ করুন"
-                          : currentUser && msg.username !== currentUser.username 
-                            ? "এই ব্যবহারকারীকে রিপোর্ট করতে এখানে ক্লিক করুন" 
-                            : undefined
-                    }
-                  >
-                    @{msg.name}
-                    
-                    {/* Blue checkmark verification batch for premium members */}
-                    {!isMsgAdmin && (
-                      <CheckCircle className="w-3.5 h-3.5 text-sky-400 fill-sky-400/10 shrink-0" title="ভেরিফাইড স্পোর্টস মেম্বার" />
-                    )}
-
-                    {isMsgAdmin && (
-                      <CheckCircle className="w-3.5 h-3.5 text-amber-400 fill-amber-400/10 shrink-0" title="অফিসিয়াল এডমিন" />
-                    )}
-
-                    {isMsgAdmin && (
-                      <span className="text-[8px] bg-gradient-to-r from-amber-500 to-rose-600 text-slate-950 font-black px-1 rounded uppercase tracking-tighter shrink-0 select-none">
-                        ADMIN
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[9px] text-slate-500 font-mono select-none">
+                        {msg.time}
                       </span>
-                    )}
-                  </span>
+                      
+                      {/* Flag indicator icon */}
+                      <span className="text-xs select-none" title={`দেশ: ${msg.flag}`}>
+                        {msg.flag}
+                      </span>
 
-                  {/* Natural colon separator */}
-                  <span className="text-slate-500 font-semibold select-none">:</span>
+                      {/* Username handle */}
+                      <span 
+                        onClick={() => {
+                          if (isMsgAdmin) return;
+                          if (isCurrentAdmin) {
+                            setModeratingMessage(msg);
+                          } else if (currentUser && msg.username !== currentUser.username) {
+                            setSelectedReportReason('হ্যারেজমেন্ট / কটূক্তি করা');
+                            setReportingMessage(msg);
+                          }
+                        }}
+                        className={`font-semibold cursor-pointer hover:underline inline-flex items-center gap-0.5 shrink-0 text-[11px]
+                          ${isMsgAdmin ? 'text-amber-400 font-extrabold' : 'text-sky-400 font-bold'}
+                        `}
+                      >
+                        {msg.name}
+                        {isMsgAdmin && (
+                          <span className="text-[7px] bg-amber-500/20 text-amber-500 px-1 rounded font-black uppercase tracking-tighter">ADMIN</span>
+                        )}
+                      </span>
+                    </div>
 
-                  {/* Parsed horizontal content stream */}
-                  <span className="text-slate-200 leading-normal font-sans tracking-wide break-words flex-1 min-w-0">
-                    {renderMessageText(msg.text)}
-                  </span>
-                  
-                  {/* Moderator overlay badge */}
-                  {isCurrentAdmin && !isMsgAdmin && (
-                    <button
-                      onClick={() => setModeratingMessage(msg)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-[8px] px-1 bg-slate-950 border border-slate-800 text-rose-400 hover:text-rose-300 rounded cursor-pointer font-bold shrink-0 select-none ml-auto"
-                    >
-                      মডারেট
-                    </button>
-                  )}
+                    {/* Parsed horizontal content stream */}
+                    <div className="relative group/msg flex flex-col gap-1">
+                      {msg.replyTo && (
+                        <div className="bg-slate-800/50 p-1.5 rounded text-[10px] text-slate-400 border-l-2 border-sky-500 mb-1">
+                          <p className="text-sky-300 font-bold">@{msg.replyTo.username}</p>
+                          <p className="truncate">{msg.replyTo.text}</p>
+                        </div>
+                      )}
+                       <span className="text-slate-200 leading-normal font-sans tracking-wide break-words">
+                        {renderMessageText(msg.text)}
+                      </span>
+                      
+                      {/* Delete button for own messages */}
+                      {msg.isMe && (
+                        <button
+                          onClick={() => {
+                            const dbRaw = localStorage.getItem('bongo_live_chat_messages_db');
+                            let db = dbRaw ? JSON.parse(dbRaw) : [];
+                            db = db.filter((m: any) => m.id !== msg.id);
+                            localStorage.setItem('bongo_live_chat_messages_db', JSON.stringify(db));
+                            setMessages(db);
+                            window.dispatchEvent(new Event('storage'));
+                          }}
+                          className="opacity-0 group-hover/msg:opacity-100 p-1 hover:bg-rose-950/50 rounded text-rose-500 cursor-pointer"
+                          title="মেসেজ মুছুন"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             );
@@ -924,7 +812,18 @@ export default function LiveChat({ channelGroup, currentUser, isOpen, onClose }:
         </div>
       )}
 
-      {/* Input controls form */}
+      {/* Input controls form */
+      replyingTo && (
+        <div className="bg-slate-955 border-t border-slate-850 px-3.5 py-1.5 flex items-center justify-between text-xs select-none">
+          <div className="flex items-center gap-2 truncate">
+             <MessageSquare className="w-3 h-3 text-sky-400" />
+             <span className="text-slate-400">Reply to <b className="text-sky-400">@{replyingTo.name}</b></span>
+          </div>
+          <button onClick={() => setReplyingTo(null)} className="p-1 hover:bg-slate-800 rounded text-slate-400">
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
       <form 
         onSubmit={handleSendMessage}
         className="bg-slate-955 border-t border-slate-850 px-3.5 py-3 flex items-center gap-2 select-none"
