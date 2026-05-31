@@ -71,7 +71,9 @@ export default function App() {
 
   // Navigation page views & VIP custom layouts
   const [currentPage, setCurrentPage] = useState<'landing' | 'app' | 'admin'>(() => {
-    return (localStorage.getItem('bongo_current_page') as any) || 'landing';
+    const saved = localStorage.getItem('bongo_current_page');
+    if (saved === 'admin') return 'admin';
+    return 'app';
   });
 
   useEffect(() => {
@@ -232,7 +234,7 @@ export default function App() {
     return localStorage.getItem('site_name_english') || 'Free World Cup BD';
   });
   const [siteNameBangla, setSiteNameBangla] = useState<string>(() => {
-    return localStorage.getItem('site_name_bangla') || 'বিডি লাইভ টিভি';
+    return localStorage.getItem('site_name_bangla') || 'ফ্রী ওয়ার্ল্ড কাপ বিডি';
   });
   const [marqueeText, setMarqueeText] = useState<string>(() => {
     return localStorage.getItem('site_marquee_text') || 'স্বাগতম Free World Cup BD-তে! 📺 সম্পুর্ণ ফ্রিতে স্পোর্টস প্লেয়ারে উপভোগ করুন প্রিয় সব লাইভ ওয়ার্ল্ড কাপ, ঘরোয়া ও আন্তর্জাতিক খেলাধুলা এবং বিনোদন চ্যানেল। কোনো চ্যানেল সাময়িকভাবে বন্ধ থাকলে রিফ্রেশ বাটনে ক্লিক করুন অথবা প্লেয়ারে অন্য লিংক অপশন সিলেক্ট করুন। আমরা নিয়মিত নতুন নতুন লাইভ চ্যানেল ও ফিড এড করছি। আমাদের সাথেই থাকুন!';
@@ -279,7 +281,7 @@ export default function App() {
     maintenanceMessage: 'সাময়িকভাবে আমাদের ওয়েবসাইট এখন বন্ধ আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন, দ্রুতই আবার চালু করা হবে!',
     telegramUrl: 'https://t.me/FIFAWorldCupbd1',
     siteNameEnglish: 'Free World Cup BD',
-    siteNameBangla: 'বিডি লাইভ টিভি',
+    siteNameBangla: 'ফ্রী ওয়ার্ল্ড কাপ বিডি',
     marqueeText: 'স্বাগতম Free World Cup BD-তে!',
     siteLogoUrl: '',
     customAds: []
@@ -340,6 +342,12 @@ export default function App() {
   };
 
   useEffect(() => {
+    // Migrating old default localStorage values to new branding
+    const currentCachedBangla = localStorage.getItem('site_name_bangla');
+    if (currentCachedBangla === 'বিডি লাইভ টিভি') {
+      localStorage.setItem('site_name_bangla', 'ফ্রী ওয়ার্ল্ড কাপ বিডি');
+      setSiteNameBangla('ফ্রী ওয়ার্ল্ড কাপ বিডি');
+    }
     fetchSiteSettings();
     const intervalSettings = setInterval(fetchSiteSettings, 8000);
 
@@ -1145,10 +1153,34 @@ export default function App() {
         setIsLoggedIn(true);
         setCurrentUser(JSON.parse(savedUser));
       } else {
-        // Guest list default check
+        // Auto-login guest immediately to enable chat and favoriting
+        let guestId = localStorage.getItem('bongo_guest_username');
+        if (!guestId) {
+          guestId = 'guest_' + Math.floor(Math.random() * 1000000);
+          localStorage.setItem('bongo_guest_username', guestId);
+        }
+        const guestName = 'ব্যবহারকারী ' + guestId.substring(6);
+        const guestUser = {
+          username: guestId,
+          name: guestName,
+          badge: 'GUEST_VIP',
+          avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${guestId}`
+        };
+        localStorage.setItem('bongo_stream_logged_in', 'true');
+        localStorage.setItem('bongo_stream_user_cfg', JSON.stringify(guestUser));
+        setCurrentUser(guestUser);
+        setIsLoggedIn(true);
+
         const guestFavs = localStorage.getItem('live_tv_favorites_guest') || localStorage.getItem('live_tv_favorites');
         if (guestFavs) {
           setFavorites(JSON.parse(guestFavs));
+        }
+
+        // Trigger Telegram popup on first launch of dashboard
+        const onboardingSeen = localStorage.getItem('bongo_onboarding_seen');
+        if (!onboardingSeen) {
+          setIsTelegramOnboardingOpen(true);
+          localStorage.setItem('bongo_onboarding_seen', 'true');
         }
       }
     } catch (e) {
@@ -3282,37 +3314,37 @@ export default function App() {
 
       {/* Premium Top Navigation Bar */}
       <header id="app-navigation-header" className="sticky top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-900/90 z-40 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-2 xs:px-4 py-2 sm:py-3 flex items-center justify-between gap-1.5 sm:gap-2">
           
           {/* Logo & Headline */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <button
               id="btn-toggle-sidebar"
               onClick={() => setIsSidebarOpen(true)}
               title="সাইডবার মেনু খুলুন"
-              className="p-2 bg-slate-900 hover:bg-slate-850 hover:text-white text-slate-400 rounded-lg border border-slate-800 transition-all cursor-pointer mr-0.5 active:scale-95"
+              className="p-1.5 sm:p-2 bg-slate-900 hover:bg-slate-850 hover:text-white text-slate-400 rounded-lg border border-slate-800 transition-all cursor-pointer mr-0 sm:mr-0.5 active:scale-95 shrink-0"
             >
-              <Menu className="w-4 h-4 text-amber-450" />
+              <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-450" />
             </button>
 
             <button
               id="btn-back-to-landing"
               onClick={() => setCurrentPage('landing')}
               title="হোমপেজে ফিরে যান"
-              className="p-2 bg-slate-900 hover:bg-slate-850 hover:text-white text-slate-400 rounded-lg border border-slate-800 transition-all cursor-pointer mr-0.5 active:scale-95"
+              className="p-1.5 sm:p-2 bg-slate-900 hover:bg-slate-850 hover:text-white text-slate-400 rounded-lg border border-slate-800 transition-all cursor-pointer mr-0 sm:mr-0.5 active:scale-95 shrink-0"
             >
-              <ArrowLeft className="w-4 h-4 text-sky-400" />
+              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400" />
             </button>
 
-            <div className="flex items-center gap-2 select-none">
-              <FreeWorldCupBDLogo className="w-10 h-10 hover:scale-105 transition-transform shrink-0" />
+            <div className="flex items-center gap-1.5 sm:gap-2 select-none shrink-0">
+              <FreeWorldCupBDLogo className="w-7.5 h-7.5 sm:w-10 sm:h-10 hover:scale-105 transition-transform shrink-0" />
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
-                  <h1 className="text-sm font-extrabold text-slate-100 tracking-tight leading-none bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent truncate max-w-[110px] sm:max-w-[160px] md:max-w-[200px]">
+                  <h1 className="text-2xs xs:text-xs sm:text-sm font-extrabold text-slate-100 tracking-tight leading-none bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent truncate max-w-[70px] xs:max-w-[100px] sm:max-w-[165px] md:max-w-[200px]">
                     {siteNameEnglish}
                   </h1>
                 </div>
-                <p className="text-[8.5px] text-slate-450 font-sans tracking-tight truncate max-w-[105px] sm:max-w-[150px] md:max-w-[200px]" title={siteNameBangla}>
+                <p className="text-[7.5px] xs:text-[8px] sm:text-[8.5px] text-slate-450 font-sans tracking-tight truncate max-w-[65px] xs:max-w-[95px] sm:max-w-[155px] md:max-w-[200px]" title={siteNameBangla}>
                   {siteNameBangla}
                 </p>
               </div>
@@ -3320,30 +3352,30 @@ export default function App() {
           </div>
 
           {/* Profile & Live Actions wrapper */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-1 min-w-0 justify-end">
             
             {/* Standalone Admin Dashboard button - Invisible to normal viewers */}
             {currentUser?.username === 'bongomember' && (
               <button
                 id="btn-header-admin-dashboard"
                 onClick={() => setCurrentPage('admin')}
-                className="flex items-center gap-1 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-[11px] font-bold cursor-pointer transition-all active:scale-95 text-sky-400"
+                className="flex items-center gap-1 px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[10px] sm:text-[11px] font-bold cursor-pointer transition-all active:scale-95 text-sky-400 shrink-0"
                 title="অ্যাডমিন ড্যাশবোর্ড"
               >
-                <Lock className="w-3.5 h-3.5" />
-                <span>এডমিন প্যানেল</span>
+                <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden xs:inline">এডমিন প্যানেল</span>
               </button>
             )}
 
              {/* Authenticated User state display */}
             {isLoggedIn && currentUser ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 {/* Visual Clickable Avatar and Name button to edit profile settings */}
                 <button
                   id="btn-edit-profile-header-trigger"
                   onClick={() => setIsProfileEditOpen(true)}
                   title="প্রোফাইল সম্পাদন ও এভারটার পরিবর্তন করুন"
-                  className="flex items-center gap-2 bg-slate-900 hover:bg-slate-850 hover:border-slate-700 border border-slate-800 rounded-xl pl-2 pr-3 py-1 text-xs font-semibold cursor-pointer transition-all active:scale-95 group"
+                  className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-850 hover:border-slate-700 border border-slate-800 rounded-xl px-1.5 py-1 sm:pl-2 sm:pr-3 sm:py-1 text-xs font-semibold cursor-pointer transition-all active:scale-95 group shrink-0"
                 >
                   {/* Circular Avatar thumbnail display */}
                   {currentUser.avatar ? (
@@ -3351,20 +3383,20 @@ export default function App() {
                       <img 
                         src={currentUser.avatar} 
                         alt={currentUser.name} 
-                        className="w-6 h-6 rounded-full object-cover border border-amber-400 group-hover:scale-105 transition-transform" 
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover border border-amber-400 group-hover:scale-105 transition-transform shrink-0" 
                       />
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-[10px] text-white flex items-center justify-center font-bold">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-slate-800 border border-slate-700 text-[9.5px] sm:text-[10px] text-white flex items-center justify-center font-bold shrink-0">
                         {currentUser.avatar}
                       </div>
                     )
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-550 to-sky-500 flex items-center justify-center text-white text-[10px] font-black border border-indigo-400">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-indigo-550 to-sky-500 flex items-center justify-center text-white text-[9.5px] sm:text-[10px] font-black border border-indigo-400 shrink-0">
                       {currentUser.name.charAt(0).toUpperCase()}
                     </div>
                   )}
 
-                  <div className="flex flex-col text-left">
+                  <div className="hidden sm:flex flex-col text-left">
                     <span className="text-[10px] font-bold text-slate-250 block max-w-[85px] truncate group-hover:text-amber-400 transition-colors">
                       {currentUser.name}
                     </span>
@@ -3378,7 +3410,7 @@ export default function App() {
                   id="btn-header-logout"
                   onClick={handleLogout}
                   title="লগআউট"
-                  className="p-1 px-2 bg-slate-950 hover:bg-rose-955/20 text-slate-400 hover:text-rose-455 border border-slate-850 hover:border-rose-950/20 rounded-xl transition-all cursor-pointer text-xs flex items-center justify-center h-8"
+                  className="p-1 px-1.5 bg-slate-950 hover:bg-rose-955/20 text-slate-400 hover:text-rose-455 border border-slate-850 hover:border-rose-950/20 rounded-xl transition-all cursor-pointer text-xs flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 shrink-0"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -3387,9 +3419,9 @@ export default function App() {
               <button
                 id="btn-header-login-trigger"
                 onClick={() => setIsAuthOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-850 hover:text-white border border-slate-800 text-slate-250 hover:border-slate-700 text-[11px] font-bold rounded-lg transition-all cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-2 py-1 bg-slate-900 hover:bg-slate-850 hover:text-white border border-slate-800 text-slate-250 hover:border-slate-700 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all cursor-pointer active:scale-95 shrink-0"
               >
-                <LogIn className="w-3.5 h-3.5 text-sky-450" />
+                <LogIn className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-450" />
                 <span>VIP অ্যাকাউন্ট</span>
               </button>
             )}
@@ -3400,10 +3432,13 @@ export default function App() {
                 id="btn-header-check-update"
                 onClick={handleTriggerUpdateFlow}
                 title="নতুন সংস্করণ বা সংস্করণ আপডেট চেক করুন"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500/10 to-amber-600/10 hover:from-amber-500/20 hover:to-amber-600/20 text-amber-400 text-2xs sm:text-xs font-bold rounded-lg border border-amber-500/35 hover:border-amber-400 transition-all cursor-pointer shadow active:scale-95 group animate-pulse"
+                className="flex items-center gap-1 px-1.5 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-amber-500/10 to-amber-600/10 hover:from-amber-500/20 hover:to-amber-600/20 text-amber-400 text-[9.5px] sm:text-xs font-bold rounded-lg border border-amber-500/35 hover:border-amber-400 transition-all cursor-pointer shadow active:scale-95 group animate-pulse shrink-0"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 font-bold group-hover:scale-110 transition-transform" />
-                <span>আপডেট {appVersion === 'v1.1.0' ? 'v1.1.0 (আপডেটেড)' : 'উপলব্ধ (v1.1.0)'}</span>
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 font-bold group-hover:scale-110 transition-transform shrink-0" />
+                <span>
+                  <span className="hidden sm:inline">আপডেট {appVersion === 'v1.1.0' ? 'v1.1.0 (আপডেটেড)' : 'উপলব্ধ (v1.1.0)'}</span>
+                  <span className="sm:hidden text-[9px]">{appVersion === 'v1.1.0' ? 'v1.1.0' : 'Update'}</span>
+                </span>
               </button>
             )}
 
@@ -3412,10 +3447,10 @@ export default function App() {
                onClick={() => loadChannels(true)}
                disabled={loading || refreshing}
                title="নতুন করে সব চ্যানেল আপলোড ও পরীক্ষা করুন"
-               className="flex items-center gap-1.2 px-3 py-1.5 bg-sky-600 hover:bg-sky-505 text-xs font-semibold text-white rounded-lg transition-all shadow-md cursor-pointer active:scale-95"
+               className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 bg-sky-600 hover:bg-sky-505 text-[10px] sm:text-xs font-semibold text-white rounded-lg transition-all shadow-md cursor-pointer active:scale-95 shrink-0"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">রিফ্রেশ</span>
+              <span className="hidden md:inline">রিফ্রেশ</span>
             </button>
           </div>
         </div>
@@ -3814,7 +3849,7 @@ export default function App() {
                   <FreeWorldCupBDLogo className="w-10 h-10 shrink-0" />
                   <div className="flex flex-col text-left">
                     <span className="text-sm font-black text-amber-400">
-                      অবিরামTV
+                      Free World Cup BD
                     </span>
                     <span className="text-[9px] text-slate-500 font-bold font-sans">
                       গতিহীন পথ চলা...
@@ -3847,6 +3882,7 @@ export default function App() {
                       setSelectedGroup('Sports');
                       setSearchQuery('');
                       setIsSidebarOpen(false);
+                      setCurrentPage('app');
                     }}
                     className={`w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/40 hover:bg-slate-900/80 border transition-all cursor-pointer group text-left
                       ${selectedGroup === 'Sports' ? 'border-pink-500/40 bg-pink-500/10' : 'border-slate-900 hover:border-slate-800'}
@@ -3869,6 +3905,7 @@ export default function App() {
                       setSelectedGroup('Bangla');
                       setSearchQuery('bdix');
                       setIsSidebarOpen(false);
+                      setCurrentPage('app');
                     }}
                     className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/40 hover:bg-slate-900/80 border border-slate-900 hover:border-slate-800 transition-all cursor-pointer group text-left"
                   >
@@ -3958,7 +3995,7 @@ export default function App() {
                       if (navigator.share) {
                         navigator.share({
                           title: siteNameEnglish,
-                          text: `BD Live TV - সরাসরি ক্রিকেট খেলা এবং বিনোদন উপভোগ করুন সম্পূর্ণ ফ্রিতে!`,
+                          text: `Free World Cup BD - সরাসরি ক্রিকেট খেলা এবং বিনোদন উপভোগ করুন সম্পূর্ণ ফ্রিতে!`,
                           url: window.location.href,
                         }).catch(() => {});
                       } else {
@@ -4039,9 +4076,9 @@ export default function App() {
               <h3 className="text-sm font-extrabold text-slate-100 tracking-tight leading-none">সাপোর্ট করুন (Support Us)</h3>
               <p className="text-[10px] text-pink-400 font-extrabold uppercase mt-1 tracking-wider font-sans">Sustain Our Free HD Streams</p>
               
-              <div className="text-xs text-slate-350 mt-4 leading-relaxed font-sans flex flex-col gap-3">
+               <div className="text-xs text-slate-350 mt-4 leading-relaxed font-sans flex flex-col gap-3">
                 <p>
-                  BD LIVE TV সম্পূর্ণ ফ্রিতে কোনো প্রকার বাফার ছাড়াই খেলাধুলা এবং বিনোদন ভোগ করার প্লাটফর্ম। এই ফ্রি সার্ভিস চালু রাখতে আমাদের প্রতিমাসে সার্ভার ও ব্যান্ডউইথ খরচ বহন করতে হয়।
+                  Free World Cup BD সম্পূর্ণ ফ্রিতে কোনো প্রকার বাফার ছাড়াই খেলাধুলা এবং বিনোদন ভোগ করার প্লাটফর্ম। এই ফ্রি সার্ভিস চালু রাখতে আমাদের প্রতিমাসে সার্ভার ও ব্যান্ডউইথ খরচ বহন করতে হয়।
                 </p>
                 <p className="border-l-2 border-pink-500 pl-3.5 text-slate-200 font-bold">
                   আপনার সামান্য সহযোগিতা আমাদের টিমকে আরো নতুন হাই-স্পিড চ্যানেল লিঙ্ক যোগ করতে এবং সচল রাখতে সাহায্য করবে।
@@ -4053,16 +4090,16 @@ export default function App() {
                 <div className="flex items-center justify-between p-3 bg-slate-950 border border-slate-850 rounded-xl">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-pink-550" />
-                    <span className="text-2xs font-extrabold text-slate-350 uppercase">bKash / Nagad:</span>
+                    <span className="text-2xs font-extrabold text-slate-350 uppercase">bKash / Nagad (Personal):</span>
                   </div>
-                  <span className="text-xs font-mono font-black text-pink-400 select-all tracking-wider">০১৮৭৭-৪৬৬৫৭৪</span>
+                  <span className="text-xs font-mono font-black text-pink-400 select-all tracking-wider">+8801640227120</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-slate-950 border border-slate-850 rounded-xl">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-violet-500" />
                     <span className="text-2xs font-extrabold text-slate-350 uppercase">Rocket (Personal):</span>
                   </div>
-                  <span className="text-xs font-mono font-black text-violet-450 select-all tracking-wider">০১৮৭৭-৪৬৬৫৭৪-২</span>
+                  <span className="text-xs font-mono font-black text-violet-445 select-all tracking-wider">+8801640227120</span>
                 </div>
               </div>
 
@@ -4105,7 +4142,7 @@ export default function App() {
               
               <div className="text-xs text-slate-350 mt-4 leading-relaxed font-sans flex flex-col gap-3">
                 <p>
-                  BD LIVE TV / Obiram TV স্ট্রিমিং লিঙ্কগুলি সরাসরি নিজেরা হোস্ট বা আপলোড করে না। এখানে প্রদর্শিত সমস্ত মিডিয়া এবং টিভি ফিড ইন্টারনেটে প্রকাশ্যে উপলব্ধ পাবলিক সোর্স ও m3u প্লেলিস্ট থেকে স্বয়ংক্রিয়ভাবে ইনডেক্সড।
+                  Free World Cup BD স্ট্রিমিং লিঙ্কগুলি সরাসরি নিজেরা হোস্ট বা আপলোড করে না। এখানে প্রদর্শিত সমস্ত মিডিয়া এবং টিভি ফিড ইন্টারনেটে প্রকাশ্যে উপলব্ধ পাবলিক সোর্স ও m3u প্লেলিস্ট থেকে স্বয়ংক্রিয়ভাবে ইনডেক্সড।
                 </p>
                 <p className="border-l-2 border-teal-500 pl-3.5 text-slate-250 font-bold leading-normal">
                   আমরা মেধাস্বত্ব এবং কপিরাইট আইনের প্রতি যথোচিত শ্রদ্ধাশীল।
@@ -4214,7 +4251,7 @@ export default function App() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3 mb-4">
                 <div>
                   <h4 className="text-sm font-black text-slate-100 uppercase tracking-tight flex items-center gap-1.5">
-                    <span>👑 BD Live Web Administrator Control Deck</span>
+                    <span>👑 Free World Cup BD Administrator Control Deck</span>
                     <span className="text-[8px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/20 font-mono font-extrabold uppercase animate-pulse">Owner View</span>
                   </h4>
                   <p className="text-[10px] text-slate-400 font-sans mt-0.5">রিয়েল-টাইমে ওয়েবসাইট কাস্টমাইজ, চ্যানেল সংযোজন/অপসারণ, চ্যাট মডারেশন ও স্পন্সর বিজ্ঞাপন কন্ট্রোল করুন।</p>

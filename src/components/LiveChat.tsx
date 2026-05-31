@@ -84,7 +84,7 @@ export default function LiveChat({ channelId, currentUser, isOpen, onClose }: Li
     };
 
     fetchAudienceCount();
-    const interval = setInterval(fetchAudienceCount, 3000); // Polling every 3s
+    const interval = setInterval(fetchAudienceCount, 15000); // Polling every 15s to optimize speed
     return () => clearInterval(interval);
   }, []);
 
@@ -132,8 +132,8 @@ export default function LiveChat({ channelId, currentUser, isOpen, onClose }: Li
     // Initial fetch
     fetchMessages();
 
-    // Constant active poll every 2.5 seconds for snappy updates
-    const interval = setInterval(fetchMessages, 2500);
+    // Constant active poll every 4.5 seconds for lag-free performance
+    const interval = setInterval(fetchMessages, 4500);
 
     // Track active chat count
     const counts = Number(localStorage.getItem('bongo_chat_open_counts') || '0');

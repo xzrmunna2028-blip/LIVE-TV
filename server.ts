@@ -27,7 +27,7 @@ const ai = new GoogleGenAI({
 });
 
 const SUPPORT_SYSTEM_INSTRUCTION = `
-You are a friendly, natural, and helpful Live Support Agent named "Bongo Support Agent (AI)" representing BD LIVE TV / Bongo IPTV. 
+You are a friendly, natural, and helpful Live Support Agent named "Bongo Support Agent (AI)" representing Free World Cup BD. 
 Your main goal is to greet users warmly, answer their common questions, and help them troubleshoot channel streams politely and elegantly in Bengali, Bangla/Banglish, or English.
 
 CRITICAL GUARDRAIL - DO NOT SHARE:
@@ -39,7 +39,7 @@ GUIDELINES FOR HELPING USERS:
 - If a channel stream is buffering or fails to load, advise them to click the "রিফ্রেশ" (Refresh/Reload) button above the TV player or switch to "সার্ভার ২ (Alternate Links)" in the player.
 - Tell them that we regularly add and update news, sports, and entertainment channels to keep the streaming feeds live.
 - Keep your replies highly concise, supporting, and brief (under 2-3 sentences), so they resemble a fast-typing live chat clerk.
-- Address them politely using natural Bengali/Banglish or English depending on their input message. Speak as a proud, helpful support staff of BD LIVE TV!
+- Address them politely using natural Bengali/Banglish or English depending on their input message. Speak as a proud, helpful support staff of Free World Cup BD!
 `;
 
 function parseDataUrl(dataUrl: string) {
@@ -1154,7 +1154,7 @@ Generate the agent message responding to the User politely, naturally, in their 
         } else if (userText.includes('টাকা') || userText.includes('পেমেন্ট') || userText.includes('বিকাশ') || userText.includes('রকেট') || userText.includes('নগদ') || userText.includes('ভিআইপি') || userText.includes('অ্যাকাউন্ট')) {
           replyText = 'ভিআইপি সাবস্ক্রিপশন এবং পেমেন্ট সংক্রান্ত যেকোনো তথ্যের জন্য অনুগ্রহ করে আমাদের হেল্পডেস্কে এবং এডমিন প্যানেলে যোগাযোগ করুন। আমরা সাহায্য করতে প্রস্তুত।';
         } else if (userText.includes('এডমিন') || userText.includes('হেল্প') || userText.includes('hello') || userText.includes('হাই') || userText.includes('হ্যালো')) {
-          replyText = 'হ্যালো! বিডি লাইভ টিভি সাপোর্ট সেন্টারে আপনাকে স্বাগতম। আপনার টিভি সার্ভিস বা চ্যানেল নিয়ে কোনো প্রশ্ন থাকলে এখানে লিখে পাঠান, আমি সাহায্য করছি।';
+          replyText = 'হ্যালো! ফ্রী ওয়ার্ল্ড কাপ বিডি সাপোর্ট সেন্টারে আপনাকে স্বাগতম। আপনার টিভি সার্ভিস বা চ্যানেল নিয়ে কোনো প্রশ্ন থাকলে এখানে লিখে পাঠান, আমি সাহায্য করছি।';
         } else {
           replyText = 'ধন্যবাদ! আপনার বার্তাটি আমরা পেয়েছি। আমাদের একজন লাইভ টেকনিক্যাল সাপোর্ট স্পেশালিস্ট খুব দ্রুত বিষয়টি দেখে আপনাকে জানাবেন।';
         }
@@ -1824,6 +1824,175 @@ app.post('/api/stadium-chat/:channelId/delete-user', (req, res) => {
     saveStadiumChats();
   }
   return res.json({ success: true, messages: stadiumChatMessages[channelId] || [] });
+});
+
+
+// --- REAL-TIME TV CASTING AND SECURE REMOTE PAIRING API ---
+interface CastSession {
+  pairingCode: string;
+  createdAt: number;
+  lastActive: number;
+  receiverDeviceName?: string;
+  controllerDeviceName?: string;
+  activeChannel?: any;
+  playbackState?: {
+    isPlaying: boolean;
+    currentTime?: number;
+    volume?: number;
+    aspectRatio?: string;
+  };
+  commands: any[];
+}
+
+let tvCastSessions: Record<string, CastSession> = {};
+
+// 1. Create a TV Session (TV generates or gets assigned a pairing code)
+app.post('/api/tv/register', (req, res) => {
+  try {
+    const { deviceName, requestedCode } = req.body;
+    let pairingCode = requestedCode;
+    
+    if (!pairingCode) {
+      // Generate a 6-digit atomic pairing pin
+      pairingCode = Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    
+    const now = Date.now();
+    // Clean up expired casting sessions older than 4 hours
+    Object.keys(tvCastSessions).forEach(key => {
+      if (now - tvCastSessions[key].createdAt > 4 * 60 * 60 * 1000) {
+        delete tvCastSessions[key];
+      }
+    });
+
+    tvCastSessions[pairingCode] = {
+      pairingCode,
+      createdAt: now,
+      lastActive: now,
+      receiverDeviceName: deviceName || 'Smart TV Browser',
+      controllerDeviceName: undefined,
+      activeChannel: undefined,
+      playbackState: {
+        isPlaying: false,
+        currentTime: 0,
+        volume: 100,
+        aspectRatio: 'video-contain'
+      },
+      commands: []
+    };
+
+    return res.json({ success: true, session: tvCastSessions[pairingCode] });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// 2. Connect client (Phone Controller) to TV with code
+app.post('/api/tv/pair', (req, res) => {
+  try {
+    const { pairingCode, deviceName } = req.body;
+    if (!pairingCode) {
+      return res.status(400).json({ error: 'Pairing code is required' });
+    }
+    
+    const cleanCode = pairingCode.toString().trim().toUpperCase();
+    const session = tvCastSessions[cleanCode];
+    if (!session) {
+      return res.status(404).json({ error: 'অবৈধ কোড! দয়া করে সঠিক ৬ সংখ্যার কোড প্রবেশ করান বা নতুন কোড জেনারেট করুন।' });
+    }
+
+    session.controllerDeviceName = deviceName || 'Mobile Remote';
+    session.lastActive = Date.now();
+
+    return res.json({ success: true, session });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// 3. Get Status / Fetch commands (Poll pattern mimicking real-time sync with high frequency client side)
+app.get('/api/tv/status/:code', (req, res) => {
+  try {
+    const code = req.params.code.toString().trim().toUpperCase();
+    const session = tvCastSessions[code];
+    if (!session) {
+      return res.status(404).json({ error: 'সেশন পাওয়া যায়নি বা এটি মেয়াদোত্তীর্ণ হয়ে গেছে।' });
+    }
+
+    session.lastActive = Date.now();
+
+    // Copy commands to send, then flush them
+    const pendingCommands = [...session.commands];
+    session.commands = [];
+
+    return res.json({
+      success: true,
+      paired: !!session.controllerDeviceName,
+      session,
+      commands: pendingCommands
+    });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// 4. Send command from controller to receiver TV
+app.post('/api/tv/command', (req, res) => {
+  try {
+    const { pairingCode, commandType, payload } = req.body;
+    if (!pairingCode) {
+      return res.status(400).json({ error: 'Pairing code is required' });
+    }
+
+    const cleanCode = pairingCode.toString().trim().toUpperCase();
+    const session = tvCastSessions[cleanCode];
+    if (!session) {
+      return res.status(404).json({ error: 'টিভি সেশন খুঁজে পাওয়া যায়নি। অনুগ্রহ করে আবার পেয়ার করুন।' });
+    }
+
+    session.lastActive = Date.now();
+    
+    const newCommand = {
+      id: Math.random().toString(36).substring(7),
+      type: commandType, // e.g. "play_channel", "set_volume", "toggle_play", "set_aspect"
+      payload,
+      timestamp: Date.now()
+    };
+    session.commands.push(newCommand);
+
+    return res.json({ success: true, command: newCommand });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// 5. Update receiver TV player current state (for remote state feedback reflection)
+app.post('/api/tv/update-state', (req, res) => {
+  try {
+    const { pairingCode, activeChannel, playbackState } = req.body;
+    if (!pairingCode) {
+      return res.status(400).json({ error: 'Pairing code is required' });
+    }
+
+    const cleanCode = pairingCode.toString().trim().toUpperCase();
+    const session = tvCastSessions[cleanCode];
+    if (!session) {
+      return res.status(404).json({ error: 'TV pair session not active' });
+    }
+
+    session.lastActive = Date.now();
+    if (activeChannel !== undefined) session.activeChannel = activeChannel;
+    if (playbackState !== undefined) {
+      session.playbackState = {
+        ...session.playbackState,
+        ...playbackState
+      };
+    }
+
+    return res.json({ success: true, session });
+  } catch (e: any) {
+    return res.status(500).json({ error: e.message });
+  }
 });
 
 

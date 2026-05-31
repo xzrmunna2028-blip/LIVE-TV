@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Star, Tv } from 'lucide-react';
 import { Channel } from '../types';
 
@@ -32,7 +32,7 @@ function getThemeGradient(name: string): string {
   return presets[code % presets.length];
 }
 
-export default function ChannelCard({
+const ChannelCard = memo(function ChannelCard({
   channel,
   isSelected,
   isFavorite,
@@ -124,4 +124,6 @@ export default function ChannelCard({
       </div>
     </div>
   );
-}
+});
+
+export default ChannelCard;
