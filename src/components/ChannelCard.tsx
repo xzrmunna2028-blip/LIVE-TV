@@ -57,7 +57,8 @@ const ChannelCard = memo(function ChannelCard({
     <div
       id={`channel-card-${channel.id}`}
       onClick={() => onSelect(channel)}
-      className={`relative w-full aspect-[4/5] flex flex-col items-center justify-between p-2.5 rounded-[20px] bg-black border cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95
+      tabIndex={0}
+      className={`relative w-full aspect-[4/5] flex flex-col items-center justify-between p-2.5 rounded-[20px] bg-black border cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 tv-focusable
         ${isSelected 
           ? 'border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.5)] z-10' 
           : 'border-pink-500/80 hover:border-pink-400'

@@ -641,7 +641,6 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
           playsInline
           preload="auto"
           autoPlay
-          onClick={togglePlay}
         />
 
         {/* Premium Overlay Settings Menu inside the Video Stage itself to prevent outer clipping */}
@@ -789,85 +788,90 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
             <p className="text-[11px] text-slate-500 mt-1 max-w-sm font-sans leading-relaxed">বাফারিং ছাড়াই সচল ও রিয়েল-টাইম লাইভ ম্যাচ দেখতে নিচের যেকোনো একটি চ্যানেল প্লে করুন।</p>
           </div>
         )}
+         {/* Buffering Indicator */}
+         {loading && playingChannel && (
+           <div id="player-buffering-overlay" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-[2px] z-10">
+             <div className="relative w-10 h-10 select-none">
+               <span className="absolute inset-0 border-3 border-slate-800 rounded-full"></span>
+               <span className="absolute inset-0 border-3 border-sky-450 rounded-full animate-spin border-t-transparent"></span>
+             </div>
+             <span className="text-slate-405 text-xs mt-3.5 animate-pulse">স্ট্রিম বাফারিং হচ্ছে...</span>
+           </div>
+         )}
 
-        {/* Buffering Indicator */}
-        {loading && playingChannel && (
-          <div id="player-buffering-overlay" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-[2px] z-10">
-            <div className="relative w-10 h-10 select-none">
-              <span className="absolute inset-0 border-3 border-slate-800 rounded-full"></span>
-              <span className="absolute inset-0 border-3 border-sky-400 rounded-full animate-spin border-t-transparent"></span>
-            </div>
-            <span className="text-slate-405 text-xs mt-3.5 animate-pulse">স্ট্রিম বাফারিং হচ্ছে...</span>
-          </div>
-        )}
+         {/* Error placeholder */}
+         {error && playingChannel && (
+           <div id="player-error-overlay" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 px-6 text-center z-10 select-none">
+             <AlertCircle className="w-10 h-10 text-rose-500 mb-2.5" />
+             <h4 className="text-xs font-bold text-slate-200">চ্যানেল প্লেব্যাক ব্যর্থ হয়েছে।</h4>
+             <p className="text-[11px] text-slate-400 mt-1 font-sans leading-relaxed">{error}</p>
+             
+             <button
+               id="btn-retry-player-stream"
+               onClick={handleRestart}
+               className="mt-3.5 flex items-center gap-1 px-3.5 py-1.5 bg-sky-600 hover:bg-sky-505 text-[11px] font-bold text-white rounded-lg transition-all shadow cursor-pointer active:scale-95 hover:scale-102"
+             >
+               <RotateCcw className="w-3.5 h-3.5" /> পুনরায় কানেক্ট করুন
+             </button>
+           </div>
+         )}
 
-        {/* Error placeholder */}
-        {error && playingChannel && (
-          <div id="player-error-overlay" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 px-6 text-center z-10 select-none">
-            <AlertCircle className="w-10 h-10 text-rose-500 mb-2.5" />
-            <h4 className="text-xs font-bold text-slate-200">চ্যানেল প্লেব্যাক ব্যর্থ হয়েছে।</h4>
-            <p className="text-[11px] text-slate-400 mt-1 font-sans leading-relaxed">{error}</p>
-            
-            <button
-              id="btn-retry-player-stream"
-              onClick={handleRestart}
-              className="mt-3.5 flex items-center gap-1 px-3.5 py-1.5 bg-sky-600 hover:bg-sky-505 text-[11px] font-bold text-white rounded-lg transition-all shadow cursor-pointer active:scale-95 hover:scale-102"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> পুনরায় কানেক্ট করুন
-            </button>
-          </div>
-        )}
+       </div>
 
-      </div>
+       {/* Beautiful Speech translation / live transcript ribbon directly below the display screen */}
+       {ccActive && displayedCcText && playingChannel && !error && !loading && (
+         <div id="cc-below-display-box" className="bg-slate-900 border border-slate-800/80 p-3.5 rounded-xl shadow-lg animate-fade-in my-1 text-left relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
+           <div className="flex items-center justify-between border-b border-slate-850 pb-1.5 mb-2 select-none">
+             <span className="flex items-center gap-1 text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+               <span className="h-1.5 w-1.5 rounded-full bg-emerald-505 animate-ping shrink-0" />
+               লাইভ বঙ্গঅনবাদ সাবটাইটেল (CC)
+             </span>
+             <span className="text-[9.5px] bg-slate-950 px-1.8 py-0.2 rounded text-slate-400 font-mono font-bold">
+               Speech Translation Active
+             </span>
+           </div>
+           <p className="text-sm sm:text-base font-extrabold text-sky-200 tracking-wide font-sans leading-relaxed pl-0.5">
+             "{displayedCcText}"
+           </p>
+         </div>
+       )}
 
-      {/* Beautiful Speech translation / live transcript ribbon directly below the display screen */}
-      {ccActive && displayedCcText && playingChannel && !error && !loading && (
-        <div id="cc-below-display-box" className="bg-slate-900 border border-slate-800/80 p-3.5 rounded-xl shadow-lg animate-fade-in my-1 text-left relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
-          <div className="flex items-center justify-between border-b border-slate-850 pb-1.5 mb-2 select-none">
-            <span className="flex items-center gap-1 text-[10px] font-black text-emerald-400 uppercase tracking-widest">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-505 animate-ping shrink-0" />
-              লাইভ বঙ্গঅনবাদ সাবটাইটেল (CC)
-            </span>
-            <span className="text-[9.5px] bg-slate-950 px-1.8 py-0.2 rounded text-slate-400 font-mono font-bold">
-              Speech Translation Active
-            </span>
-          </div>
-          <p className="text-sm sm:text-base font-extrabold text-sky-200 tracking-wide font-sans leading-relaxed pl-0.5">
-            "{displayedCcText}"
-          </p>
-        </div>
-      )}
+       {/* Controls panel BELOW display */}
+       {!isRotatedLandscape && playingChannel && !error && (
+         <div 
+           id="player-controls-panel-below" 
+           className="bg-slate-900 border border-slate-850 p-3 rounded-xl flex flex-col gap-2.5 shadow-sm font-sans select-none"
+         >
+           {/* Top category label */}
+           <div className="flex items-center justify-between">
+             <div className="flex items-center gap-1.5">
+               <span className="relative flex h-1 w-1">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                 <span className="relative inline-flex rounded-full h-1 w-1 bg-red-500"></span>
+               </span>
+               <span className="text-[9px] uppercase font-black tracking-widest text-red-500 bg-red-500/10 px-1.5 rounded">LIVE broadcast</span>
+               <span className="text-[11px] font-extrabold text-slate-200 truncate max-w-[200px] sm:max-w-xs">{playingChannel.name}</span>
+             </div>
+           </div>
 
-      {/* Controls panel BELOW display */}
-      {!isRotatedLandscape && playingChannel && !error && (
-        <div 
-          id="player-controls-panel-below" 
-          className="bg-slate-900 border border-slate-850 p-3 rounded-xl flex flex-col gap-2.5 shadow-sm font-sans select-none"
-        >
-          {/* Top category label */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-1 w-1">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1 w-1 bg-red-500"></span>
-              </span>
-              <span className="text-[9px] uppercase font-black tracking-widest text-red-500 bg-red-500/10 px-1.5 rounded">LIVE broadcast</span>
-              <span className="text-[11px] font-extrabold text-slate-200 truncate max-w-[200px] sm:max-w-xs">{playingChannel.name}</span>
-            </div>
-          </div>
-
-          {/* Player buttons */}
-          <div className="flex flex-col gap-2.5 sm:gap-3 pt-0.5 max-w-full">
+           {/* Player buttons */}
+           <div className="flex flex-col gap-2.5 sm:gap-3 pt-0.5 max-w-full">
             
             {/* Row 1: Primary Stream Controls & Volume with direct Screen Alignment (Play, Reload, Volume, slider, TV Cast, Fullscreen) */}
-            <div className="flex items-center justify-between gap-1.5 w-full">
+            <div className="flex items-center justify-between gap-1.5 w-full bg-slate-950/40 p-2.5 rounded-2xl border border-slate-800/40">
               {/* Playback Controls & Volume elements Grouped */}
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   id="btn-player-play-pause-small"
                   onClick={togglePlay}
-                  className="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-full bg-sky-600 hover:bg-sky-505 text-white flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
+                  tabIndex={0}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer shrink-0 border tv-focusable
+                    ${isPlaying
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-650 border-emerald-500 text-white hover:brightness-110 shadow-emerald-950/20'
+                      : 'bg-gradient-to-r from-sky-600 to-indigo-650 border-sky-500 text-white hover:brightness-110 shadow-sky-950/20'
+                    }
+                  `}
                   title={isPlaying ? "বিরতি" : "প্লে করুন"}
                 >
                   {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-white" />}
@@ -876,7 +880,8 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                 <button
                   id="btn-player-reload-stream-small"
                   onClick={handleRestart}
-                  className="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg bg-slate-955 border border-slate-850 hover:bg-slate-850 text-slate-405 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                  tabIndex={0}
+                  className="w-8 h-8 rounded-xl bg-indigo-950/80 border border-indigo-500/50 hover:bg-slate-850 text-indigo-400 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0 tv-focusable"
                   title="স্ট্রিম রিলোড করুন"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -886,10 +891,11 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                 <button
                   id="btn-player-mute-toggle"
                   onClick={handleMuteToggle}
-                  className={`w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0
+                  tabIndex={0}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 tv-focusable
                     ${isMuted 
-                      ? 'bg-rose-600/25 border-rose-500/50 text-rose-455 shadow-md animate-pulse' 
-                      : 'bg-slate-955 border-slate-850 hover:bg-slate-800 text-slate-405 hover:text-white'
+                      ? 'bg-rose-950/90 border-rose-500 text-rose-400 shadow-md animate-pulse' 
+                      : 'bg-emerald-950/80 border-emerald-500/50 hover:bg-emerald-900 text-emerald-400 hover:text-white'
                     }
                   `}
                   title={isMuted ? "শব্দ চালু করুন" : "মিউট করুন"}
@@ -897,6 +903,7 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                   {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                 </button>
 
+                {/* Dynamic colored slider highlight */}
                 <input
                   type="range"
                   min="0"
@@ -904,9 +911,15 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                   step="0.05"
                   value={isMuted ? 0 : volume}
                   onChange={handleVolumeChange}
-                  className="w-10 xs:w-16 sm:w-20 md:w-24 h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-sky-505 shrink-0 outline-none"
+                  className="w-12 xs:w-16 sm:w-20 md:w-24 h-1.5 rounded-lg appearance-none cursor-pointer shrink-0 outline-none"
+                  style={{
+                    background: `linear-gradient(to right, #38bdf8 0%, #38bdf8 ${(isMuted ? 0 : volume) * 100}%, #1e293b ${(isMuted ? 0 : volume) * 100}%, #1e293b 100%)`
+                  }}
                   title="ভলিউম নিয়ন্ত্রণ"
                 />
+                <span className="text-[10px] font-black text-sky-450 w-7 text-center shrink-0">
+                  {Math.round((isMuted ? 0 : volume) * 100)}%
+                </span>
               </div>
 
               {/* Seamless aligned Right Actions (TV Cast, Fullscreen) */}
@@ -916,32 +929,34 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                   id="btn-player-tv-pairing-cast"
                   type="button"
                   onClick={() => setShowTvModal(true)}
-                  className="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg bg-slate-955 border border-slate-850 hover:bg-slate-800 text-amber-500 hover:text-amber-400 flex items-center justify-center transition-all cursor-pointer select-none active:scale-95 animate-pulse shrink-0"
+                  tabIndex={0}
+                  className="w-8 h-8 rounded-lg bg-amber-955 border border-amber-500 hover:bg-amber-900 text-amber-400 hover:text-white flex items-center justify-center transition-all cursor-pointer select-none active:scale-95 shrink-0 tv-focusable"
                   title="সরাসরি টিভিতে খেলা দেখুন (TV Cast)"
                 >
-                  <Tv className="w-3.5 h-3.5 text-amber-500" />
+                  <Tv className="w-3.5 h-3.5 text-amber-400" />
                 </button>
 
                 {/* Fullscreen button with dynamic state icon */}
                 <button
                   id="btn-player-trigger-fullscreen"
                   onClick={triggerFullScreen}
-                  className="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg bg-slate-955 border border-slate-855 hover:bg-slate-805 text-slate-405 hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+                  tabIndex={0}
+                  className="w-8 h-8 rounded-lg bg-pink-955 border border-pink-500/50 hover:bg-pink-900 text-pink-400 hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0 tv-focusable"
                   title={isFullscreen ? "ফুলস্ক্রিন থেকে ফিরুন" : "ফুল স্ক্রিন করুন"}
                 >
                   {isFullscreen ? (
                     <Minimize className="w-3.5 h-3.5 text-rose-500" />
                   ) : (
-                    <Maximize className="w-3.5 h-3.5 text-sky-450" />
+                    <Maximize className="w-3.5 h-3.5 text-sky-400" />
                   )}
                 </button>
               </div>
             </div>
 
             {/* Row 2: High Customization Parameters (Captions, Horizontal view, PiP, HD Settings gears) toggles */}
-            <div className="flex items-center justify-between gap-1.5 w-full border-t border-slate-850/60 pt-2 sm:pt-2.5">
-              <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold select-none">
-                স্ট্রিম কাস্টমাইজেশনツールズ:
+            <div className="flex items-center justify-between gap-1.5 w-full border-t border-slate-850/60 pt-2 sm:pt-2.5 bg-slate-950/20 p-2 rounded-2xl">
+              <span className="text-[10px] sm:text-[11px] text-slate-405 font-semibold select-none">
+                স্ট্রিম কাস্টমাইজেশন টুলস:
               </span>
               
               <div className="flex items-center gap-1.5 shrink-0">
@@ -951,7 +966,8 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                     id="btn-player-pip-toggle"
                     type="button"
                     onClick={togglePip}
-                    className="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg bg-slate-955 border border-slate-850 hover:bg-slate-800 text-teal-405 hover:text-teal-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                    tabIndex={0}
+                    className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-500/50 hover:bg-cyan-900 text-cyan-400 hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0 tv-focusable"
                     title="ভাসমান মিনি প্লেয়ার (Picture-in-Picture)"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -962,10 +978,11 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                 <button
                   id="btn-player-cc-toggle"
                   onClick={() => setCcActive(!ccActive)}
-                  className={`w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0
+                  tabIndex={0}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 tv-focusable
                     ${ccActive 
-                      ? 'bg-emerald-600/25 border-emerald-500/50 text-emerald-450 shadow-md scale-102 font-black' 
-                      : 'bg-slate-955 border-slate-850 hover:bg-slate-800 text-slate-405 hover:text-white'
+                      ? 'bg-emerald-500/30 border-emerald-450 text-emerald-300 shadow-md font-black scale-102' 
+                      : 'bg-slate-955 border-slate-800 hover:bg-slate-850 text-slate-405 hover:text-emerald-400'
                     }
                   `}
                   title="সাবটাইটেল / বঙ্গঅনুবাদ"
@@ -977,10 +994,11 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                 <button
                   id="btn-player-rotate-screen"
                   onClick={() => setIsRotatedLandscape(!isRotatedLandscape)}
-                  className={`w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0
+                  tabIndex={0}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 tv-focusable
                     ${isRotatedLandscape 
-                      ? 'bg-amber-600/25 border-amber-500/50 text-amber-550 shadow-md scale-102' 
-                      : 'bg-slate-955 border-slate-850 hover:bg-slate-800 text-slate-405 hover:text-white'
+                      ? 'bg-amber-500/30 border-amber-450 text-amber-300 shadow-md font-black scale-102' 
+                      : 'bg-slate-955 border-slate-800 hover:bg-slate-850 text-slate-450 hover:text-amber-450'
                     }
                   `}
                   title="আড়াআড়ি ডিসপ্লে (হরাইজন্টাল মোড)"
@@ -992,51 +1010,17 @@ export default function CustomPlayer({ channel, onReportWorkingState, serverId }
                 <button
                   id="btn-quality-gear-settings-small"
                   onClick={() => setShowQualityMenu(!showQualityMenu)}
-                  className={`w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0
+                  tabIndex={0}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer shrink-0 tv-focusable
                     ${showQualityMenu 
-                      ? 'bg-sky-600/30 text-sky-450 border-sky-500/50 shadow-md animate-pulse' 
-                      : 'bg-slate-955 border-slate-850 hover:bg-slate-805 text-slate-405 hover:text-white'
+                      ? 'bg-sky-500/30 text-sky-305 border-sky-450 shadow-md animate-pulse' 
+                      : 'bg-slate-955 border-slate-800 hover:bg-slate-850 text-slate-405 hover:text-sky-400'
                     }
                   `}
                   title="স্ট্রিম কোয়ালিটি সেটিংস"
                 >
                   <Settings className="w-3.5 h-3.5 animate-spin-hover" />
                 </button>
-              </div>
-            </div>
-
-            {/* Row 3: Aspect Ratio Resize Buttons inside CustomPlayer so anyone can resize easily */}
-            <div className="flex flex-col gap-1.5 border-t border-slate-850/50 pt-2 sm:pt-2.5 mt-1 text-left">
-              <span className="text-[10px] sm:text-[11px] text-slate-405 font-bold select-none">
-                ডিসপ্লে সাইজ ও ফিট অপশন (Screen Scaling & Fit Mode):
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'video-contain', label: 'ফিট (Contain)', desc: 'ডিফল্ট অ্যাসপেক্ট' },
-                  { id: 'video-cover', label: 'ক্রপ (Cover)', desc: 'ডিসপ্লে জুম করুন' },
-                  { id: 'video-fill', label: 'ফুলস্ক্রিন (Fill)', desc: 'ডিসপ্লে স্ট্রেচ' }
-                ].map((ratio) => {
-                  const isActive = aspectRatio === ratio.id;
-                  return (
-                    <button
-                      type="button"
-                      key={ratio.id}
-                      onClick={() => {
-                        setAspectRatio(ratio.id as any);
-                        triggerRemoteCommand('set_aspect', ratio.id);
-                      }}
-                      className={`py-1.5 px-2 rounded-xl text-[10.5px] font-bold cursor-pointer transition-all text-center flex flex-col justify-center items-center gap-0.5 border
-                        ${isActive 
-                          ? 'bg-gradient-to-r from-sky-600 to-indigo-650 text-white border-sky-450/40 shadow-lg font-black' 
-                          : 'bg-slate-955 text-slate-400 border-slate-850/50 hover:text-slate-205 hover:bg-slate-850'
-                        }
-                      `}
-                    >
-                      <span>{ratio.label}</span>
-                      <span className="text-[7.5px] opacity-65 font-medium">{ratio.desc}</span>
-                    </button>
-                  );
-                })}
               </div>
             </div>
 

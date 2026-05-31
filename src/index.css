@@ -59,3 +59,61 @@ html, body, #root {
   animation-play-state: paused;
 }
 
+/* TV Remote Control Spatial Navigation Focus Styles */
+.tv-focused, .tv-focusable:focus {
+  outline: 4px solid #f59e0b !important; /* amber-500 */
+  outline-offset: 2px !important;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.95), 0 0 10px rgba(59, 130, 246, 0.5) !important;
+  transform: scale(1.06) !important;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out !important;
+  z-index: 99999 !important;
+  position: relative !important;
+}
+
+/* TV Mode Layout Optimizations (large scale viewport enhancements for 10-foot TV view distance) */
+.tv-mode-active {
+  font-size: 1.15rem !important;
+}
+
+.tv-mode-active h1 {
+  font-size: 2rem !important;
+}
+
+.tv-mode-active h2 {
+  font-size: 1.750rem !important;
+}
+
+.tv-mode-active h3 {
+  font-size: 1.4rem !important;
+}
+
+.tv-mode-active p, .tv-mode-active span, .tv-mode-active button, .tv-mode-active a {
+  font-size: 1.05rem !important;
+  line-height: 1.75rem !important;
+}
+
+.tv-mode-active .grid-cols-4, .tv-mode-active .grid-cols-5 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+@media (min-width: 1024px) {
+  .tv-mode-active .grid-cols-4, .tv-mode-active .grid-cols-5 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+.tv-mode-active .tv-focusable {
+  border-width: 2.5px !important;
+  padding: 1rem !important;
+}
+
+.tv-mode-active #channels-result-scroller {
+  max-h: 75vh !important;
+  gap: 1.25rem !important;
+}
+
+.tv-mode-active #channel-card-list, .tv-mode-active .container {
+  max-width: 95vw !important;
+}
+
+

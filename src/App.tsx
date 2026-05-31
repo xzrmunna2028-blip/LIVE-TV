@@ -50,6 +50,81 @@ const CATEGORIES: GroupCategory[] = [
 
 const Marquee = 'marquee' as any;
 
+const STATIC_FALLBACK_CHANNELS: Channel[] = [
+  {
+    id: "fb_tsports",
+    name: "T Sports Live HD",
+    url: "https://live.tsports.com/tsports/index.m3u8",
+    logo: "https://s3.aynaott.com/storage/dbc585f70a60b9855b6e13a8ce4cb6f4",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_gtv",
+    name: "GTV (Gazi TV) Live",
+    url: "https://live.gtvbd.com/gtvbd/index.m3u8",
+    logo: "https://s3.aynaott.com/storage/417a833f6d83021c99bfc3d4176610f4",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_somoy_tv",
+    name: "Somoy TV Live News",
+    url: "https://live.somoynews.tv/somonewslive/index.m3u8",
+    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png",
+    group: "News",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_jamuna_tv",
+    name: "Jamuna TV Live News",
+    url: "https://jamunapr.b-cdn.net/jamunatv/index.m3u8",
+    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560213832.png",
+    group: "News",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_channel24",
+    name: "Channel 24 Live News",
+    url: "https://live.channel24bd.tv/c24/index.m3u8",
+    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735556516924.png",
+    group: "News",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_btv_national",
+    name: "BTV National Live",
+    url: "https://live.btv.com.bd/btvnational/index.m3u8",
+    logo: "https://s3.aynaott.com/storage/9b6f35f73a099b7a5885a970523c5f78",
+    group: "Bangla",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_btv_world",
+    name: "BTV World Live",
+    url: "https://live.btv.com.bd/btvworld/index.m3u8",
+    logo: "https://s3.aynaott.com/storage/b30147b97d86754e4b97fc2989628391",
+    group: "Bangla",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_sangshad_tv",
+    name: "Sangshad TV Live",
+    url: "https://live.btv.com.bd/sangshadtv/index.m3u8",
+    logo: "https://s3.aynaott.com/storage/ffd7ba9b76ad555933f94bcb7ff26b44",
+    group: "Bangla",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  }
+];
+
 export default function App() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -114,7 +189,144 @@ export default function App() {
   } | null>(null);
 
   // Active Collapsible Live Chat Room Panel State
-  const [isChatOpen, setIsChatOpen] = useState<boolean>(true);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+
+  // TV remote control guide modal state
+  const [isTvGuideOpen, setIsTvGuideOpen] = useState<boolean>(false);
+
+  // States for universal Maintenance Mode loop and stage text
+  const [mtFakeProgress, setMtFakeProgress] = useState<number>(65);
+  const [mtStageText, setMtStageText] = useState<string>('রিসোর্স ফাইলের নির্ভরযোগ্যতা যাচাই করা হচ্ছে...');
+
+  // Loop maintenance progress and status text for realistic simulation
+  useEffect(() => {
+    if (!siteSettings.maintenanceMode) return;
+    
+    // Slow interval progress increment looping between 65% and 98%
+    const progressInterval = setInterval(() => {
+      setMtFakeProgress((prev) => {
+        if (prev >= 98) {
+          return 65;
+        }
+        return prev + Math.floor(Math.random() * 2) + 1;
+      });
+    }, 1800);
+
+    const stages = [
+      'সার্ভার কনফিগারেশন প্যারামিটার পুনরায় লোড করা হচ্ছে...',
+      'ডাটাবেস ক্যাশিং রেপ্লিকেশন টিউনিং করা হচ্ছে...',
+      'নিরাপত্তা প্যাচ ভ্যালিডিটি স্ক্যান করা হচ্ছে...',
+      'কন্টেন্ট ডেলিভারি নেটওয়ার্ক (CDN) প্রক্সি সিঙ্ক করা হচ্ছে...',
+      'টিভি চ্যানেল স্ট্রিমিং বিটরেট ইন্টিগ্রিটি চেক করা হচ্ছে...',
+      'প্রোফাইল ক্যাশে সার্ভার লোড ব্যালেন্সার সিঙ্কিং...',
+      'লাইভ সকেট মেমরি লিক প্রোফাইলিং সম্পাদন করা হচ্ছে...'
+    ];
+
+    const stageInterval = setInterval(() => {
+      const idx = Math.floor(Math.random() * stages.length);
+      setMtStageText(stages[idx]);
+    }, 4500);
+
+    return () => {
+      clearInterval(progressInterval);
+      clearInterval(stageInterval);
+    };
+  }, [siteSettings.maintenanceMode]);
+
+  // TV mode optimized toggle states
+  const [isTvModeOptimized, setIsTvModeOptimized] = useState<boolean>(() => {
+    const userAgent = navigator.userAgent || '';
+    const isTvUA = /SmartTV|HbbTV|GoogleTV|AppleTV|Android.*TV|Leanback|WebOS|DLNA|Tizen/i.test(userAgent);
+    return localStorage.getItem('bongo_tv_optimized_mode') === 'true' || isTvUA;
+  });
+
+  // Track TV mode optimization state persistency
+  useEffect(() => {
+    localStorage.setItem('bongo_tv_optimized_mode', isTvModeOptimized ? 'true' : 'false');
+  }, [isTvModeOptimized]);
+
+  // TV Remote Control Spatial/Keyboard Navigation Engine
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape', 'Backspace'];
+      if (!keys.includes(e.key)) return;
+
+      const activeEl = document.activeElement;
+      // Get all selectable tv-focusable controls currently visible on the DOM
+      const focusables = Array.from(document.querySelectorAll('.tv-focusable')) as HTMLElement[];
+      if (focusables.length === 0) return;
+
+      const index = focusables.indexOf(activeEl as HTMLElement);
+
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        if (index === -1) {
+          focusables[0].focus();
+          focusables[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        const currentRect = activeEl!.getBoundingClientRect();
+        const currentCenter = {
+          x: currentRect.left + currentRect.width / 2,
+          y: currentRect.top + currentRect.height / 2
+        };
+
+        let bestCandidate: HTMLElement | null = null;
+        let minScore = Infinity;
+
+        focusables.forEach((candidate) => {
+          if (candidate === activeEl) return;
+          const candidateRect = candidate.getBoundingClientRect();
+          const candidateCenter = {
+            x: candidateRect.left + candidateRect.width / 2,
+            y: candidateRect.top + candidateRect.height / 2
+          };
+
+          const dx = candidateCenter.x - currentCenter.x;
+          const dy = candidateCenter.y - currentCenter.y;
+
+          // Check if candidate lies in the correct spatial direction hemisphere
+          let isValidDirection = false;
+          if (e.key === 'ArrowRight' && dx > 5) isValidDirection = true;
+          if (e.key === 'ArrowLeft' && dx < -5) isValidDirection = true;
+          if (e.key === 'ArrowDown' && dy > 5) isValidDirection = true;
+          if (e.key === 'ArrowUp' && dy < -5) isValidDirection = true;
+
+          if (!isValidDirection) return;
+
+          // Calculate visual proximity distance-cost score
+          // We put a higher cost penalty on the perpendicular Axis
+          const primaryDist = e.key === 'ArrowRight' || e.key === 'ArrowLeft' ? Math.abs(dx) : Math.abs(dy);
+          const secondaryDist = e.key === 'ArrowRight' || e.key === 'ArrowLeft' ? Math.abs(dy) : Math.abs(dx);
+          const score = primaryDist + 3.0 * secondaryDist;
+
+          if (score < minScore) {
+            minScore = score;
+            bestCandidate = candidate;
+          }
+        });
+
+        if (bestCandidate) {
+          (bestCandidate as HTMLElement).focus();
+          (bestCandidate as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else if (e.key === 'Enter') {
+        const target = activeEl as HTMLElement;
+        if (target && target.classList.contains('tv-focusable')) {
+          e.preventDefault();
+          target.click();
+        }
+      } else if (e.key === 'Backspace' || e.key === 'Escape') {
+        // Safe modal and sidebar close handlers mapping back/exit physical buttons
+        setIsSidebarOpen(false);
+        setIsTvGuideOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Live Support Chat States
   const [isSupportModalOpen, setIsSupportModalOpen] = useState<boolean>(false);
@@ -349,7 +561,7 @@ export default function App() {
       setSiteNameBangla('ফ্রী ওয়ার্ল্ড কাপ বিডি');
     }
     fetchSiteSettings();
-    const intervalSettings = setInterval(fetchSiteSettings, 8000);
+    const intervalSettings = setInterval(fetchSiteSettings, 3000);
 
     const syncModerationAndData = async () => {
       try {
@@ -1310,6 +1522,16 @@ export default function App() {
     try {
       const url = forceRefresh ? '/api/channels?refresh=true' : '/api/channels';
       const res = await fetch(url);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP status ${res.status}`);
+      }
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Response is not valid JSON (non-JSON Content-Type)');
+      }
+
       const data = await res.json();
 
       if (data.success && Array.isArray(data.channels)) {
@@ -1350,7 +1572,12 @@ export default function App() {
           if (restoredCh) {
             setSelectedChannel(restoredCh);
           } else if (!selectedChannel) {
-            const firstVerified = activeList.find((c: Channel) => c.playlistSource.includes('Built-in')) || activeList[0];
+            // Priority: Find T Sports channel first
+            const tSportsChan = activeList.find((c: Channel) => {
+              const nameLower = c.name.toLowerCase();
+              return nameLower.includes('t sports') || nameLower.includes('tsports') || c.id.toLowerCase().includes('tsports');
+            });
+            const firstVerified = tSportsChan || activeList.find((c: Channel) => c.playlistSource && c.playlistSource.includes('Built-in')) || activeList[0];
             setSelectedChannel(firstVerified);
           }
         }
@@ -1358,7 +1585,43 @@ export default function App() {
         throw new Error(data.error || 'চ্যানেল ডেটা লোড করার সময় বিভ্রাট দেখা দিয়েছে।');
       }
     } catch (err: any) {
-      setError(err.message || 'সার্ভার থেকে লাইভ টিভি চ্যানেল লিস্ট পাওয়া যায়নি।');
+      console.warn('API error parsing/connecting. Gracefully falling back to STATIC_FALLBACK_CHANNELS for static deployments:', err);
+      
+      const uniqueChannels: Channel[] = STATIC_FALLBACK_CHANNELS;
+      
+      // Load custom channels from localStorage too
+      const savedCustomRaw = localStorage.getItem('site_custom_channels');
+      const customChs: Channel[] = savedCustomRaw ? JSON.parse(savedCustomRaw) : [];
+      
+      // Load custom playlists channels too if any exist
+      const savedPlaylistsRaw = localStorage.getItem('site_custom_playlists_channels');
+      const customPlaylistChs: Channel[] = savedPlaylistsRaw ? JSON.parse(savedPlaylistsRaw) : [];
+      
+      let mergedList = [...customChs, ...customPlaylistChs, ...uniqueChannels];
+      
+      // Filter out deleted channels as managed by the Owner Dashboard
+      const deletedIdsRaw = localStorage.getItem('site_deleted_channel_ids');
+      const deletedIds: string[] = deletedIdsRaw ? JSON.parse(deletedIdsRaw) : [];
+      
+      const activeList = mergedList.filter(c => !deletedIds.includes(c.id));
+      setChannels(activeList);
+      
+      // Restore selected channel from localStorage if present
+      if (activeList.length > 0) {
+        const savedChId = localStorage.getItem('bongo_selected_channel_id');
+        const restoredCh = activeList.find(c => c.id === savedChId);
+        if (restoredCh) {
+          setSelectedChannel(restoredCh);
+        } else if (!selectedChannel) {
+          // Priority: Find T Sports channel first
+          const tSportsChan = activeList.find((c: Channel) => {
+            const nameLower = c.name.toLowerCase();
+            return nameLower.includes('t sports') || nameLower.includes('tsports') || c.id.toLowerCase().includes('tsports');
+          });
+          const firstVerified = tSportsChan || activeList.find((c: Channel) => c.playlistSource && c.playlistSource.includes('Built-in')) || activeList[0];
+          setSelectedChannel(firstVerified);
+        }
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -1678,43 +1941,108 @@ export default function App() {
   // Global Immersive Closed/Maintenance Mode overlay (Bypasses Admin to allow them to toggle back to active)
   if (siteSettings.maintenanceMode && currentPage !== 'admin') {
     return (
-      <div id="immersive-maintenance-takeover" className="fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 md:p-8 bg-slate-950 text-slate-100 font-sans select-none overflow-hidden">
-        {/* Glow Effects */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-25 pointer-events-none" />
-        <div className="absolute top-[20%] left-[20%] w-[320px] h-[320px] bg-rose-500/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-[20%] right-[20%] w-[320px] h-[320px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+      <div id="immersive-maintenance-takeover" className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 md:p-8 bg-slate-950 text-slate-100 font-sans select-none overflow-y-auto max-h-screen ${isTvModeOptimized ? 'tv-mode-active' : ''}`}>
+        
+        {/* Deep Cosmic Gradient Mesh background that matches the TV Channels branding */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20 pointer-events-none" />
+        <div className="absolute top-[10%] left-[10%] w-[450px] h-[450px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+        <div className="absolute bottom-[10%] right-[10%] w-[450px] h-[450px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
 
-        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative z-10 text-center animate-fade-in flex flex-col gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto text-rose-450 animate-pulse animate-none">
-            <ShieldAlert className="w-8 h-8" />
+        <div className="max-w-xl w-full bg-slate-900/90 border border-slate-800 rounded-[32px] p-6 md:p-8 shadow-2xl relative z-10 text-center animate-fade-in flex flex-col gap-6 my-auto">
+          
+          {/* Circular Glowing Rotating Update Indicator */}
+          <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full border-4 border-slate-950" />
+            <div className="absolute inset-0 rounded-full border-4 border-t-amber-500 border-r-amber-500/35 border-b-transparent border-l-transparent animate-spin" />
+            <div className="w-14 h-14 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-amber-400">
+              <Tv className="w-6 h-6 animate-pulse text-amber-500" />
+            </div>
+            
+            <span className="absolute -bottom-2 right-1.5 px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[9px] font-black rounded-md leading-none shadow-sm">
+              {mtFakeProgress}%
+            </span>
           </div>
-          
-          <h2 className="text-lg md:text-xl font-black text-slate-100 tracking-tight leading-snug">সাময়িকভাবে আমাদের ওয়েবসাইট বন্ধ আছে</h2>
-          <p className="text-[10px] text-rose-400 font-sans font-extrabold tracking-widest uppercase">Maintenance Mode Active</p>
-          
-          <p className="text-xs text-slate-350 leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-850">
-            {siteSettings.maintenanceMessage || 'সাময়িকভাবে আমাদের ওয়েবসাইট এখন বন্ধ আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন, দ্রুতই আবার চালু করা হবে!'}
-          </p>
 
-          <p className="text-[11px] text-slate-400 leading-normal">
-            আমাদের অফিশিয়াল আপডেট ও কন্ডিশন জানতে সরাসরি টেলিগ্রাম চ্যানেলে জয়েন করুন।
-          </p>
+          <div>
+            <h2 className="text-xl md:text-2xl font-black text-slate-100 tracking-tight leading-snug">🛠️ সিস্টেম রক্ষণাবেক্ষণ ও আপগ্রেড চলছে</h2>
+            <p className="text-[10px] text-amber-400 font-sans font-extrabold tracking-widest uppercase mt-0.5">Global Maintenance Mode Active</p>
+          </div>
 
-          <a 
-            href={siteSettings.telegramUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-3 bg-gradient-to-r from-sky-505 to-sky-600 hover:from-sky-450 hover:to-sky-550 text-white font-extrabold text-xs rounded-xl cursor-pointer transition-all active:scale-95 text-center flex items-center justify-center gap-2 shadow-lg hover:shadow-sky-500/10"
-          >
-            <span>টেলিগ্রাম চ্যানেলে জয়েন করুন</span>
-            <ExternalLink className="w-3.5 h-3.5 text-white/80" />
-          </a>
+          {/* Looping Progress Bar (moves between 65% and 98%, never hits 100%) */}
+          <div className="bg-slate-950 border border-slate-850 p-4 rounded-2xl">
+            <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden p-0.5 border border-slate-800">
+              <div 
+                className="bg-gradient-to-r from-amber-500 via-yellow-450 to-amber-500 h-2 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${mtFakeProgress}%` }}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between text-[10px] mt-2.5 font-mono">
+              <span className="text-slate-400">রানিং আপডেট প্রগ্রেস: <strong className="text-amber-400">{mtFakeProgress}%</strong></span>
+              <span className="text-amber-500 font-extrabold uppercase tracking-wide">LOOP ACTIVE</span>
+            </div>
+
+            {/* Rolling automated updates stages info */}
+            <div className="mt-3 pt-2.5 border-t border-slate-900 text-left text-[10px] font-mono flex items-center gap-2 text-slate-400 min-h-[16px]">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+              <span className="truncate">{mtStageText}</span>
+            </div>
+          </div>
+
+          {/* Real-time Dynamic Admin Custom Notice MSG */}
+          <div className="text-left bg-slate-950/90 p-4 rounded-2xl border border-slate-850 shadow-inner">
+            <span className="text-[10px] font-black tracking-widest text-[#cf2b2b] uppercase block mb-1">📢 লাইভ নোটিশ আপডেট (Live Update):</span>
+            <p className="text-xs sm:text-sm text-slate-200 font-sans leading-relaxed">
+              {siteSettings.maintenanceMessage || 'সাময়িকভাবে আমাদের ওয়েবসাইট এখন বন্ধ আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন, দ্রুতই আবার চালু করা হবে!'}
+            </p>
+          </div>
+
+          {/* Bengali Smart/Android TV Remote Control Manual */}
+          <div className="bg-slate-950/65 border border-slate-900 rounded-2xl p-4 text-left">
+            <div className="flex items-center gap-2 text-indigo-400 font-extrabold text-xs mb-2">
+              <Tv className="w-4 h-4 text-indigo-400" />
+              <span>Smart TV রিমোট গাইড (User Manual)</span>
+            </div>
+            
+            <div className="text-[10px] text-slate-400 leading-relaxed font-sans flex flex-col gap-1.5">
+              <p>আপনি মাউস বা কিবোর্ড ছাড়াই আপনার টিভির হাতের রিমোট ব্যবহার করতে পারবেন:</p>
+              <ul className="list-disc pl-4 space-y-1 text-[10px]">
+                <li><strong className="text-amber-400">রিমোটের অ্যারো বাটন (Arrow Keys):</strong> রিমোটের **Up, Down, Left, Right** বাটন ব্যবহার করে যেকোনো বাটনের ওপর ফোকাস করতে পারবেন।</li>
+                <li><strong className="text-emerald-400">ওকে (OK / Enter):</strong> যেকোনো ফোকাসড বাটন অপশনে রিমোটের মাঝের গোল **OK বাটন** চাপলেই সাথে সাথে সিলেক্ট হবে।</li>
+                <li><strong className="text-sky-400">টিভি গাইড মোড:</strong> পুরো ওয়েবসাইটটি ১০ ফুট দূর থেকে সুন্দর দেখতে উপরে বা নিচে দেয়া টিভি মোড অপশনটি চালু করতে পারেন।</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Action buttons with full spatial navigation support */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+            <a 
+              href={siteSettings.telegramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              tabIndex={0}
+              className="w-full py-3 bg-indigo-950 border border-indigo-700/30 hover:bg-slate-850 hover:border-slate-800 text-indigo-400 hover:text-white font-extrabold text-xs rounded-xl cursor-pointer transition-all active:scale-95 text-center flex items-center justify-center gap-1.5 shadow-lg tv-focusable"
+            >
+              <span>টেলিগ্রাম চ্যানেলে জয়েন করুন</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            <button
+              onClick={() => setIsTvGuideOpen(true)}
+              tabIndex={0}
+              className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl cursor-pointer transition-all active:scale-95 text-center flex items-center justify-center gap-1.5 shadow tv-focusable"
+            >
+              <Tv className="w-3.5 h-3.5 text-slate-950" />
+              <span>রিমোট কন্ট্রোল ব্যবহারবিধি</span>
+            </button>
+          </div>
 
           {/* Hidden Admin Login Gateway trigger - double click to escape maintenance lock */}
-          <div className="mt-4 pt-3 border-t border-slate-850/40">
+          <div className="pt-3 border-t border-slate-900">
             <button 
               onClick={() => setCurrentPage('admin')}
-              className="text-[9px] text-slate-600 hover:text-slate-500 uppercase tracking-widest font-mono cursor-pointer transition-colors"
+              tabIndex={0}
+              className="text-[9px] text-slate-600 hover:text-slate-400 uppercase tracking-widest font-mono cursor-pointer transition-colors tv-focusable px-3 py-1 bg-slate-950/20 rounded hover:bg-slate-950"
             >
               System Admin Gateway Entry
             </button>
@@ -3184,25 +3512,75 @@ export default function App() {
                     </button>
                   </div>
 
-                  {/* Simulated force takeover button */}
-                  <div className="p-3 bg-slate-950 border border-slate-855 rounded-xl flex flex-col justify-between">
+                  {/* Real-time Global Maintenance Mode Control Panel */}
+                  <div className="p-4 bg-slate-950 border border-slate-850 rounded-2xl flex flex-col justify-between gap-3">
                     <div>
-                      <span className="text-xs font-extrabold text-slate-350 block">২. জবরদস্তিমূলক রক্ষণাবেক্ষণ ওভারলে</span>
-                      <span className="text-[10px] text-slate-500 font-sans block mt-1 leading-relaxed text-slate-404">
-                        যখন আপনি সার্ভারে কাজ করবেন, তখন এটি অন করলে কোনো চ্যানেল ভিজিটর দেখতে পারবে না। সরাসরি ইমার্সিভ ব্ল্যাকআউট আপডেট ইন্সটলার স্ক্রিন চালু হবে।
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-rose-400 uppercase tracking-widest flex items-center gap-1.5 font-sans">
+                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                          ২. গলোবাল রক্ষণাবেক্ষণ লকডাউন
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded leading-none transition-colors
+                          ${siteSettings.maintenanceMode 
+                            ? 'bg-rose-550/15 text-rose-455 border border-rose-500/30 font-extrabold' 
+                            : 'bg-slate-900 text-slate-450 border border-slate-800'
+                          }
+                        `}>
+                          {siteSettings.maintenanceMode ? 'লকডাউন অন (ON)' : 'সাইট রানিং (OFF)'}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-450 font-sans block mt-1.5 leading-relaxed">
+                        এটি অন করলে পুরো ওয়েবসাইট অফলাইন লকডাউন হয়ে যাবে। সকল মোবাইল, ডেস্কটপ ও অ্যান্ড্রয়েড টিভি ইউজাররা একটি রিয়েল-টাইম প্রোগ্রেস বার (লোপিং ৬৫%-৯৮%) ও কাস্টম নোটিশ দেখতে পারবে।
                       </span>
                     </div>
-                    <button
-                      onClick={() => {
-                        setIsUpdating(true);
-                        setUpdateProgress(0);
-                        setIsUpdateCompleted(false);
-                        setUpdateStageText('Initializing APK repository connection...');
-                      }}
-                      className="mt-3 w-full py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/25 rounded text-[11px] font-black tracking-wide cursor-pointer transition-all text-center"
-                    >
-                      🚀 জবরদস্তিমূলক ইভেন্ট (Live Countdown Overlay)
-                    </button>
+
+                    <div className="flex flex-col gap-2.5 mt-1.5">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const nextMode = !siteSettings.maintenanceMode;
+                          const ok = await saveSiteSettings({ maintenanceMode: nextMode });
+                          if (ok) {
+                            alert(`রক্ষণাবেক্ষণ মোড সফলভাবে ${nextMode ? 'অন (Active)' : 'অফ (Inactive)'} করা হয়েছে! এটি ৩ সেকেন্ডের মাঝে রিয়েল-টাইমে গ্রাহকের স্ক্রিনে রিফ্রেশ ছাড়াই কাজ করা শুরু করবে।`);
+                          }
+                        }}
+                        className={`w-full py-2 px-3 rounded text-[11px] font-black tracking-wide cursor-pointer transition-all text-center flex items-center justify-center gap-1.5
+                          ${siteSettings.maintenanceMode 
+                            ? 'bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-450 hover:to-rose-550 text-white shadow-lg font-extrabold' 
+                            : 'bg-indigo-950 hover:bg-indigo-900 border border-indigo-800/40 text-indigo-400 font-extrabold'}
+                        `}
+                      >
+                        <Tv className="w-3.5 h-3.5" />
+                        <span>{siteSettings.maintenanceMode ? '🔴 রক্ষণাবেক্ষণ মোড বন্ধ করুন (Restore Site)' : '🟢 রক্ষণাবেক্ষণ মোড চালু করুন (Lockdown)'}</span>
+                      </button>
+
+                      <div className="border-t border-slate-900 pt-2.5">
+                        <label className="text-[9px] font-bold uppercase text-slate-400 block mb-1">রক্ষণাবেক্ষণ নোটিশ বার্তা (Custom Notice Msg)</label>
+                        <textarea
+                          id="admin-maintenance-msg-input-1"
+                          defaultValue={siteSettings.maintenanceMessage || ''}
+                          rows={3}
+                          className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500 resize-none leading-relaxed font-sans"
+                          placeholder="যেমন: আমাদের সিস্টেম সার্ভার আপডেট চলছে। দ্রুতই পুনরায় ফিরে আসছি..."
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const textarea = document.getElementById('admin-maintenance-msg-input-1') as HTMLTextAreaElement;
+                            if (textarea) {
+                              const ok = await saveSiteSettings({ maintenanceMessage: textarea.value.trim() });
+                              if (ok) {
+                                alert('রক্ষণাবেক্ষণ নোটিশ বার্তাটি সফলভাবে রিয়েল-টাইমে আপডেট করা হয়েছে!');
+                              }
+                            }
+                          }}
+                          className="mt-1.5 w-full py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1"
+                        >
+                          <Sparkles className="w-3 h-3 text-slate-950" />
+                          <span>বার্তা সংরক্ষণ ও লাইভ প্রচার করুন (Update Message)</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -3307,7 +3685,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans transition-all selection:bg-sky-500/30 selection:text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-slate-950 to-slate-950 overflow-x-hidden max-w-full w-full">
+    <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans transition-all selection:bg-sky-500/30 selection:text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-slate-950 to-slate-950 overflow-x-hidden max-w-full w-full ${isTvModeOptimized ? 'tv-mode-active' : ''}`}>
       
       {/* Decorative Grid Mesh overlay to retain aesthetic cohesion */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-15 pointer-events-none" />
@@ -3338,13 +3716,11 @@ export default function App() {
 
             <div className="flex items-center gap-1.5 sm:gap-2 select-none shrink-0">
               <FreeWorldCupBDLogo className="w-7.5 h-7.5 sm:w-10 sm:h-10 hover:scale-105 transition-transform shrink-0" />
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <h1 className="text-2xs xs:text-xs sm:text-sm font-extrabold text-slate-100 tracking-tight leading-none bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent truncate max-w-[70px] xs:max-w-[100px] sm:max-w-[165px] md:max-w-[200px]">
-                    {siteNameEnglish}
-                  </h1>
-                </div>
-                <p className="text-[7.5px] xs:text-[8px] sm:text-[8.5px] text-slate-450 font-sans tracking-tight truncate max-w-[65px] xs:max-w-[95px] sm:max-w-[155px] md:max-w-[200px]" title={siteNameBangla}>
+              <div className="flex flex-col justify-center">
+                <h1 className="text-[10px] xs:text-xs sm:text-sm font-extrabold text-slate-100 tracking-tight leading-none bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
+                  {siteNameEnglish}
+                </h1>
+                <p className="text-[8px] xs:text-[9px] sm:text-[10px] text-slate-400 font-sans tracking-tight leading-tight mt-0.5" title={siteNameBangla}>
                   {siteNameBangla}
                 </p>
               </div>
@@ -3441,6 +3817,36 @@ export default function App() {
                 </span>
               </button>
             )}
+
+            {/* TV Mode Layout scaler button */}
+            <button
+              id="btn-header-tv-scale-toggle"
+              onClick={() => setIsTvModeOptimized(prev => !prev)}
+              tabIndex={0}
+              title="টিভি মোড স্কেলিং টগল করুন"
+              className={`flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 border rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 tv-focusable
+                ${isTvModeOptimized 
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 font-extrabold shadow-md' 
+                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-705'
+                }
+              `}
+            >
+              <Monitor className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden sm:inline">TV Mode: {isTvModeOptimized ? 'ON' : 'OFF'}</span>
+              <span className="sm:hidden text-[9px]">TV Mode</span>
+            </button>
+
+            {/* Smart TV Remote Control Instruction Help Button */}
+            <button
+               id="btn-header-tv-guide-trigger"
+               onClick={() => setIsTvGuideOpen(true)}
+               tabIndex={0}
+               title="স্মার্ট টিভি ও অ্যানড্রয়েড টিভি রিমোট কন্ট্রোল ব্যবহারবিধি"
+               className="flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 bg-indigo-950/85 border border-indigo-550/40 hover:bg-slate-850 text-[10px] sm:text-xs font-bold text-indigo-400 hover:text-white rounded-lg transition-all shadow-md cursor-pointer active:scale-95 shrink-0 tv-focusable"
+            >
+              <Tv className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              <span>TV রিমোট গাইড</span>
+            </button>
 
             <button
                id="btn-header-refresh-playlist"
@@ -3944,6 +4350,45 @@ export default function App() {
                       {rememberLast ? 'ON' : 'OFF'}
                     </span>
                   </div>
+
+                  {/* Smart TV Mode Toggle */}
+                  <div
+                    onClick={() => setIsTvModeOptimized(prev => !prev)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/40 hover:bg-slate-900/80 border border-slate-900 hover:border-slate-800 transition-all cursor-pointer group text-left tv-focusable"
+                    tabIndex={0}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Monitor className={`w-4 h-4 ${isTvModeOptimized ? 'text-amber-400 animate-pulse' : 'text-slate-400'}`} />
+                      <span className="text-xs font-extrabold text-slate-200 group-hover:text-white transition-colors font-sans">
+                        টিভি অপ্টিমাইজড মোড (TV Scale)
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded
+                      ${isTvModeOptimized ? 'text-amber-400 bg-amber-500/15 border border-amber-500/20' : 'text-slate-400 bg-slate-900'}
+                    `}>
+                      {isTvModeOptimized ? 'ON' : 'OFF'}
+                    </span>
+                  </div>
+
+                  {/* Smart TV / Android TV Guide Button */}
+                  <button
+                    onClick={() => {
+                      setIsTvGuideOpen(true);
+                      setIsSidebarOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/40 hover:bg-amber-500/10 border border-slate-900 hover:border-amber-500/30 transition-all cursor-pointer group text-left tv-focusable"
+                    tabIndex={0}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Tv className="w-4 h-4 text-amber-500 animate-pulse" />
+                      <span className="text-xs font-extrabold text-slate-200 group-hover:text-amber-400 transition-colors font-sans">
+                        টিভি রিমোট গাইড (TV Guide)
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-black text-slate-950 bg-amber-400 px-2 py-0.5 rounded shadow-sm">
+                      INFO
+                    </span>
+                  </button>
                 </div>
 
                 {/* 3. COMMUNICATE CATEGORY */}
@@ -4158,6 +4603,78 @@ export default function App() {
                   className="px-5 py-2 bg-teal-600 hover:bg-teal-505 text-white text-xs font-extrabold rounded-xl transition-colors cursor-pointer active:scale-95 shadow"
                 >
                   সম্মত আছি
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 📺 SMART TV / ANDROID TV BENGALI USAGE GUIDE MODAL */}
+      <AnimatePresence>
+        {isTvGuideOpen && (
+          <div className="fixed inset-0 z-[10005] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm select-none">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative text-left overflow-y-auto max-h-[90vh]"
+            >
+              <button 
+                onClick={() => setIsTvGuideOpen(false)}
+                className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer transition-colors tv-focusable"
+                tabIndex={0}
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4 text-amber-500">
+                <Tv className="w-6 h-6 animate-bounce" />
+              </div>
+
+              <h3 className="text-lg font-black text-slate-100 tracking-tight leading-none">Smart TV ও Android TV ব্যবহার গাইড 📺</h3>
+              <p className="text-[10px] text-amber-400 font-extrabold uppercase mt-1.5 tracking-wider font-sans">Complete Spatial Navigation Guide in Bengali</p>
+              
+              <div className="text-xs sm:text-sm text-slate-350 mt-5 leading-relaxed font-sans flex flex-col gap-4">
+                <p>
+                  আমাদের ওয়েবসাইটটি এখন সম্পূর্ণভাবে **স্মার্ট টিভি (Samsung Tizen, LG WebOS)** এবং **অ্যান্ড্রয়েড টিম টিভি (Android TV / Google TV)** এর জন্য শতভাগ অপ্টিমাইজ করা হয়েছে। আপনি কোনো মাউস বা কিবোর্ড ছাড়াই শুধুমাত্র আপনার টিভির হাতের রিমোট ব্যবহার করে সম্পূর্ণ ওয়েবসাইটটি ও প্লেয়ার নিয়ন্ত্রণ করতে পারবেন।
+                </p>
+
+                {/* Grid of keys operations */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-2">
+                  <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl">
+                    <span className="text-xs font-bold text-amber-400 block mb-1">🎯 রিমোটের অ্যারো বাটন (Arrow Keys):</span>
+                    <span className="text-[11px] text-slate-400">রিমোটের **Up, Down, Left, Right** বাটন ব্যবহার করে এক বাটন থেকে অন্য বাটনে বা এক চ্যানেল থেকে অন্য চ্যানেলে চমৎকারভাবে ফোকাস করতে পারবেন। ফোকাসড উপাদানটির চারপাশে উজ্জ্বল হলুদ বর্ডার দেখা যাবে।</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl">
+                    <span className="text-xs font-bold text-emerald-400 block mb-1">🔘 ওকে / এন্টার বাটন (OK / Enter):</span>
+                    <span className="text-[11px] text-slate-400">যেকোনো ফোকাসড চ্যানেল বা ভিডিও প্লেয়ার বাটনের ওপর থাকাকালীন রিমোটের মাঝের গোল **OK/Enter** বাটন প্রেস করলেই সেটি সাথে সাথে চালু হয়ে যাবে।</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl">
+                    <span className="text-xs font-bold text-sky-400 block mb-1">🔍 টিভি স্কেলিং বাটন (TV Scale Mode):</span>
+                    <span className="text-[11px] text-slate-400">হেডারের **"TV Mode"** বাটনটি অন করলে ১০ ফুট দূর থেকে টিভির উজ্জ্বল স্ক্রিনে দেখার সুবিধার্থে ফন্ট সাইজ এবং চ্যানেল গ্রিড চমৎকারভাবে বড় হয়ে অপ্টিমাইজড হয়ে যাবে।</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl">
+                    <span className="text-xs font-bold text-pink-400 block mb-1">🔙 ব্যাক / এস্কেপ বাটন (Back / Go Back):</span>
+                    <span className="text-[11px] text-slate-400">যেকোনো খোলা মেনু বা গাইড বন্ধ করতে আপনার রিমোটের **Back** বা **Escape** বাটন চাপুন। প্লেয়ার ফুলস্ক্রিন থেকে সাধারণ মোডে ফিরতেও এটি কাজ করবে।</span>
+                  </div>
+                </div>
+
+                <div className="border-l-3 border-amber-500 pl-4 py-1 text-[11px] sm:text-xs text-amber-400/90 bg-amber-500/5 rounded-r-xl">
+                  <strong>💡 প্রো-টিপস:</strong> কোনো চ্যানেল বাফারিং করলে বা লোড না হলে স্ক্রিনের রিলোড বাটন বা রিমোট দিয়ে প্লেয়ারের ভেতরের রিলোড বাটনে ফোকাস করে এন্টার চাপুন। তাছাড়া আপনার টিভির ব্রাউজারটি সবসময় আপডেট রাখুন।
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-end">
+                <button
+                  onClick={() => setIsTvGuideOpen(false)}
+                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold rounded-xl transition-all cursor-pointer active:scale-95 shadow font-sans tv-focusable"
+                  tabIndex={0}
+                >
+                  বুঝতে পেরেছি, বন্ধ করুন
                 </button>
               </div>
             </motion.div>
@@ -4441,32 +4958,98 @@ export default function App() {
                           placeholder="স্ট্রিম লিংক (.m3u8, .mpd, mp4 link)"
                           className="bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none placeholder-slate-500"
                         />
-                        <input
-                          name="ch_logo"
-                          type="text"
-                          placeholder="লোগো ছবি লিংক (Optional logo URL)"
-                          className="bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none placeholder-slate-500"
-                        />
-                        <div className="flex gap-1">
-                          <select
-                            name="ch_group"
-                            className="bg-slate-900 border border-slate-805 rounded p-2 text-xs text-slate-205 focus:outline-none flex-1"
-                          >
-                            <option value="Sports">Sports (খেলাধুলা)</option>
-                            <option value="Cricket">Cricket Feed</option>
-                            <option value="Bangla">Bangla TV</option>
-                            <option value="Entertainment">বিনোদন</option>
-                            <option value="News">সংবাদ</option>
-                          </select>
+                                       {/* Real-time Global Maintenance Mode Control Panel */}
+
+
+                      <div className="flex flex-col gap-2.5 mt-1.5">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const nextMode = !siteSettings.maintenanceMode;
+                            const ok = await saveSiteSettings({ maintenanceMode: nextMode });
+                            if (ok) {
+                              alert(`রক্ষণাবেক্ষণ মোড সফলভাবে ${nextMode ? 'অন (Active)' : 'অফ (Inactive)'} করা হয়েছে! এটি ৩ সেকেন্ডের মাঝে রিয়েল-টাইমে গ্রাহকের স্ক্রিনে রিফ্রেশ ছাড়াই কাজ করা শুরু করবে।`);
+                            }
+                          }}
+                          className={`w-full py-2 px-3 rounded text-[11px] font-black tracking-wide cursor-pointer transition-all text-center flex items-center justify-center gap-1.5
+                            ${siteSettings.maintenanceMode 
+                              ? 'bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-450 hover:to-rose-550 text-white shadow-lg font-extrabold' 
+                              : 'bg-indigo-950 hover:bg-indigo-900 border border-indigo-800/40 text-indigo-400 font-extrabold'}
+                          `}
+                        >
+                          <Tv className="w-3.5 h-3.5" />
+                          <span>{siteSettings.maintenanceMode ? '🔴 রক্ষণাবেক্ষণ মোড বন্ধ করুন (Restore Site)' : '🟢 রক্ষণাবেক্ষণ মোড চালু করুন (Lockdown)'}</span>
+   
+                    <div className="p-4 bg-slate-950 border border-slate-850 rounded-2xl flex flex-col justify-between gap-3">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-rose-400 uppercase tracking-widest flex items-center gap-1.5 font-sans">
+                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                            ২. গলোবাল রক্ষণাবেক্ষণ লকডাউন
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded leading-none transition-colors
+                            ${siteSettings.maintenanceMode 
+                              ? 'bg-rose-550/15 text-rose-455 border border-rose-500/30' 
+                              : 'bg-slate-900 text-slate-450 border border-slate-800'
+                            }
+                          `}>
+                            {siteSettings.maintenanceMode ? 'লকডাউন অন (ON)' : 'সাইট রানিং (OFF)'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-450 font-sans block mt-1.5 leading-relaxed">
+                          এটি অন করলে পুরো ওয়েবসাইট অফলাইন লকডাউন হয়ে যাবে। সকল মোবাইল, ডেস্কটপ ও অ্যান্ড্রয়েড টিভি ইউজাররা একটি রিয়েল-টাইম প্রোগ্রেস বার (লোপিং ৬৫%-৯৮%) ও কাস্টম নোটিশ দেখতে পারবে।
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col gap-2.5 mt-1.5">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const nextMode = !siteSettings.maintenanceMode;
+                            const ok = await saveSiteSettings({ maintenanceMode: nextMode });
+                            if (ok) {
+                              alert(`রক্ষণাবেক্ষণ মোড সফলভাবে ${nextMode ? 'অন (Active)' : 'অফ (Inactive)'} করা হয়েছে! এটি ৩ সেকেন্ডের মাঝে রিয়েল-টাইমে গ্রাহকের স্ক্রিনে রিফ্রেশ ছাড়াই কাজ করা শুরু করবে।`);
+                            }
+                          }}
+                          className={`w-full py-2 px-3 rounded text-[11px] font-black tracking-wide cursor-pointer transition-all text-center flex items-center justify-center gap-1.5
+                            ${siteSettings.maintenanceMode 
+                              ? 'bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-450 hover:to-rose-550 text-white shadow-lg font-extrabold' 
+                              : 'bg-indigo-950 hover:bg-indigo-900 border border-indigo-800/40 text-indigo-400 font-extrabold'}
+                          `}
+                        >
+                          <Tv className="w-3.5 h-3.5" />
+                          <span>{siteSettings.maintenanceMode ? '🔴 রক্ষণাবেক্ষণ মোড বন্ধ করুন (Restore Site)' : '🟢 রক্ষণাবেক্ষণ মোড চালু করুন (Lockdown)'}</span>
+                        </button>
+
+                        <div className="border-t border-slate-900 pt-2.5">
+                          <label className="text-[9px] font-bold uppercase text-slate-400 block mb-1">রক্ষণাবেক্ষণ নোটিশ বার্তা (Custom Notice Msg)</label>
+                          <textarea
+                            id="admin-maintenance-msg-input-2"
+                            defaultValue={siteSettings.maintenanceMessage || ''}
+                            rows={3}
+                            className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500 resize-none leading-relaxed font-sans"
+                            placeholder="যেমন: আমাদের সিস্টেম সার্ভার আপডেট চলছে। দ্রুতই পুনরায় ফিরে আসছি..."
+                          />
                           <button
-                            type="submit"
-                            className="bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-[11px] px-3 py-2 rounded transition-all cursor-pointer shrink-0"
+                            type="button"
+                            onClick={async () => {
+                              const textarea = document.getElementById('admin-maintenance-msg-input-2') as HTMLTextAreaElement;
+                              if (textarea) {
+                                const ok = await saveSiteSettings({ maintenanceMessage: textarea.value.trim() });
+                                if (ok) {
+                                  alert('রক্ষণাবেক্ষণ নোটিশ বার্তাটি সফলভাবে রিয়েল-টাইমে আপডেট করা হয়েছে!');
+                                }
+                              }
+                            }}
+                            className="mt-1.5 w-full py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1"
                           >
-                            যোগ করুন ➕
+                            <Sparkles className="w-3 h-3 text-slate-950" />
+                            <span>বার্তা সংরক্ষণ ও লাইভ প্রচার করুন (Update Message)</span>
                           </button>
                         </div>
                       </div>
-                    </form>
+                    </div>
+                  </form>
                   </div>
 
                   {/* Active TV channels List */}
@@ -4911,6 +5494,127 @@ export default function App() {
             currentUser={currentUser}
             isInline={false}
           />
+
+          {/* Floating TV Guide Sidebar Option on the Right edge */}
+          {isLoggedIn && (
+            <button
+              onClick={() => setIsTvGuideOpen(true)}
+              className="fixed right-0 top-1/2 transform -translate-y-1/2 z-40 bg-gradient-to-l from-amber-600 to-amber-500 hover:from-amber-550 hover:to-amber-450 border-l border-t border-b border-amber-450 text-slate-950 font-black text-[11px] py-3.5 px-2 rounded-l-2xl shadow-xl flex flex-col items-center gap-2.5 transition-all duration-300 hover:pr-4 cursor-pointer hover:scale-103 active:scale-95 tv-focusable"
+              title="স্মার্ট টিভি ও রিমোট কন্ট্রোল গাইড"
+              tabIndex={0}
+            >
+              <Tv className="w-5 h-5 text-slate-950 shrink-0 animate-bounce" />
+              <span className="writing-vertical tracking-widest font-extrabold uppercase [writing-mode:vertical-lr] font-sans">টিভি গাইড</span>
+            </button>
+          )}
+
+          {/* SMART TV AND ANDROID TV CONTROL BENGALI DETAILED GUIDE MODAL */}
+          <AnimatePresence>
+            {isTvGuideOpen && (
+              <div 
+                id="tv-control-guide-modal"
+                className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md overflow-hidden font-sans"
+                onClick={() => setIsTvGuideOpen(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.92, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.92, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-slate-900 border border-slate-800 rounded-3xl p-5 md:p-6 w-full max-w-lg flex flex-col gap-4 text-slate-200 shadow-2xl relative max-h-[90vh] overflow-y-auto"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/25">
+                        <Tv className="w-5.5 h-5.5 text-amber-500 animate-pulse" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm sm:text-base font-black text-amber-400 font-sans">স্মার্ট টিভি ও এন্ড্রয়েড টিভি গাইড</h3>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-sans">রিমোট ও কী-বোর্ড দিয়ে সহজে ব্যবহারের সহজ পদ্ধতি</p>
+                      </div>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setIsTvGuideOpen(false)}
+                      className="w-8 h-8 rounded-lg bg-slate-950/80 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Guide Contents */}
+                  <div className="flex flex-col gap-4 py-1 text-left">
+                    
+                    {/* Visual Step 1 */}
+                    <div className="p-3 bg-slate-950/60 border border-slate-850 rounded-xl flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/30 text-[10px] font-black text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+                        ১
+                      </span>
+                      <div>
+                        <h4 className="text-[12px] font-extrabold text-slate-200 uppercase tracking-wide font-sans">১. রিমোট কন্ট্রোল দিয়ে নড়াচড়া (D-Pad Navigation)</h4>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed font-sans">
+                          আপনার টিভি রিমোটের **Arrow Keys** (Left, Right, Up, Down) বাটনগুলো চেপে আপনি সরাসরি ক্যাটাগরি, চ্যানেল এবং প্লেয়ার স্ক্রিনের বাটনগুলোর ওপর ফোকাস সরাতে পারবেন।
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Visual Step 2 */}
+                    <div className="p-3 bg-slate-950/60 border border-slate-850 rounded-xl flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/30 text-[10px] font-black text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+                        ২
+                      </span>
+                      <div>
+                        <h4 className="text-[12px] font-extrabold text-slate-200 uppercase tracking-wide font-sans">২. চ্যানেল প্লে ও অ্যাকশন (OK / Enter Key)</h4>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed font-sans">
+                          ছবির ওপরে বা কোনো বাটনের ওপর গোল্ডেন বর্ডার ফোরামের মতো ফোকাস দেখা গেলে রিমোটের **OK** অথবা **Enter** বাটনটি চাপুন। এর ফলে সরাসরি চ্যানেলটি চালু হবে অথবা প্লেয়ারের সাবটাইটেল, প্লে-বিরতি বা কোয়ালিটি কন্ট্রোলস ট্রিগার হবে।
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Visual Step 3 */}
+                    <div className="p-3 bg-slate-950/60 border border-slate-850 rounded-xl flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/30 text-[10px] font-black text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+                        ৩
+                      </span>
+                      <div>
+                        <h4 className="text-[12px] font-extrabold text-slate-200 uppercase tracking-wide font-sans">৩. পেছনে ফিরুন (Back / Backspace Key)</h4>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed font-sans">
+                          কোনো মেনু, সাইডবার অথবা টিভি গাইড বন্ধ করে মূল প্লেয়ারে ফিরে আসতে রিমোটের **Back** বা **Backspace / Escape** বাটনটি চাপলে সাথে সাথে সেটি বন্ধ হয়ে যাবে।
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Visual Step 4 - Mobile Pairing */}
+                    <div className="p-3 bg-emerald-950/20 border border-emerald-900/40 rounded-xl flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                        ৪
+                      </span>
+                      <div>
+                        <h4 className="text-[12px] font-extrabold text-emerald-350 uppercase tracking-wide font-sans">৪. স্মার্ট কাস্টিং ও মোবাইল কন্ট্রোল (TV Cast)</h4>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed font-sans">
+                          আপনি চাইলে প্লেয়ারের অধীনে থাকা হলুদ রঙের **"TV Cast"** বাটন ট্যাপ করে আপনার এন্ড্রয়েড ফোন বা আইফোনকে একটি উন্নত রিমোট রিসিভারে রূপান্তর করতে পারেন।
+                        </p>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Close footer */}
+                  <div className="border-t border-slate-850 pt-3.5 flex items-center justify-end select-none">
+                    <button
+                      type="button"
+                      onClick={() => setIsTvGuideOpen(false)}
+                      className="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-slate-950 font-black text-xs rounded-xl shadow-lg active:scale-95 transition-all cursor-pointer font-sans"
+                    >
+                      গাইড বন্ধ করুন
+                    </button>
+                  </div>
+
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </div>
