@@ -14,6 +14,7 @@ import http from 'http';
 import { URL } from 'url';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
+import net from 'net';
 
 // Initialize the secure-level server side Gemini API Client with safe fallback
 const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyAANQhCoBEGY8QwAPMv3nfGyKwNJW3wabA';
@@ -162,6 +163,7 @@ interface Channel {
   group: string;
   playlistSource: string;
   status: 'online' | 'offline' | 'unknown';
+  servers?: { name: string; url: string }[];
 }
 
 const app = express();
@@ -172,6 +174,15 @@ app.use(express.json());
 
 // Built-in stream feeds to fetch and parse
 const BUILTIN_STREAM_FEEDS = [
+  {
+    name: 'Obiram TV Live Stream Feed',
+    url: 'https://playlist.emonsa4.workers.dev/playlist.m3u',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Referer': 'https://obiramtvlive.pages.dev/',
+      'Origin': 'https://obiramtvlive.pages.dev'
+    }
+  },
   {
     name: 'Global Stream Feed Redirection',
     url: 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8'
@@ -210,63 +221,100 @@ function sanitizeChannelName(name: string): string {
     .replace(/\s+/g, ' ')     // Normalize whitespaces
     .trim();
 
+  // If the string contains Bengali script, resolve it to canonical English equivalent
+  if (/[\u0980-\u09ff]/.test(cleaned)) {
+    const LowerName = cleaned.toLowerCase();
+    if (LowerName.includes('সময়') || LowerName.includes('সময়')) return 'Somoy TV';
+    if (LowerName.includes('যমুনা')) return 'Jamuna TV';
+    if (LowerName.includes('গাজী') || LowerName.includes('জিটিভি')) return 'GTV';
+    if (LowerName.includes('ইন্ডিপেন্ডেন্ট') || LowerName.includes('ইনডিপেনডেন্ট')) return 'Independent TV';
+    if (LowerName.includes('২৪') || LowerName.includes('24')) return 'Channel 24';
+    if (LowerName.includes('টি স্পোর্টস') || LowerName.includes('টি-স্পোর্টস') || LowerName.includes('স্পোর্টস')) return 'T Sports';
+    if (LowerName.includes('একাত্তর')) return 'Ekattor TV';
+    if (LowerName.includes('এনটিভি') || LowerName.includes('এন টিভি')) return 'NTV';
+    if (LowerName.includes('আরটিভি') || LowerName.includes('আর টিভি')) return 'RTV';
+    if (LowerName.includes('বিটিভি') || LowerName.includes('বাংলাদেশ টেলিভিশন')) {
+      if (LowerName.includes('ওয়ার্ল্ড') || LowerName.includes('ওয়ার্ল্ড') || LowerName.includes('world')) return 'BTV World';
+      if (LowerName.includes('সংসদ') || LowerName.includes('সংদদ')) return 'Sangshad TV';
+      return 'BTV National';
+    }
+    if (LowerName.includes('চ্যানেল আই') || LowerName.includes('চ্যানেল-আই')) return 'Channel i';
+    if (LowerName.includes('দীপ্ত')) return 'Deepto TV';
+    if (LowerName.includes('মাছরাঙা') || LowerName.includes('মাছরাঙ্গা')) return 'Maasranga TV';
+    if (LowerName.includes('একুশে')) return 'Ekushey TV';
+    if (LowerName.includes('এটিএন নিউজ')) return 'ATN News';
+    if (LowerName.includes('এটিএন বাংলা')) return 'ATN Bangla';
+    if (LowerName.includes('জি বাংলা') || LowerName.includes('জি-বাংলা')) return 'Zee Bangla';
+    if (LowerName.includes('স্টার জলসা') || LowerName.includes('জলসা')) return 'Star Jalsha';
+    if (LowerName.includes('রংধনু')) return 'Rangdhanu TV';
+    if (LowerName.includes('দুরন্ত')) return 'Duronto TV';
+    if (LowerName.includes('নাগরিক')) return 'Nagorik TV';
+    if (LowerName.includes('দেশ')) return 'Desh TV';
+  }
+
   // Normalize common duplicate channel display names
   const upper = cleaned.toUpperCase().trim();
-  if (upper === 'SOMOY TV' || upper === 'SOMOY NEWS TV' || upper === 'SOMOY NEWS' || upper === 'SOMOY' || upper === 'SOMOY NEWS LIVE') {
+  if (upper.includes('SOMOY') || upper.includes('SHOMOY')) {
     return 'Somoy TV';
   }
-  if (upper === 'JAMUNA TV' || upper === 'JAMUNA NEWS' || upper === 'JAMUNA' || upper === 'JAMUNA NEWS LIVE') {
+  if (upper.includes('JAMUNA')) {
     return 'Jamuna TV';
   }
-  if (upper === 'GAZI TV' || upper === 'GTV' || upper === 'GTV HD' || upper === 'GAZI TV HD' || upper === 'GAZI') {
+  if (upper.includes('GAZI TV') || upper.includes('GTV') || upper === 'GAZI') {
     return 'GTV';
   }
-  if (upper === 'INDEPENDENT' || upper === 'INDEPENDENT TV') {
+  if (upper.includes('INDEPENDENT')) {
     return 'Independent TV';
   }
-  if (upper === 'CHANNEL 24' || upper === 'CHANNEL 24 HD' || upper === 'CHANNEL24') {
+  if (upper.includes('CHANNEL 24') || upper.includes('CHANNEL24')) {
     return 'Channel 24';
   }
-  if (upper === 'ATN NEWS' || upper === 'ATN NEWS BD') {
+  if (upper.includes('ATN NEWS')) {
     return 'ATN News';
   }
-  if (upper === 'ATN BANGLA' || upper === 'ATN BANGLA HD') {
+  if (upper.includes('ATN BANGLA')) {
     return 'ATN Bangla';
   }
-  if (upper === 'ZEE BANLA' || upper === 'ZEE BANGLA' || upper === 'ZEE BANGLA HD' || upper === 'ZEE BANGLA TV') {
+  if (upper.includes('ZEE BANGLA') || upper.includes('ZEE BANLA')) {
     return 'Zee Bangla';
   }
-  if (upper === 'STAR JALSHA' || upper === 'STAR JALSHA HD') {
+  if (upper.includes('STAR JALSHA')) {
     return 'Star Jalsha';
   }
-  if (upper === 'SONY AATH' || upper === 'SONY ATTH' || upper === 'SONY AATH HD') {
+  if (upper.includes('SONY AATH') || upper.includes('SONY ATTH')) {
     return 'Sony Aath';
   }
-  if (upper === 'T SPORTS' || upper === 'TSPORTS' || upper === 'T SPORTS HD' || upper === 'T SPORTS LIVE 01' || upper === 'TSPORTS HD') {
+  if (upper.includes('T SPORTS') || upper.includes('TSPORTS')) {
     return 'T Sports';
   }
-  if (upper === 'EKATTOR TV' || upper === 'EKATTOR' || upper === '71 TV' || upper === '71' || upper === 'SHOMOY TV' || upper === 'EKATTOR NEWS') {
+  if (upper.includes('EKATTOR') || upper === '71 TV' || upper === '71') {
     return 'Ekattor TV';
   }
-  if (upper === 'NTV' || upper === 'NTV BD' || upper === 'NTV HD') {
+  if (upper === 'NTV' || upper.includes('NTV BD') || upper.includes('NTV HD') || upper === 'NTV BANGLA') {
     return 'NTV';
   }
-  if (upper === 'RTV' || upper === 'RTV HD' || upper === 'RTV BD') {
+  if (upper === 'RTV' || upper.includes('RTV HD') || upper.includes('RTV BD') || upper === 'RTV BANGLA') {
     return 'RTV';
   }
-  if (upper === 'BTV' || upper === 'BTV NATIONAL' || upper === 'BTV NATIONAL HD') {
+  if (upper.includes('BTV NATIONAL') || (upper === 'BTV' || upper === 'BTV BD')) {
     return 'BTV National';
   }
-  if (upper === 'CHANNEL I' || upper === 'CHANNEL I HD' || upper === 'CHANNEL-I') {
+  if (upper.includes('BTV WORLD')) {
+    return 'BTV World';
+  }
+  if (upper.includes('SANGSHAD')) {
+    return 'Sangshad TV';
+  }
+  if (upper.includes('CHANNEL I') || upper.includes('CHANNEL-I')) {
     return 'Channel i';
   }
-  if (upper === 'DEEPTO TV' || upper === 'DEEPTO') {
+  if (upper.includes('DEEPTO')) {
     return 'Deepto TV';
   }
-  if (upper === 'MAASRANGA' || upper === 'MAASRANGA HD' || upper === 'MAASRANGA TV' || upper === 'MASRANGA TV') {
+  if (upper.includes('MAASRANGA') || upper.includes('MASRANGA')) {
     return 'Maasranga TV';
   }
-  if (upper === 'EKUSHEY TV' || upper === 'ETV' || upper === 'EKUSHEY') {
+  if (upper.includes('EKUSHEY') || upper === 'ETV') {
     return 'Ekushey TV';
   }
 
@@ -344,6 +392,13 @@ function categorizeChannel(name: string, m3uGroup: string): string {
     normName.includes('espn') || 
     normName.includes('wwe') || 
     normName.includes('ptv sports') || 
+    normName.includes('fifa') || 
+    normName.includes('ipl') || 
+    normName.includes('bpl') || 
+    normName.includes('t20') || 
+    normName.includes('world cup') || 
+    normName.includes('cup') || 
+    normName.includes('league') || 
     normGroup.includes('sport')
   ) {
     return 'Sports';
@@ -483,6 +538,79 @@ function categorizeChannel(name: string, m3uGroup: string): string {
   return 'Other';
 }
 
+function isAllowedChannel(name: string, group: string): boolean {
+  const normName = name.toLowerCase();
+  const normGroup = group.toLowerCase();
+
+  const isSports = 
+    normGroup === 'sports' || 
+    normName.includes('sport') || 
+    normName.includes('cricket') || 
+    normName.includes('football') || 
+    normName.includes('tsports') || 
+    normName.includes('t sports') || 
+    normName.includes('gazi') || 
+    normName.includes('gtv') || 
+    normName.includes('ten sports') || 
+    normName.includes('sony ten') || 
+    normName.includes('star sports') || 
+    normName.includes('euro sports') || 
+    normName.includes('espn') || 
+    normName.includes('wwe') || 
+    normName.includes('ptv sports') || 
+    normName.includes('willow') ||
+    normName.includes('astro super') ||
+    normName.includes('supersport') ||
+    normName.includes('cric') ||
+    normName.includes('league') ||
+    normName.includes('cup') ||
+    normName.includes('bpl') ||
+    normName.includes('ipl');
+
+  if (isSports) return true;
+
+  const isBangladeshiNews = 
+    (normGroup === 'news' && (
+      normName.includes('bd') || 
+      normName.includes('bangla') || 
+      normName.includes('tv') ||
+      !/(cnn|bbc|dw|reuters|sky|al jazeera|france24)/i.test(normName)
+    )) ||
+    normName.includes('somoy') || 
+    normName.includes('shomoy') || 
+    normName.includes('সময়') ||
+    normName.includes('jamuna') || 
+    normName.includes('যমুনা') ||
+    normName.includes('independent') || 
+    normName.includes('ইন্ডিপেন্ডেন্ট') ||
+    normName.includes('ইনডিপেনডেন্ট') ||
+    normName.includes('71 tv') || 
+    normName.includes('71') || 
+    normName.includes('ekattor') || 
+    normName.includes('একাত্তর') ||
+    normName.includes('channel 24') || 
+    normName.includes('channel24') || 
+    normName.includes('২৪') ||
+    normName.includes('news24') || 
+    normName.includes('news 24') || 
+    normName.includes('dbc') || 
+    normName.includes('ডিবিসি') ||
+    normName.includes('atn news') || 
+    normName.includes('এটিএন নিউজ');
+
+  if (isBangladeshiNews) return true;
+
+  const isGlobalNewsAllowed = 
+    normName.includes('jazeera') || 
+    normName.includes('cnn') || 
+    normName.includes('bbc') || 
+    normName.includes('dw');
+
+  if (isGlobalNewsAllowed) return true;
+
+  return false;
+}
+
 // Helper to generate a unique channel ID from its stream URL safely and repeatably
 function generateChannelId(streamUrl: string): string {
   let hash = 0;
@@ -500,7 +628,7 @@ function generateChannelId(streamUrl: string): string {
 function parseM3UContent(content: string, playlistName: string): Channel[] {
   const lines = content.replace(/\r/g, '').split('\n');
   const results: Channel[] = [];
-  let currentMeta: { name: string; logo: string; group: string } | null = null;
+  let currentMeta: { name: string; logo: string; group: string; servers: { name: string; url: string }[] } | null = null;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -516,8 +644,25 @@ function parseM3UContent(content: string, playlistName: string): Channel[] {
       let group = groupMatch ? groupMatch[1] : '';
       let nameAttr = nameAttrMatch ? nameAttrMatch[1] : '';
 
-      // Get readable display text after comma
-      const commaIndex = line.indexOf(',');
+      // Get readable display text after comma (ignoring commas inside quoted attribute strings)
+      let commaIndex = -1;
+      let inQuotes = false;
+      let quoteChar = '';
+      for (let idx = 0; idx < line.length; idx++) {
+        const char = line[idx];
+        if ((char === '"' || char === "'") && (idx === 0 || line[idx - 1] !== '\\')) {
+          if (!inQuotes) {
+            inQuotes = true;
+            quoteChar = char;
+          } else if (char === quoteChar) {
+            inQuotes = false;
+          }
+        } else if (char === ',' && !inQuotes) {
+          commaIndex = idx;
+          break;
+        }
+      }
+
       let displayName = '';
       if (commaIndex !== -1) {
         displayName = line.substring(commaIndex + 1).trim();
@@ -533,13 +678,23 @@ function parseM3UContent(content: string, playlistName: string): Channel[] {
       currentMeta = {
         name: displayName,
         logo,
-        group: assignedGroup
+        group: assignedGroup,
+        servers: []
       };
+    } else if (line.startsWith('#EXT-X-MEDIA:') && currentMeta) {
+      const nameMatch = line.match(/NAME="([^"]*)"/); 
+      const urlMatch = line.match(/URI="([^"]*)"/);
+      if (nameMatch && urlMatch) {
+        currentMeta.servers.push({ name: nameMatch[1], url: urlMatch[1] });
+      }
     } else if (line.startsWith('http://') || line.startsWith('https://')) {
       const parts = line.split('#'); // Strip comments from lines
       const streamUrl = parts[0].trim();
 
       if (currentMeta) {
+        // Unshift the primary link as Server 1
+        currentMeta.servers.unshift({ name: "Server 1", url: streamUrl });
+
         results.push({
           id: generateChannelId(streamUrl),
           name: sanitizeChannelName(currentMeta.name),
@@ -547,7 +702,8 @@ function parseM3UContent(content: string, playlistName: string): Channel[] {
           logo: currentMeta.logo,
           group: currentMeta.group,
           playlistSource: playlistName,
-          status: 'unknown'
+          status: 'unknown',
+          servers: currentMeta.servers
         });
         currentMeta = null;
       } else {
@@ -565,13 +721,149 @@ function parseM3UContent(content: string, playlistName: string): Channel[] {
           logo: '',
           group: 'Other',
           playlistSource: playlistName,
-          status: 'unknown'
+          status: 'unknown',
+          servers: [{ name: "Server 1", url: streamUrl }]
         });
       }
     }
   }
 
   return results;
+}
+
+// Active list of server-verified broken channel IDs
+let SERVER_SIDE_BROKEN_CHANNEL_IDS = new Set<string>();
+let LAST_HEALTH_CHECK_TIMESTAMP = 0;
+const HEALTH_CHECK_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes interval to keep list healthy and fresh
+let IS_HEALTH_CHECK_RUNNING = false;
+
+const BROKEN_CHANNELS_FILE_PATH = path.join(process.cwd(), 'broken_channels.json');
+
+// Helper to load broken channels on startup
+function loadBrokenChannels() {
+  try {
+    if (fs.existsSync(BROKEN_CHANNELS_FILE_PATH)) {
+      const data = fs.readFileSync(BROKEN_CHANNELS_FILE_PATH, 'utf8');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        SERVER_SIDE_BROKEN_CHANNEL_IDS = new Set(parsed);
+        console.log(`[Health Checker] Loaded ${SERVER_SIDE_BROKEN_CHANNEL_IDS.size} blacklisted/broken channels from storage.`);
+      }
+    }
+  } catch (err) {
+    console.error('[Health Checker Error] Failed to load broken channels:', err);
+  }
+}
+
+// Helper to save broken channels
+function saveBrokenChannels() {
+  try {
+    const list = Array.from(SERVER_SIDE_BROKEN_CHANNEL_IDS);
+    fs.writeFileSync(BROKEN_CHANNELS_FILE_PATH, JSON.stringify(list, null, 2), 'utf8');
+    console.log(`[Health Checker] Saved ${SERVER_SIDE_BROKEN_CHANNEL_IDS.size} blacklisted/broken channels to storage.`);
+  } catch (err) {
+    console.error('[Health Checker Error] Failed to save broken channels:', err);
+  }
+}
+
+// Auto load broken channels immediately
+loadBrokenChannels();
+
+// Fast hybrid connection & availability check
+async function checkStreamHealth(streamUrl: string): Promise<boolean> {
+  try {
+    const parsed = new URL(streamUrl);
+    const host = parsed.hostname;
+    if (!host || host.includes('example.com') || host.includes('127.0.0.1')) {
+      return false;
+    }
+
+    // Try executing a direct fetch check with a 2.5 second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+    try {
+      const res = await fetch(streamUrl, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Referer': parsed.origin,
+          'Origin': parsed.origin
+        }
+      });
+      clearTimeout(timeoutId);
+
+      // If res.status is between 200 and 399, the stream endpoint is generally reachable and valid
+      if (res.status >= 200 && res.status < 400) {
+        return true;
+      }
+
+      // If it returned 404, 403, 502, 500, etc., then it's definitively broken!
+      console.warn(`[Health Checker] Stream returned HTTP ${res.status}: ${streamUrl}`);
+      return false;
+    } catch (fetchErr: any) {
+      clearTimeout(timeoutId);
+      
+      // If fetch failed due to certificate errors, TLS mismatch, or strict Node-agent blocking,
+      // fallback to a standard low-level TCP connect check as the stream may still be played in the browser.
+      return new Promise<boolean>((resolve) => {
+        const port = parsed.port ? parseInt(parsed.port, 10) : (parsed.protocol === 'https:' ? 443 : 80);
+        const socket = new net.Socket();
+        socket.setTimeout(1800);
+
+        socket.connect(port, host, () => {
+          socket.destroy();
+          resolve(true); // Host server is reachable
+        });
+
+        socket.on('error', () => {
+          socket.destroy();
+          resolve(false);
+        });
+
+        socket.on('timeout', () => {
+          socket.destroy();
+          resolve(false);
+        });
+      });
+    }
+  } catch (e) {
+    return false;
+  }
+}
+
+// Concurrently verify health of all imported live channels in background
+async function runBackgroundChannelHealthCheck(channels: Channel[]) {
+  if (IS_HEALTH_CHECK_RUNNING || !channels || channels.length === 0) return;
+  IS_HEALTH_CHECK_RUNNING = true;
+  console.log(`[Health Checker] Concurrently verifying connectivity of ${channels.length} channels...`);
+
+  const brokenSet = new Set<string>();
+  const batchSize = 15; // Parallel checks of 15 channels a time
+
+  for (let i = 0; i < channels.length; i += batchSize) {
+    const batch = channels.slice(i, i + batchSize);
+    await Promise.all(
+      batch.map(async (ch) => {
+        const isHealthy = await checkStreamHealth(ch.url);
+        if (!isHealthy) {
+          console.warn(`[Health Checker] Offline / Broken stream removed: ${ch.name} (ID: ${ch.id})`);
+          brokenSet.add(ch.id);
+        }
+      })
+    );
+  }
+
+  // Merge new broken channels into our permanent blacklist and persist
+  for (const id of brokenSet) {
+    SERVER_SIDE_BROKEN_CHANNEL_IDS.add(id);
+  }
+  saveBrokenChannels();
+  
+  LAST_HEALTH_CHECK_TIMESTAMP = Date.now();
+  IS_HEALTH_CHECK_RUNNING = false;
+  console.log(`[Health Checker] Verify complete! Permanent blacklisted list now has ${SERVER_SIDE_BROKEN_CHANNEL_IDS.size} channels.`);
 }
 
 // Curated list of high-quality, resilient built-in fallback channels
@@ -620,33 +912,6 @@ const FALLBACK_CHANNELS: Channel[] = [
     group: "News",
     playlistSource: "Built-in fallbacks",
     status: "online"
-  },
-  {
-    id: "fb_btv_national",
-    name: "BTV National Live",
-    url: "https://live.btv.com.bd/btvnational/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/9b6f35f73a099b7a5885a970523c5f78",
-    group: "Bangla",
-    playlistSource: "Built-in fallbacks",
-    status: "online"
-  },
-  {
-    id: "fb_btv_world",
-    name: "BTV World Live",
-    url: "https://live.btv.com.bd/btvworld/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/b30147b97d86754e4b97fc2989628391",
-    group: "Bangla",
-    playlistSource: "Built-in fallbacks",
-    status: "online"
-  },
-  {
-    id: "fb_sangshad_tv",
-    name: "Sangshad TV Live",
-    url: "https://live.btv.com.bd/sangshadtv/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/ffd7ba9b76ad555933f94bcb7ff26b44",
-    group: "Bangla",
-    playlistSource: "Built-in fallbacks",
-    status: "online"
   }
 ];
 
@@ -654,101 +919,124 @@ const FALLBACK_CHANNELS: Channel[] = [
 async function fetchAllChannels(): Promise<Channel[]> {
   const allChannels: Channel[] = [];
   const processedUrls = new Set<string>();
-  const processedNames = new Set<string>();
 
-  // Parallel list fetches with native fetch first (to bypass GitHub TLS blocks)
-  const fetchPromises = BUILTIN_STREAM_FEEDS.map(async (playlist) => {
+  try {
+    let htmlText = '';
+    const shopnilUrl = 'https://shopniltv.blogspot.com/?m=1';
+    const requestHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    };
+
     try {
-      let text = '';
-      
+      const res = await fetch(shopnilUrl, { headers: requestHeaders });
+      if (res.ok) {
+        htmlText = await res.text();
+        // Persist fresh backup
+        fs.writeFileSync('./blogspot_html.txt', htmlText, 'utf8');
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch (nativeErr: any) {
+      console.warn(`Native fetch failed for ShopnilTV: ${nativeErr.message}. Trying tlsSafeFetch...`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
       try {
-        const res = await fetch(playlist.url, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-          }
-        });
-        if (res.ok) {
-          text = await res.text();
-        } else {
-          throw new Error(`HTTP status code ${res.status}`);
-        }
-      } catch (nativeErr: any) {
-        console.warn(`Native fetch dropped for [${playlist.name}]: ${nativeErr.message}. Trying tlsSafeFetch...`);
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s safety timeout
-
-        const resFallback = await tlsSafeFetch(playlist.url, {
+        const resFallback = await tlsSafeFetch(shopnilUrl, {
           signal: controller.signal,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-          }
+          headers: requestHeaders
         });
         clearTimeout(timeoutId);
-
-        if (!resFallback.ok) {
-          throw new Error(`Fallback HTTP rejection status: ${resFallback.status}`);
+        if (resFallback.ok) {
+          htmlText = await resFallback.text();
+          // Persist fresh backup
+          fs.writeFileSync('./blogspot_html.txt', htmlText, 'utf8');
+        } else {
+          throw new Error(`Fallback HTTP Status: ${resFallback.status}`);
         }
-
-        text = await resFallback.text();
+      } catch (fallbackErr: any) {
+        clearTimeout(timeoutId);
+        console.error(`Fallback fetch failed for ShopnilTV: ${fallbackErr.message}`);
       }
+    }
 
-      if (text) {
-        return parseM3UContent(text, playlist.name);
+    // Try reading from local backup if both fetches failed
+    if (!htmlText) {
+      console.warn('Scraping failed, falling back to local cached copy ./blogspot_html.txt');
+      try {
+        if (fs.existsSync('./blogspot_html.txt')) {
+          htmlText = fs.readFileSync('./blogspot_html.txt', 'utf8');
+        }
+      } catch (fsErr: any) {
+        console.error('Failed to read local cached blogspot copy:', fsErr);
       }
-      return [];
-    } catch (err: any) {
-      console.error(`Playlist loading skipped for [${playlist.name}]: ${err.message}`);
-      return [];
-    }
-  });
-
-  const resolvedLists = await Promise.all(fetchPromises);
-  const fetchedChannels = resolvedLists.flat();
-
-  // Combine with curated high-quality, guaranteed working fallback channels to never show 0 results
-  const mergedRawList = [...FALLBACK_CHANNELS, ...fetchedChannels];
-
-  // Smart De-duplication Process
-  mergedRawList.forEach((ch) => {
-    // Standardize name first
-    ch.name = sanitizeChannelName(ch.name);
-    // Dynamically assign high-fidelity default logo if missing
-    ch.logo = assignDefaultLogo(ch.name, ch.logo);
-
-    const rawUrl = ch.url.toLowerCase().trim();
-    // Unique key on canonical name (all lowercase, no spaces, no special characters)
-    const cleanNameKey = ch.name.toLowerCase()
-      .replace(/[^a-z0-9]/g, '');
-
-    // Skip empty streams, advertisements, and non-channel placeholders
-    const lowercaseName = ch.name.toLowerCase();
-    if (
-      !rawUrl || 
-      rawUrl.includes('example.com') || 
-      rawUrl.length < 10 ||
-      lowercaseName.includes('welcome') ||
-      lowercaseName.includes('playz') ||
-      lowercaseName.includes('test') ||
-      lowercaseName.includes('dummy') ||
-      lowercaseName.includes('offline') ||
-      lowercaseName.includes('coming soon')
-    ) {
-      return;
     }
 
-    // Skip duplicates by URL
-    if (processedUrls.has(rawUrl)) return;
-
-    // Skip duplicates by canonicalized name
-    if (cleanNameKey && processedNames.has(cleanNameKey)) return;
-
-    processedUrls.add(rawUrl);
-    if (cleanNameKey) {
-      processedNames.add(cleanNameKey);
+    if (!htmlText) {
+      throw new Error('No HTML content available to parse channels.');
     }
-    allChannels.push(ch);
-  });
+
+    // Split HTML by category-section divs
+    const sections = htmlText.split(/<div class='category-section'\s*data-cat='([^']+)'>/);
+    
+    for (let i = 1; i < sections.length; i += 2) {
+      const rawCatId = sections[i];
+      const sectionContent = sections[i + 1];
+      if (!sectionContent) continue;
+      
+      let category = 'Other';
+      if (rawCatId === 'bangla') category = 'Bangla';
+      else if (rawCatId === 'sports') category = 'Sports';
+      else if (rawCatId === 'news') category = 'News';
+      else if (rawCatId === 'kids') category = 'Kids';
+      else if (rawCatId === 'movies') category = 'Movies';
+      else if (rawCatId === 'english') category = 'Hindi/Eng';
+      else if (rawCatId === 'religion') category = 'Religion';
+      
+      // Robust channel scraper matching channel-item divs
+      const regex = /<div class='channel-item'[^>]*onclick='playChannel\(&#39;([^']+)&#39;,\s*this,\s*&#39;([^']+)&#39;\)'[^>]*>(.*?)<\/div>\s*<\/div>/g;
+      let match;
+      
+      while ((match = regex.exec(sectionContent)) !== null) {
+        const url = match[1] ? match[1].trim() : '';
+        const rawName = match[2] ? match[2].trim() : '';
+        const innerHtml = match[3] || '';
+        
+        if (!url || !rawName) continue;
+        
+        const imgMatch = innerHtml.match(/src='([^']+)'/);
+        const logo = imgMatch ? imgMatch[1].trim() : '';
+        
+        // Clean name
+        const cleanName = sanitizeChannelName(rawName);
+        const rawUrlLower = url.toLowerCase().trim();
+        
+        if (processedUrls.has(rawUrlLower)) continue;
+        processedUrls.add(rawUrlLower);
+        
+        const channelId = `ch_shopnil_${generateChannelId(url)}`;
+        
+        const channelObj: Channel = {
+          id: channelId,
+          name: cleanName,
+          logo: logo || 'https://images.unsplash.com/photo-1540747737956-37872404453a?w=80',
+          group: category,
+          url: url,
+          playlistSource: 'ShopnilTV',
+          status: 'online',
+          servers: [{ name: "Server 1", url: url }]
+        };
+        
+        allChannels.push(channelObj);
+      }
+    }
+  } catch (err: any) {
+    console.error('Fatal error scraper in fetchAllChannels:', err);
+  }
+
+  if (allChannels.length === 0) {
+    console.warn('Scraper returned 0 channels, recovering with static fallbacks');
+    return FALLBACK_CHANNELS;
+  }
 
   // Sort channels alphabetically
   return allChannels.sort((a, b) => a.name.localeCompare(b.name));
@@ -770,6 +1058,13 @@ app.get('/api/channels', async (req, res) => {
     }
 
     const channels = await fetchAllChannels();
+
+    // Trigger asynchronous background network verification if interval expired
+    if (!IS_HEALTH_CHECK_RUNNING && (Date.now() - LAST_HEALTH_CHECK_TIMESTAMP > HEALTH_CHECK_INTERVAL_MS)) {
+      runBackgroundChannelHealthCheck(channels).catch(err => {
+        console.error('[Health Checker Error] Background check trigger rejected:', err);
+      });
+    }
 
     channelCache = {
       channels,
@@ -795,6 +1090,174 @@ app.get('/api/channels', async (req, res) => {
   }
 });
 
+interface ScanLog {
+  timestamp: string;
+  message: string;
+  type: 'info' | 'success' | 'warn' | 'error';
+}
+
+let SCAN_STATUS = {
+  isRunning: false,
+  totalChannels: 0,
+  checkedChannels: 0,
+  brokenChannelsCount: 0,
+  currentChannelName: '',
+  logs: [] as ScanLog[]
+};
+
+// Helper to push logs with a limit of 200 logs
+function addScanLog(message: string, type: 'info' | 'success' | 'warn' | 'error' = 'info') {
+  const timestamp = new Date().toLocaleTimeString();
+  SCAN_STATUS.logs.unshift({ timestamp, message, type });
+  if (SCAN_STATUS.logs.length > 200) {
+    SCAN_STATUS.logs = SCAN_STATUS.logs.slice(0, 200);
+  }
+}
+
+// GET the status of the automated checking
+app.get('/api/channels/scan/status', (req, res) => {
+  res.json({
+    success: true,
+    status: SCAN_STATUS
+  });
+});
+
+// START the comprehensive scanning process
+app.post('/api/channels/scan', async (req, res) => {
+  if (SCAN_STATUS.isRunning) {
+    return res.json({ success: false, message: 'Scan already in progress' });
+  }
+
+  SCAN_STATUS.isRunning = true;
+  SCAN_STATUS.checkedChannels = 0;
+  SCAN_STATUS.brokenChannelsCount = 0;
+  SCAN_STATUS.currentChannelName = 'Initializing scan...';
+  SCAN_STATUS.logs = [];
+
+  addScanLog('Automated comprehensive channel health scan started.', 'info');
+
+  // Launch background scan asynchronously
+  (async () => {
+    try {
+      const channels = await fetchAllChannels();
+      SCAN_STATUS.totalChannels = channels.length;
+      addScanLog(`Fetched ${channels.length} channels from playlists sources. Verifying stream connectivities...`, 'info');
+
+      const batchSize = 10;
+      for (let i = 0; i < channels.length; i += batchSize) {
+        if (!SCAN_STATUS.isRunning) {
+          addScanLog('Scan was manually interrupted or stopped.', 'warn');
+          break;
+        }
+
+        const batch = channels.slice(i, i + batchSize);
+        await Promise.all(
+          batch.map(async (ch) => {
+            SCAN_STATUS.currentChannelName = ch.name;
+            const isHealthy = await checkStreamHealth(ch.url);
+            SCAN_STATUS.checkedChannels++;
+
+            if (isHealthy) {
+              addScanLog(`Active channel validated: ${ch.name} [OK]`, 'success');
+            } else {
+              SCAN_STATUS.brokenChannelsCount++;
+              SERVER_SIDE_BROKEN_CHANNEL_IDS.add(ch.id);
+              addScanLog(`Broken/Offline channel detected: ${ch.name} (Removing permanently) [REMOVED]`, 'error');
+            }
+          })
+        );
+
+        // Periodically save to preserve progress
+        saveBrokenChannels();
+        // Clear the server side channelCache so broken ones are instantly omitted for users
+        channelCache = null;
+      }
+
+      SCAN_STATUS.isRunning = false;
+      SCAN_STATUS.currentChannelName = 'Completed!';
+      addScanLog(`Automated scanning complete! Checked ${SCAN_STATUS.checkedChannels} channels, removed ${SCAN_STATUS.brokenChannelsCount} dead links permanently.`, 'success');
+    } catch (scanErr: any) {
+      SCAN_STATUS.isRunning = false;
+      SCAN_STATUS.currentChannelName = 'Error occurred';
+      addScanLog(`Scan error occurred: ${scanErr.message}`, 'error');
+    }
+  })().catch(err => {
+    console.error('Asynchronous scan error:', err);
+  });
+
+  res.json({ success: true, message: 'Comprehensive scanner launched successfully' });
+});
+
+// STOP the scanning process
+app.post('/api/channels/scan/stop', (req, res) => {
+  if (SCAN_STATUS.isRunning) {
+    SCAN_STATUS.isRunning = false;
+    addScanLog('Stopping automated health check scan...', 'warn');
+    return res.json({ success: true, message: 'Scanning interruption requested' });
+  }
+  res.json({ success: false, message: 'No scanner currently running' });
+});
+
+// REPORT broken channel from client-side player error or admin action
+app.post('/api/channels/report-broken', async (req, res) => {
+  try {
+    const { channelId, channelName } = req.body;
+    if (!channelId) {
+      return res.status(400).json({ success: false, error: 'channelId is required' });
+    }
+
+    if (!SERVER_SIDE_BROKEN_CHANNEL_IDS.has(channelId)) {
+      SERVER_SIDE_BROKEN_CHANNEL_IDS.add(channelId);
+      saveBrokenChannels();
+      console.warn(`[Crowd-Sourced Real-Time Filter] User-reported broken channel blacklisted: ${channelName || ''} (ID: ${channelId})`);
+      
+      // Clear cache so that the channel is instantly removed for everyone
+      channelCache = null;
+    }
+
+    return res.json({
+      success: true,
+      message: 'Channel successfully blacklisted and filtered permanently'
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// RESTORE/UNBLACKLIST a channel
+app.post('/api/channels/unblacklist', async (req, res) => {
+  try {
+    const { channelId } = req.body;
+    if (!channelId) {
+      return res.status(400).json({ success: false, error: 'channelId is required' });
+    }
+
+    if (SERVER_SIDE_BROKEN_CHANNEL_IDS.has(channelId)) {
+      SERVER_SIDE_BROKEN_CHANNEL_IDS.delete(channelId);
+      saveBrokenChannels();
+      console.log(`[Health Checker] Unblacklisted channel ID: ${channelId}`);
+      
+      // Clear cache to restore
+      channelCache = null;
+    }
+
+    return res.json({
+      success: true,
+      message: 'Channel successfully unblacklisted'
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET currently blacklisted/broken channels for display
+app.get('/api/channels/blacklisted', (req, res) => {
+  res.json({
+    success: true,
+    blacklistedIds: Array.from(SERVER_SIDE_BROKEN_CHANNEL_IDS)
+  });
+});
+
 // Stream CORS proxy bypass for channels that block standard origins
 app.get('/api/proxy', async (req, res) => {
   const streamUrl = req.query.url as string;
@@ -805,75 +1268,125 @@ app.get('/api/proxy', async (req, res) => {
   try {
     const parsedUrl = new URL(streamUrl);
     const origin = parsedUrl.origin;
+    const isHttps = parsedUrl.protocol === 'https:';
+    const lib = isHttps ? https : http;
 
-    // Direct stream routing with mock browser header + referer/origin spoofing of local CDN
-    const streamRes = await tlsSafeFetch(streamUrl, {
+    const reqOptions: any = {
       method: 'GET',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Referer': origin + '/',
         'Origin': origin
+      },
+      rejectUnauthorized: false
+    };
+
+    if (isHttps) {
+      reqOptions.rejectUnauthorized = false;
+      reqOptions.ciphers = 'ALL:DEFAULT:@SECLEVEL=0';
+      reqOptions.minVersion = 'TLSv1';
+    }
+
+    // Use native streaming request to pipe TS chunks directly with zero latency or in-memory buffering!
+    const proxyReq = lib.request(parsedUrl, reqOptions, (proxyRes) => {
+      proxyRes.on('error', (err: any) => {
+        console.error('[Proxy Response Error]', err);
+      });
+
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Headers', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+
+      const contentType = proxyRes.headers['content-type'] || '';
+      const isM3U8 = contentType.includes('mpegurl') || contentType.includes('application/x-mpegURL') || streamUrl.split('?')[0].endsWith('.m3u8');
+
+      if (isM3U8) {
+        // M3U8 indices are tiny, so they are fast and safe to fully buffer and rewrite!
+        res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
+        
+        let body = '';
+        proxyRes.on('data', (chunk) => {
+          body += chunk.toString('utf8');
+        });
+
+        proxyRes.on('end', () => {
+          const lines = body.split('\n');
+          const rewrittenLines = lines.map(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return line;
+
+            // Metadata line
+            if (trimmed.startsWith('#')) {
+              return trimmed.replace(/(URI=")([^"]+)(")/gi, (match, prefix, rUrl, suffix) => {
+                try {
+                  const absUrl = new URL(rUrl, streamUrl).href;
+                  return `${prefix}/api/proxy?url=${encodeURIComponent(absUrl)}${suffix}`;
+                } catch (e) {
+                  return match;
+                }
+              });
+            }
+
+            // Direct stream segments or sub-playlists
+            try {
+              const absUrl = new URL(trimmed, streamUrl).href;
+              return `/api/proxy?url=${encodeURIComponent(absUrl)}`;
+            } catch (e) {
+              return line;
+            }
+          });
+
+          res.send(rewrittenLines.join('\n'));
+        });
+      } else {
+        // Direct non-buffering binary pipe for TS video segments, keys, images
+        if (contentType) {
+          res.setHeader('Content-Type', contentType);
+        }
+
+        // Cache static video chunks, segments, keys, vectors to avoid round-trips and buffering
+        const lowerUrl = streamUrl.toLowerCase();
+        if (
+          lowerUrl.includes('.ts') || 
+          lowerUrl.includes('.key') || 
+          lowerUrl.includes('.mp4') || 
+          lowerUrl.includes('.m4s') ||
+          contentType.includes('video/mp2t') ||
+          contentType.includes('video/mp4')
+        ) {
+          res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+        }
+
+        proxyRes.pipe(res);
       }
     });
 
-    if (!streamRes.ok) {
-      return res.status(streamRes.status).send(`Bypass proxy could not fetch stream (status: ${streamRes.status})`);
-    }
+    req.on('close', () => {
+      proxyReq.destroy();
+    });
 
-    const contentType = streamRes.headers.get('content-type') || '';
-    const isM3U8 = contentType.includes('mpegurl') || contentType.includes('application/x-mpegURL') || streamUrl.split('?')[0].endsWith('.m3u8');
-
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-
-    if (isM3U8) {
-      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
-      const text = await streamRes.text();
-      const lines = text.split('\n');
-      const rewrittenLines = lines.map(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return line;
-
-        // Metadata line
-        if (trimmed.startsWith('#')) {
-          // If it contains a URI attribute, e.g. EXT-X-KEY or EXT-X-MEDIA, rewrite the key target
-          return trimmed.replace(/(URI=")([^"]+)(")/gi, (match, prefix, rUrl, suffix) => {
-            try {
-              const absUrl = new URL(rUrl, streamUrl).href;
-              return `${prefix}/api/proxy?url=${encodeURIComponent(absUrl)}${suffix}`;
-            } catch (e) {
-              return match;
-            }
-          });
-        }
-
-        // Direct stream segments or sub-playlists
-        try {
-          const absUrl = new URL(trimmed, streamUrl).href;
-          return `/api/proxy?url=${encodeURIComponent(absUrl)}`;
-        } catch (e) {
-          return line;
-        }
-      });
-
-      return res.send(rewrittenLines.join('\n'));
-    } else {
-      // Direct binary pipe for chunks or key assets
-      if (contentType) {
-        res.setHeader('Content-Type', contentType);
+    proxyReq.on('error', (err: any) => {
+      const isTargetIssue = ['ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNRESET', 'EHOSTUNREACH'].includes(err.code) ||
+                            err.message?.includes('ECONNREFUSED') ||
+                            err.message?.includes('ETIMEDOUT') ||
+                            err.message?.includes('ENOTFOUND') ||
+                            err.message?.includes('ECONNRESET');
+      if (isTargetIssue) {
+        console.warn(`[Proxy Stream Off-line] Remote target issue (${err.code || 'CONNECTION_FAILURE'}): ${streamUrl}`);
+      } else {
+        console.error('Proxy request failure:', err);
       }
-      
-      const arrayBuffer = await streamRes.arrayBuffer();
-      return res.send(Buffer.from(arrayBuffer));
-    }
+      if (!res.headersSent) {
+        res.status(555).send(`Stream target offline (${err.code || 'OFFLINE'}): ${err.message}`);
+      }
+    });
+
+    proxyReq.end();
   } catch (err: any) {
-    if (err.code === 'ENOTFOUND' || err.message?.includes('ENOTFOUND')) {
-      console.warn(`[Proxy Warning] Remote host unreachable (ENOTFOUND): ${req.query.url}`);
-    } else {
-      console.error('Proxy request failure:', err);
+    console.error('Proxy setup error:', err);
+    if (!res.headersSent) {
+      res.status(500).send(`Proxy setup failure: ${err.message}`);
     }
-    res.status(502).send(`Stream target offline (ENOTFOUND): ${err.message}`);
   }
 });
 
@@ -907,6 +1420,119 @@ app.post('/api/verify-channel', async (req, res) => {
 // GET currently available app version for dynamic OTA update checking
 app.get('/api/version', (req, res) => {
   res.json({ version: 'v1.1.0' });
+});
+
+// Cache for live/upcoming sports schedule from Google Search Grounding with Gemini
+let sportsCache: any = null;
+let sportsCacheTime = 0;
+
+app.get('/api/sports/schedule', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  // Extend cache duration to 15 minutes to guarantee quota safety
+  if (sportsCache && (Date.now() - sportsCacheTime < 900000)) {
+    return res.json(sportsCache);
+  }
+
+  try {
+    const today = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Dhaka' });
+    const prompt = `Search the web for today's dynamic LIVE and upcoming Cricket and Football match schedules (IPL 2026, T25, Champions League, local or international matches) on this date: ${today}. 
+    Provide the response strictly as a JSON array of objects with this schema:
+    [
+      {
+        "id": "match_1 (or sequential)",
+        "sport": "cricket" | "football",
+        "tournament": "Tournament or League Name (e.g. IPL 2026, Champions League, BAN vs SL)",
+        "team1": "Team 1 Name (e.g. Bangladesh)",
+        "team2": "Team 2 Name (e.g. Sri Lanka)",
+        "status": "live" | "upcoming",
+        "time": "Scheduled Time or Live status in Bengali language (e.g. 'সকাল ১০:৩০ মি:', 'সন্ধ্যা ৭:৩০ মি:', 'চলছে (লাইভি)')",
+        "score": "Current Live Score if active (e.g. BAN 180/3 (32 Ov)), otherwise empty string",
+        "liveChannelId": "tsports (or a suggest keyword for search like 'somoy_tv' / 'gazi_tv' / 'sony_ten' / 'sports')"
+      }
+    ]
+    Format only the JSON array of objects inside standard markdown fences or raw code. Do not output conversational preamble.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+        responseMimeType: "application/json"
+      }
+    });
+
+    let text = response.text || '';
+    if (text.includes('```')) {
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    }
+
+    const matches = JSON.parse(text);
+    if (Array.isArray(matches)) {
+      sportsCache = { success: true, matches };
+      sportsCacheTime = Date.now();
+      return res.json(sportsCache);
+    }
+    throw new Error('Response is not a valid array');
+  } catch (err: any) {
+    const isQuotaError = err.message && (err.message.includes('429') || err.message.includes('quota') || err.message.includes('RESOURCE_EXHAUSTED') || err.message.includes('exhausted'));
+    if (isQuotaError) {
+      console.warn('[Sports Schedule Loader] Gemini API quota limit exceeded (429 RESOURCE_EXHAUSTED) - activating resilient cached fallback channels.');
+    } else {
+      console.warn('[Sports Schedule Loader] Gemini API execution returned warning:', err.message);
+    }
+    // Serve previously populated cache even if old to shield users from rate limits
+    if (sportsCache) {
+      console.warn('[Sports Schedule Loader] Re-using previous cached sports schedule due to rate limits.');
+      return res.json(sportsCache);
+    }
+    const fallbackMatches = [
+      {
+        id: "fb_match_101",
+        sport: "cricket",
+        tournament: "IPL 2026 (আজকের ম্যাচ)",
+        team1: "Kolkata Knight Riders",
+        team2: "Chennai Super Kings",
+        status: "upcoming",
+        time: "রাত ৮:০০ টায়",
+        score: "",
+        liveChannelId: "tsports"
+      },
+      {
+        id: "fb_match_102",
+        sport: "football",
+        tournament: "UEFA Champions League Semifinal",
+        team1: "Real Madrid",
+        team2: "Manchester City",
+        status: "upcoming",
+        time: "রাত ১২:৪৫ মিনিটে",
+        score: "",
+        liveChannelId: "sony_ten"
+      },
+      {
+        id: "fb_match_103",
+        sport: "cricket",
+        tournament: "বাংলাদেশ বনাম শ্রীলঙ্কা ৩য় ওয়ানডে",
+        team1: "Bangladesh",
+        team2: "Sri Lanka",
+        status: "live",
+        time: "চলছে (লাইভ)",
+        score: "BAN 214/4 (38.4 Ov)",
+        liveChannelId: "gazi_tv"
+      },
+      {
+        id: "fb_match_104",
+        sport: "football",
+        tournament: "Spain La Liga Live Match",
+        team1: "Barcelona",
+        team2: "Real Betis",
+        status: "upcoming",
+        time: "রাত ১০:১৫ মিনিটে",
+        score: "",
+        liveChannelId: "somoy_tv"
+      }
+    ];
+    return res.json({ success: true, matches: fallbackMatches, source: 'fallback' });
+  }
 });
 
 // BRAND CONFIG & REAL-TIME PRESENCE STORAGE FOR MULTIPLE USERS
@@ -2014,6 +2640,17 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running at http://0.0.0.0:${PORT}`);
+
+    // Asynchronously pre-heat channel list and clean offline streams
+    setTimeout(async () => {
+      try {
+        console.log('[System Start] Loading first-time channels and pre-heating health cache...');
+        const initialChannels = await fetchAllChannels();
+        runBackgroundChannelHealthCheck(initialChannels).catch(console.error);
+      } catch (err) {
+        console.error('Error in initial health preheat:', err);
+      }
+    }, 4000); // 4s delay to keep bootstrapping clean and fast
   });
 }
 

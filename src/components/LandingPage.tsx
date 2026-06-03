@@ -31,10 +31,20 @@ import { Channel } from '../types';
 export function StatsDisplay() {
   const [stats, setStats] = useState({ totalRegistrations: 0, totalLogins: 0, activeUsers: 0 });
   useEffect(() => {
-    fetch('/api/stats').then(res => res.json()).then(setStats);
-    const interval = setInterval(() => {                
-        fetch('/api/stats').then(res => res.json()).then(setStats);
-    }, 10000); // Poll every 10s
+    const fetchStats = () => {
+      fetch('/api/stats')
+        .then(res => {
+          const contentType = res.headers.get('content-type');
+          if (res.ok && contentType && contentType.includes('application/json')) {
+            return res.json();
+          }
+          throw new Error('Not OK or not JSON');
+        })
+        .then(setStats)
+        .catch(() => {});
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 45000); // Poll every 45s instead of 10s to prevent rate limits
     return () => clearInterval(interval);
   }, []);                
 

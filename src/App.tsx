@@ -8,7 +8,7 @@ import {
   Tv, Search, Heart, RefreshCw, AlertCircle, Sparkles, Filter, 
   Flame, Radio, Info, Smartphone, Check, PlaySquare, X, ListFilter, HelpCircle,
   LogIn, LogOut, User, ArrowLeft, Zap, SmartphoneNfc, MessageSquare, ShieldAlert, Lock, ExternalLink,
-  Menu, Share2, Monitor, Download, AlertTriangle
+  Menu, Share2, Monitor, Download, AlertTriangle, Home, Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Channel, PlaylistInfo } from './types';
@@ -23,6 +23,7 @@ import DynamicAdContainer from './components/DynamicAdContainer';
 import NoticeModal from './components/NoticeModal';
 import TelegramOnboarding from './components/TelegramOnboarding';
 import PartnerProgramModal from './components/PartnerProgramModal';
+import SportsScheduleDashboard from './components/SportsScheduleDashboard';
 
 
 // Available categories mapping Bengali and English
@@ -38,14 +39,14 @@ const CATEGORIES: GroupCategory[] = [
   { id: 'live', nameBangla: 'লাইভ (LIVE)', nameEnglish: 'Live Status' },
   { id: 'popular', nameBangla: 'পপুলার (Popular)', nameEnglish: 'Popular' },
   { id: 'favorites', nameBangla: 'প্রিয় তালিকা', nameEnglish: 'Favorites' },
-  { id: 'Bangla', nameBangla: 'বাংলাদেশি', nameEnglish: 'Banglite' },
+  { id: 'Bangla', nameBangla: 'বাংলাদেশি', nameEnglish: 'Bangla' },
   { id: 'Sports', nameBangla: 'খেলাধুলা', nameEnglish: 'Sports' },
   { id: 'News', nameBangla: 'খবর', nameEnglish: 'News' },
-  { id: 'Music', nameBangla: 'গান', nameEnglish: 'Music' },
-  { id: 'Movies', nameBangla: 'সিনেমা', nameEnglish: 'Movies' },
   { id: 'Kids', nameBangla: 'কার্টুন', nameEnglish: 'Kids' },
-  { id: 'failed', nameBangla: 'ফেইল চ্যানেল (Failed)', nameEnglish: 'Failed Channels' },
-  { id: 'Other', nameBangla: 'অন্যান্য', nameEnglish: 'Other' }
+  { id: 'Movies', nameBangla: 'বিনোদন ও সিনেমা', nameEnglish: 'Movies' },
+  { id: 'Hindi/Eng', nameBangla: 'হিন্দি/ইংরেজি', nameEnglish: 'Hindi/English' },
+  { id: 'Religion', nameBangla: 'ধর্মীয়', nameEnglish: 'Religion' },
+  { id: 'failed', nameBangla: 'ফেইল চ্যানেল (Failed)', nameEnglish: 'Failed Channels' }
 ];
 
 const Marquee = 'marquee' as any;
@@ -95,35 +96,22 @@ const STATIC_FALLBACK_CHANNELS: Channel[] = [
     group: "News",
     playlistSource: "Built-in fallbacks",
     status: "online"
-  },
-  {
-    id: "fb_btv_national",
-    name: "BTV National Live",
-    url: "https://live.btv.com.bd/btvnational/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/9b6f35f73a099b7a5885a970523c5f78",
-    group: "Bangla",
-    playlistSource: "Built-in fallbacks",
-    status: "online"
-  },
-  {
-    id: "fb_btv_world",
-    name: "BTV World Live",
-    url: "https://live.btv.com.bd/btvworld/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/b30147b97d86754e4b97fc2989628391",
-    group: "Bangla",
-    playlistSource: "Built-in fallbacks",
-    status: "online"
-  },
-  {
-    id: "fb_sangshad_tv",
-    name: "Sangshad TV Live",
-    url: "https://live.btv.com.bd/sangshadtv/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/ffd7ba9b76ad555933f94bcb7ff26b44",
-    group: "Bangla",
-    playlistSource: "Built-in fallbacks",
-    status: "online"
   }
 ];
+
+function toBengaliNumerals(num: number | string): string {
+  const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return num.toString().split('').map(digit => {
+    return bengaliDigits[parseInt(digit, 10)] || digit;
+  }).join('');
+}
+
+function assignChannelNumbers(rawList: Channel[]): Channel[] {
+  return rawList.map((ch, index) => ({
+    ...ch,
+    channelNum: index + 1
+  }));
+}
 
 export default function App() {
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -144,12 +132,42 @@ export default function App() {
   // Track failed streams report
   const [channelHealth, setChannelHealth] = useState<Record<string, 'working' | 'broken'>>({});
 
+  // --- Dynamic Site Settings State (Server-backed dynamic engine) ---
+  const [siteSettings, setSiteSettings] = useState<{
+    maintenanceMode: boolean;
+    maintenanceMessage: string;
+    telegramUrl: string;
+    siteNameEnglish: string;
+    siteNameBangla: string;
+    marqueeText: string;
+    siteLogoUrl: string;
+    customAds: {
+      id: string;
+      title: string;
+      placement: 'top' | 'bottom' | 'popunder' | 'floating' | 'sidebar';
+      code: string;
+      active: boolean;
+    }[];
+  }>({
+    maintenanceMode: false,
+    maintenanceMessage: 'সাময়িকভাবে আমাদের ওয়েবসাইট এখন বন্ধ আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন, দ্রুতই আবার চালু করা হবে!',
+    telegramUrl: 'https://t.me/FIFAWorldCupbd1',
+    siteNameEnglish: 'Free World Cup BD',
+    siteNameBangla: 'ফ্রী ওয়ার্ল্ড কাপ বিডি',
+    marqueeText: 'স্বাগতম Free World Cup BD-তে!',
+    siteLogoUrl: '',
+    customAds: []
+  });
+
   // Navigation page views & VIP custom layouts
   const [currentPage, setCurrentPage] = useState<'landing' | 'app' | 'admin'>(() => {
     const saved = localStorage.getItem('bongo_current_page');
     if (saved === 'admin') return 'admin';
     return 'app';
   });
+
+  // Mobile navigation active view bottom tab routing
+  const [mobileActiveTab, setMobileActiveTab] = useState<'home' | 'sports' | 'chat' | 'favorites'>('home');
 
   useEffect(() => {
     if (currentPage) {
@@ -353,7 +371,7 @@ export default function App() {
         });
     };
     fetchSupportStatus();
-    const interval = setInterval(fetchSupportStatus, 8000);
+    const interval = setInterval(fetchSupportStatus, 40000); // 40s instead of 8s to prevent rate limits
     return () => clearInterval(interval);
   }, []);
 
@@ -378,12 +396,11 @@ export default function App() {
         })
         .catch(err => {
           // Gracefully suppress logging of HTML/Network boot transients as severe errors
-          console.warn('Abuse reports status: server JSON endpoint not fully ready or returned non-JSON. Retrying shortly...');
         });
     };
 
     fetchReports();
-    const interval = setInterval(fetchReports, 5000); // Polling every 5s
+    const interval = setInterval(fetchReports, 35000); // Polling every 35s instead of 5s to prevent rate limits
     return () => clearInterval(interval);
   }, []);
 
@@ -441,6 +458,96 @@ export default function App() {
   const [isAdminConsoleOpen, setIsAdminConsoleOpen] = useState<boolean>(false);
   const [adminActiveTab, setAdminActiveTab] = useState<string>('branding');
 
+  // States for Automated Channel Health Scanner
+  const [scanState, setScanState] = useState<any>({
+    isRunning: false,
+    totalChannels: 0,
+    checkedChannels: 0,
+    brokenChannelsCount: 0,
+    currentChannelName: '',
+    logs: []
+  });
+  const [blacklistedIds, setBlacklistedIds] = useState<string[]>([]);
+
+  const fetchScanStatus = async () => {
+    try {
+      const res = await fetch('/api/channels/scan/status');
+      const data = await res.json();
+      if (data.success && data.status) {
+        setScanState(data.status);
+      }
+    } catch (err) {
+      console.error('Failed to fetch scanner status:', err);
+    }
+  };
+
+  const fetchBlacklisted = async () => {
+    try {
+      const res = await fetch('/api/channels/blacklisted');
+      const data = await res.json();
+      if (data.success) {
+        setBlacklistedIds(data.blacklistedIds || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch blacklisted channel IDs:', err);
+    }
+  };
+
+  const handleStartScan = async () => {
+    try {
+      const res = await fetch('/api/channels/scan', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        fetchScanStatus();
+      }
+    } catch (err) {
+      console.error('Failed to start scan:', err);
+    }
+  };
+
+  const handleStopScan = async () => {
+    try {
+      const res = await fetch('/api/channels/scan/stop', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        fetchScanStatus();
+      }
+    } catch (err) {
+      console.error('Failed to stop scan:', err);
+    }
+  };
+
+  const handleUnblacklist = async (channelId: string) => {
+    try {
+      const res = await fetch('/api/channels/unblacklist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channelId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchBlacklisted();
+        loadChannels(); 
+      }
+    } catch (err) {
+      console.error('Failed to unblacklist channel:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (currentPage !== 'admin' || adminActiveTab !== 'channels') return;
+
+    fetchScanStatus();
+    fetchBlacklisted();
+
+    const interval = setInterval(() => {
+      fetchScanStatus();
+      fetchBlacklisted();
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [currentPage, adminActiveTab, scanState.isRunning]);
+
   // --- Dynamic Branding & Website Identity States (Loaded dynamically from localStorage) ---
   const [siteNameEnglish, setSiteNameEnglish] = useState<string>(() => {
     return localStorage.getItem('site_name_english') || 'Free World Cup BD';
@@ -472,32 +579,7 @@ export default function App() {
   const [showIntroBumper, setShowIntroBumper] = useState<boolean>(false);
   const [bumperTeam, setBumperTeam] = useState<string>('');
 
-  // --- Dynamic Site Settings State (Server-backed dynamic engine) ---
-  const [siteSettings, setSiteSettings] = useState<{
-    maintenanceMode: boolean;
-    maintenanceMessage: string;
-    telegramUrl: string;
-    siteNameEnglish: string;
-    siteNameBangla: string;
-    marqueeText: string;
-    siteLogoUrl: string;
-    customAds: {
-      id: string;
-      title: string;
-      placement: 'top' | 'bottom' | 'popunder' | 'floating' | 'sidebar';
-      code: string;
-      active: boolean;
-    }[];
-  }>({
-    maintenanceMode: false,
-    maintenanceMessage: 'সাময়িকভাবে আমাদের ওয়েবসাইট এখন বন্ধ আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন, দ্রুতই আবার চালু করা হবে!',
-    telegramUrl: 'https://t.me/FIFAWorldCupbd1',
-    siteNameEnglish: 'Free World Cup BD',
-    siteNameBangla: 'ফ্রী ওয়ার্ল্ড কাপ বিডি',
-    marqueeText: 'স্বাগতম Free World Cup BD-তে!',
-    siteLogoUrl: '',
-    customAds: []
-  });
+  // Site settings moved above to function start
 
   const [isNoticeOpen, setIsNoticeOpen] = useState<boolean>(false);
   const [isTelegramOnboardingOpen, setIsTelegramOnboardingOpen] = useState<boolean>(false);
@@ -509,7 +591,13 @@ export default function App() {
 
   const fetchSiteSettings = () => {
     fetch('/api/settings')
-      .then(res => res.json())
+      .then(res => {
+        const contentType = res.headers.get('content-type');
+        if (res.ok && contentType && contentType.includes('application/json')) {
+          return res.json();
+        }
+        throw new Error('Not OK or not JSON');
+      })
       .then(data => {
         if (data) {
           setSiteSettings(data);
@@ -531,7 +619,9 @@ export default function App() {
           }
         }
       })
-      .catch(err => console.error('Error fetching site settings:', err));
+      .catch(err => {
+        // Suppress print to avoid cluttering client console
+      });
   };
 
   const saveSiteSettings = async (updatedFields: Partial<typeof siteSettings>) => {
@@ -542,10 +632,12 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(workingSettings)
       });
-      const data = await res.json();
-      if (data.success) {
-        setSiteSettings(data.settings);
-        return true;
+      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+        const data = await res.json();
+        if (data && data.success) {
+          setSiteSettings(data.settings);
+          return true;
+        }
       }
     } catch (e) {
       console.error('Error saving site settings:', e);
@@ -561,49 +653,55 @@ export default function App() {
       setSiteNameBangla('ফ্রী ওয়ার্ল্ড কাপ বিডি');
     }
     fetchSiteSettings();
-    const intervalSettings = setInterval(fetchSiteSettings, 3000);
+    const intervalSettings = setInterval(fetchSiteSettings, 20000); // Poll settings every 20s instead of 3s to prevent rate-limits
 
     const syncModerationAndData = async () => {
       try {
-        // 1. Fetch moderation lists
+        // 1. Fetch moderation lists with safe checking
         const modRes = await fetch('/api/moderation/status');
-        const modData = await modRes.json();
-        if (modData) {
-          if (Array.isArray(modData.verifiedUsers)) {
-            setAdminVerifiedUsers(modData.verifiedUsers);
-            localStorage.setItem('bongo_stream_verified_users', JSON.stringify(modData.verifiedUsers));
-          }
-          if (Array.isArray(modData.bannedUsers)) {
-            setAdminBannedUsers(modData.bannedUsers);
-            localStorage.setItem('bongo_stream_banned_users', JSON.stringify(modData.bannedUsers));
-          }
-          if (Array.isArray(modData.mutedUsers)) {
-            setAdminMutedUsers(modData.mutedUsers);
-            localStorage.setItem('bongo_stream_muted_users', JSON.stringify(modData.mutedUsers));
+        if (modRes.ok && modRes.headers.get('content-type')?.includes('application/json')) {
+          const modData = await modRes.json();
+          if (modData) {
+            if (Array.isArray(modData.verifiedUsers)) {
+              setAdminVerifiedUsers(modData.verifiedUsers);
+              localStorage.setItem('bongo_stream_verified_users', JSON.stringify(modData.verifiedUsers));
+            }
+            if (Array.isArray(modData.bannedUsers)) {
+              setAdminBannedUsers(modData.bannedUsers);
+              localStorage.setItem('bongo_stream_banned_users', JSON.stringify(modData.bannedUsers));
+            }
+            if (Array.isArray(modData.mutedUsers)) {
+              setAdminMutedUsers(modData.mutedUsers);
+              localStorage.setItem('bongo_stream_muted_users', JSON.stringify(modData.mutedUsers));
+            }
           }
         }
 
-        // 2. Fetch users and sync local storage
+        // 2. Fetch users and sync local storage gracefully
         const usersRes = await fetch('/api/users');
-        const usersData = await usersRes.json();
-        if (usersData && Array.isArray(usersData.users)) {
-          localStorage.setItem('bongo_stream_users_db', JSON.stringify(usersData.users));
+        if (usersRes.ok && usersRes.headers.get('content-type')?.includes('application/json')) {
+          const usersData = await usersRes.json();
+          if (usersData && Array.isArray(usersData.users)) {
+            localStorage.setItem('bongo_stream_users_db', JSON.stringify(usersData.users));
+          }
         }
 
-        // 3. Fetch partners list
+        // 3. Fetch partners list safely
         const partnersRes = await fetch('/api/partner/list');
-        const partnersData = await partnersRes.json();
-        if (partnersData && Array.isArray(partnersData.members)) {
-          setPartnerMembers(partnersData.members);
+        if (partnersRes.ok && partnersRes.headers.get('content-type')?.includes('application/json')) {
+          const partnersData = await partnersRes.json();
+          if (partnersData && Array.isArray(partnersData.members)) {
+            setPartnerMembers(partnersData.members);
+          }
         }
       } catch (err) {
-        console.error('Error syncing real-time databases:', err);
+        // Silent fallback - prevents rate-limits and non-JSON responses from causing errors
       }
     };
 
     // Immediate invocation
     syncModerationAndData();
-    const intervalSync = setInterval(syncModerationAndData, 5000);
+    const intervalSync = setInterval(syncModerationAndData, 30000); // Poll database sync every 30s instead of 5s to prevent rate limits
 
     return () => {
       clearInterval(intervalSettings);
@@ -636,7 +734,12 @@ export default function App() {
 
     const pullAdminSupport = () => {
       fetch('/api/support/sessions')
-        .then(res => res.json())
+        .then(res => {
+          if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+            return res.json();
+          }
+          throw new Error('Not OK or not JSON');
+        })
         .then(data => {
           if (Array.isArray(data)) {
             setAdminSupportSessions(data);
@@ -644,15 +747,17 @@ export default function App() {
               const matched = data.find(s => s.id === activeAdminSession.id);
               if (matched) {
                 setActiveAdminSession(matched);
-              }
+               }
             }
           }
         })
-        .catch(err => console.error('Error fetching admin support sessions:', err));
+        .catch(err => {
+          // Suppress printing to console to avoid pollution
+        });
     };
 
     pullAdminSupport();
-    const timer = setInterval(pullAdminSupport, 4000);
+    const timer = setInterval(pullAdminSupport, 10000); // 10s instead of 4s
     return () => clearInterval(timer);
   }, [currentPage, adminActiveTab, activeAdminSession?.id]);
 
@@ -728,12 +833,15 @@ export default function App() {
     const normName = name.toLowerCase();
     const normGroup = m3uGroup.toLowerCase();
 
-    if (
+    const isSports = 
+      normGroup === 'sports' || 
       normName.includes('sport') || 
-      normName.includes('football') || 
       normName.includes('cricket') || 
+      normName.includes('football') || 
       normName.includes('tsports') || 
       normName.includes('t sports') || 
+      normName.includes('gazi') || 
+      normName.includes('gtv') || 
       normName.includes('ten sports') || 
       normName.includes('sony ten') || 
       normName.includes('star sports') || 
@@ -741,121 +849,56 @@ export default function App() {
       normName.includes('espn') || 
       normName.includes('wwe') || 
       normName.includes('ptv sports') || 
-      normGroup.includes('sport')
-    ) {
-      return 'Sports';
-    }
+      normName.includes('willow') ||
+      normName.includes('astro super') ||
+      normName.includes('supersport') ||
+      normName.includes('cric') ||
+      normName.includes('league') ||
+      normName.includes('cup') ||
+      normName.includes('bpl') ||
+      normName.includes('ipl') ||
+      normGroup.includes('sport');
 
-    if (
-      normName.includes('news') || 
+    if (isSports) return 'Sports';
+
+    const isBangladeshiNews = 
+      (normGroup === 'news' && (
+        normName.includes('bd') || 
+        normName.includes('bangla') || 
+        normName.includes('tv') ||
+        !/(cnn|bbc|dw|reuters|sky|al jazeera|france24)/i.test(normName)
+      )) ||
       normName.includes('somoy') || 
+      normName.includes('shomoy') || 
+      normName.includes('সময়') ||
       normName.includes('jamuna') || 
-      normName.includes('independent tv') || 
-      normName.includes('ekattor') || 
+      normName.includes('যমুনা') ||
+      normName.includes('independent') || 
+      normName.includes('ইন্ডিপেন্ডেন্ট') ||
+      normName.includes('ইনডিপেনডেন্ট') ||
       normName.includes('71 tv') || 
+      normName.includes('71') || 
+      normName.includes('ekattor') || 
+      normName.includes('একাত্তর') ||
       normName.includes('channel 24') || 
+      normName.includes('channel24') || 
+      normName.includes('২৪') ||
       normName.includes('news24') || 
-      normName.includes('khabor') || 
+      normName.includes('news 24') || 
+      normName.includes('dbc') || 
+      normName.includes('ডিবিসি') ||
+      normName.includes('atn news') || 
+      normName.includes('এটিএন নিউজ');
+
+    if (isBangladeshiNews) return 'News';
+
+    const isGlobalNewsAllowed = 
       normName.includes('jazeera') || 
       normName.includes('cnn') || 
       normName.includes('bbc') || 
-      normName.includes('dw') || 
-      normName.includes('reuters') || 
-      normName.includes('sky news') || 
-      normGroup.includes('news') || 
-      normGroup.includes('khabor')
-    ) {
-      return 'News';
-    }
+      normName.includes('dw');
 
-    if (
-      normName.includes('music') || 
-      normName.includes('song') || 
-      normName.includes('mtv') || 
-      normName.includes('b4u music') || 
-      normName.includes('zoom') || 
-      normName.includes('clubland') || 
-      normGroup.includes('music') || 
-      normGroup.includes('song')
-    ) {
-      return 'Music';
-    }
-
-    if (
-      normName.includes('movie') || 
-      normName.includes('cinema') || 
-      normName.includes('hbo') || 
-      normName.includes('star gold') || 
-      normName.includes('sony max') || 
-      normName.includes('zee cinema') || 
-      normName.includes('b4u movies') || 
-      normName.includes('cine') || 
-      normGroup.includes('movie') || 
-      normGroup.includes('cinema')
-    ) {
-      return 'Movies';
-    }
-
-    if (
-      normName.includes('cartoon') || 
-      normName.includes('kids') || 
-      normName.includes('disney') || 
-      normName.includes('nickelodeon') || 
-      normName.includes('nick') || 
-      normName.includes('pogo') || 
-      normName.includes('duronto') || 
-      normName.includes('hungama') || 
-      normGroup.includes('kid') || 
-      normGroup.includes('cartoon') || 
-      normGroup.includes('child')
-    ) {
-      return 'Kids';
-    }
-
-    if (
-      normName.includes('bengali') || 
-      normName.includes('bangla') || 
-      normName.includes(' gtv') || 
-      normName.includes('gazi') || 
-      normName.includes('atn') || 
-      normName.includes('channel i') || 
-      normName.includes('ch-i') || 
-      normName.includes('ntv') || 
-      normName.includes('rtv') || 
-      normName.includes('deepto') || 
-      normName.includes('boishakhi') || 
-      normName.includes('maasranga') || 
-      normName.includes('nagorik') || 
-      normName.includes('desh tv') || 
-      normName.includes('bijoy') || 
-      normName.includes('sa tv') || 
-      normName.includes('ekushey') || 
-      normName.includes('etv') || 
-      normName.includes('btv') || 
-      normName.includes('sangshad') || 
-      normName.includes('asian tv') || 
-      normName.includes('mohona') || 
-      normName.includes('my tv') || 
-      normName.includes('ananda') || 
-      normName.includes('star jalsha') || 
-      normName.includes('zee bangla') || 
-      normName.includes('colors bangla') || 
-      normName.includes('sun bangla') || 
-      normName.includes('sony aath') || 
-      normGroup.includes('bangla') || 
-      normGroup.includes('bengali') || 
-      normGroup.includes('bd') || 
-      normGroup.includes('dhaka')
-    ) {
-      return 'Bangla';
-    }
-
-    if (/bengali|bangla|bd|dhaka/i.test(normGroup)) return 'Bangla';
-    if (/sport/i.test(normGroup)) return 'Sports';
-    if (/news/i.test(normGroup)) return 'News';
-    if (/music/i.test(normGroup)) return 'Music';
-    if (/movie|cinema/i.test(normGroup)) return 'Movies';
-    if (/kid|cartoon/i.test(normGroup)) return 'Kids';
+    if (isGlobalNewsAllowed) return 'News';
 
     return 'Other';
   };
@@ -867,47 +910,49 @@ export default function App() {
     let currentMeta: { name: string; logo: string; group: string } | null = null;
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+        const line = lines[i].trim();
+        if (!line) continue;
 
-      if (line.startsWith('#EXTINF:')) {
-        let logo = '';
-        let group = '';
-        const logoMatch = line.match(/tvg-logo=["'](.*?)["']/i);
-        const groupMatch = line.match(/group-title=["'](.*?)["']/i);
-        if (logoMatch && logoMatch[1]) logo = logoMatch[1];
-        if (groupMatch && groupMatch[1]) group = groupMatch[1];
+        if (line.startsWith('#EXTINF:')) {
+          let logo = '';
+          let group = '';
+          const logoMatch = line.match(/tvg-logo=["'](.*?)["']/i);
+          const groupMatch = line.match(/group-title=["'](.*?)["']/i);
+          if (logoMatch && logoMatch[1]) logo = logoMatch[1];
+          if (groupMatch && groupMatch[1]) group = groupMatch[1];
 
-        const commaIdx = line.indexOf(',');
-        const titleName = commaIdx !== -1 ? line.slice(commaIdx + 1).trim() : 'Unknown Channel';
-        currentMeta = { name: titleName, logo, group };
-      } else if (line.startsWith('http') && currentMeta) {
-        let hash = 0;
-        const targetUrl = line;
-        for (let j = 0; j < targetUrl.length; j++) {
-          hash = ((hash << 5) - hash) + targetUrl.charCodeAt(j);
-          hash |= 0;
+          const commaIdx = line.indexOf(',');
+          const titleName = commaIdx !== -1 ? line.slice(commaIdx + 1).trim() : 'Unknown Channel';
+          currentMeta = { name: titleName, logo, group };
+        } else if (line.startsWith('http') && currentMeta) {
+          let hash = 0;
+          const targetUrl = line;
+          for (let j = 0; j < targetUrl.length; j++) {
+            hash = ((hash << 5) - hash) + targetUrl.charCodeAt(j);
+            hash |= 0;
+          }
+          const hexHash = Math.abs(hash).toString(16);
+          const uniqueId = `ch_custom_pl_${hexHash}_${results.length}`;
+          
+          const cleanName = sanitizeChannelNameClient(currentMeta.name);
+          const resolvedGroup = categorizeChannelClient(cleanName, currentMeta.group);
+
+          if (resolvedGroup !== 'Other') {
+            results.push({
+              id: uniqueId,
+              name: cleanName,
+              logo: currentMeta.logo || 'https://images.unsplash.com/photo-1540747737956-37872404453a?w=80',
+              group: resolvedGroup,
+              url: targetUrl,
+              playlistSource: playlistName,
+              isCustomAdded: true
+            });
+          }
+          currentMeta = null;
         }
-        const hexHash = Math.abs(hash).toString(16);
-        const uniqueId = `ch_custom_pl_${hexHash}_${results.length}`;
-        
-        const cleanName = sanitizeChannelNameClient(currentMeta.name);
-        const resolvedGroup = categorizeChannelClient(cleanName, currentMeta.group);
-
-        results.push({
-          id: uniqueId,
-          name: cleanName,
-          logo: currentMeta.logo || 'https://images.unsplash.com/photo-1540747737956-37872404453a?w=80',
-          group: resolvedGroup,
-          url: targetUrl,
-          playlistSource: playlistName,
-          isCustomAdded: true
-        });
-        currentMeta = null;
       }
-    }
-    return results;
-  };
+      return results;
+    };
   
   // Custom Playlist Management actions
   const handleAddPlaylist = async (name: string, url: string) => {
@@ -1068,7 +1113,12 @@ export default function App() {
   useEffect(() => {
     const fetchOnlinePresences = () => {
       fetch('/api/presence')
-        .then(res => res.json())
+        .then(res => {
+          if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+            return res.json();
+          }
+          throw new Error('Not OK or not JSON');
+        })
         .then(data => {
           if (data && data.users) {
             setOnlinePresenceUsers(data.users);
@@ -1077,7 +1127,7 @@ export default function App() {
         .catch(() => {});
     };
     fetchOnlinePresences();
-    const interval = setInterval(fetchOnlinePresences, 5000);
+    const interval = setInterval(fetchOnlinePresences, 25000); // 25s instead of 5s to prevent rate limits
     return () => clearInterval(interval);
   }, []);
 
@@ -1329,7 +1379,12 @@ export default function App() {
   useEffect(() => {
     // Fetch global server-persisted branding details
     fetch('/api/branding')
-      .then(res => res.json())
+      .then(res => {
+        if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+          return res.json();
+        }
+        throw new Error('Not OK or not JSON');
+      })
       .then(data => {
         if (data) {
           if (data.siteLogoUrl !== undefined) {
@@ -1350,7 +1405,9 @@ export default function App() {
           }
         }
       })
-      .catch(err => console.error('Error fetching global brand config:', err));
+      .catch(err => {
+        // Suppress printing to console to avoid cluttering client console
+      });
 
     try {
       const savedHealth = localStorage.getItem('live_channels_health');
@@ -1556,28 +1613,48 @@ export default function App() {
         const savedPlaylistsRaw = localStorage.getItem('site_custom_playlists_channels');
         const customPlaylistChs: Channel[] = savedPlaylistsRaw ? JSON.parse(savedPlaylistsRaw) : [];
         
-        let mergedList = [...customChs, ...customPlaylistChs, ...uniqueChannels];
+        const mergedList = [...customChs, ...customPlaylistChs, ...uniqueChannels];
+        
+        // Global deep de-duplication to ensure that even custom/playlist channels do not duplicate each other or fetched ones
+        const globalUnique: Channel[] = [];
+        const seenGlobalIds = new Set<string>();
+        const seenGlobalNames = new Set<string>();
+        const seenGlobalUrls = new Set<string>();
+        
+        mergedList.forEach((ch: Channel) => {
+          if (!ch || !ch.id || !ch.name) return;
+          const nameKey = ch.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const urlKey = ch.url ? ch.url.toLowerCase().trim() : '';
+          
+          if (!seenGlobalIds.has(ch.id) && !seenGlobalNames.has(nameKey) && (!urlKey || !seenGlobalUrls.has(urlKey))) {
+            seenGlobalIds.add(ch.id);
+            seenGlobalNames.add(nameKey);
+            if (urlKey) seenGlobalUrls.add(urlKey);
+            globalUnique.push(ch);
+          }
+        });
         
         // Filter out deleted channels as managed by the Owner Dashboard
         const deletedIdsRaw = localStorage.getItem('site_deleted_channel_ids');
         const deletedIds: string[] = deletedIdsRaw ? JSON.parse(deletedIdsRaw) : [];
         
-        const activeList = mergedList.filter(c => !deletedIds.includes(c.id));
-        setChannels(activeList);
+        const activeList = globalUnique.filter(c => !deletedIds.includes(c.id));
+        const numberedActiveList = assignChannelNumbers(activeList);
+        setChannels(numberedActiveList);
         
         // Restore selected channel from localStorage if present
-        if (activeList.length > 0) {
+        if (numberedActiveList.length > 0) {
           const savedChId = localStorage.getItem('bongo_selected_channel_id');
-          const restoredCh = activeList.find(c => c.id === savedChId);
+          const restoredCh = numberedActiveList.find(c => c.id === savedChId);
           if (restoredCh) {
             setSelectedChannel(restoredCh);
           } else if (!selectedChannel) {
             // Priority: Find T Sports channel first
-            const tSportsChan = activeList.find((c: Channel) => {
+            const tSportsChan = numberedActiveList.find((c: Channel) => {
               const nameLower = c.name.toLowerCase();
               return nameLower.includes('t sports') || nameLower.includes('tsports') || c.id.toLowerCase().includes('tsports');
             });
-            const firstVerified = tSportsChan || activeList.find((c: Channel) => c.playlistSource && c.playlistSource.includes('Built-in')) || activeList[0];
+            const firstVerified = tSportsChan || numberedActiveList.find((c: Channel) => c.playlistSource && c.playlistSource.includes('Built-in')) || numberedActiveList[0];
             setSelectedChannel(firstVerified);
           }
         }
@@ -1597,28 +1674,48 @@ export default function App() {
       const savedPlaylistsRaw = localStorage.getItem('site_custom_playlists_channels');
       const customPlaylistChs: Channel[] = savedPlaylistsRaw ? JSON.parse(savedPlaylistsRaw) : [];
       
-      let mergedList = [...customChs, ...customPlaylistChs, ...uniqueChannels];
+      const mergedList = [...customChs, ...customPlaylistChs, ...uniqueChannels];
+      
+      // Global deep de-duplication to ensure that even custom/playlist channels do not duplicate each other or fallback ones
+      const globalUnique: Channel[] = [];
+      const seenGlobalIds = new Set<string>();
+      const seenGlobalNames = new Set<string>();
+      const seenGlobalUrls = new Set<string>();
+      
+      mergedList.forEach((ch: Channel) => {
+        if (!ch || !ch.id || !ch.name) return;
+        const nameKey = ch.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const urlKey = ch.url ? ch.url.toLowerCase().trim() : '';
+        
+        if (!seenGlobalIds.has(ch.id) && !seenGlobalNames.has(nameKey) && (!urlKey || !seenGlobalUrls.has(urlKey))) {
+          seenGlobalIds.add(ch.id);
+          seenGlobalNames.add(nameKey);
+          if (urlKey) seenGlobalUrls.add(urlKey);
+          globalUnique.push(ch);
+        }
+      });
       
       // Filter out deleted channels as managed by the Owner Dashboard
       const deletedIdsRaw = localStorage.getItem('site_deleted_channel_ids');
       const deletedIds: string[] = deletedIdsRaw ? JSON.parse(deletedIdsRaw) : [];
       
-      const activeList = mergedList.filter(c => !deletedIds.includes(c.id));
-      setChannels(activeList);
+      const activeList = globalUnique.filter(c => !deletedIds.includes(c.id));
+      const numberedActiveList = assignChannelNumbers(activeList);
+      setChannels(numberedActiveList);
       
       // Restore selected channel from localStorage if present
-      if (activeList.length > 0) {
+      if (numberedActiveList.length > 0) {
         const savedChId = localStorage.getItem('bongo_selected_channel_id');
-        const restoredCh = activeList.find(c => c.id === savedChId);
+        const restoredCh = numberedActiveList.find(c => c.id === savedChId);
         if (restoredCh) {
           setSelectedChannel(restoredCh);
         } else if (!selectedChannel) {
           // Priority: Find T Sports channel first
-          const tSportsChan = activeList.find((c: Channel) => {
+          const tSportsChan = numberedActiveList.find((c: Channel) => {
             const nameLower = c.name.toLowerCase();
             return nameLower.includes('t sports') || nameLower.includes('tsports') || c.id.toLowerCase().includes('tsports');
           });
-          const firstVerified = tSportsChan || activeList.find((c: Channel) => c.playlistSource && c.playlistSource.includes('Built-in')) || activeList[0];
+          const firstVerified = tSportsChan || numberedActiveList.find((c: Channel) => c.playlistSource && c.playlistSource.includes('Built-in')) || numberedActiveList[0];
           setSelectedChannel(firstVerified);
         }
       }
@@ -1652,9 +1749,53 @@ export default function App() {
 
   // Track stream playback feedback from player
   const handleReportWorkingState = (channelId: string, working: boolean) => {
-    const updatedHealth = { ...channelHealth, [channelId]: working ? 'working' as const : 'broken' as const };
+    if (!working) {
+      // Auto-Heal: remove immediately when stream is certified failing/offline so user never runs into it again
+      handleDeleteChannel(channelId, true);
+      return;
+    }
+    const updatedHealth = { ...channelHealth, [channelId]: 'working' as const };
     setChannelHealth(updatedHealth);
     localStorage.setItem('live_channels_health', JSON.stringify(updatedHealth));
+  };
+
+  const handleDeleteChannel = (channelId: string, silent = false) => {
+    // 1. Check if custom playlist channel and filter it out
+    const savedCustomRaw = localStorage.getItem('site_custom_channels');
+    if (savedCustomRaw) {
+      const customs: Channel[] = JSON.parse(savedCustomRaw);
+      const filtered = customs.filter(c => c.id !== channelId);
+      localStorage.setItem('site_custom_channels', JSON.stringify(filtered));
+    }
+    
+    // 2. Append to deleted ids list
+    const deletedIdsRaw = localStorage.getItem('site_deleted_channel_ids');
+    const deletedIds: string[] = deletedIdsRaw ? JSON.parse(deletedIdsRaw) : [];
+    if (!deletedIds.includes(channelId)) {
+      deletedIds.push(channelId);
+    }
+    localStorage.setItem('site_deleted_channel_ids', JSON.stringify(deletedIds));
+    
+    // Also clean from health cache
+    const updatedHealth = { ...channelHealth };
+    delete updatedHealth[channelId];
+    setChannelHealth(updatedHealth);
+    localStorage.setItem('live_channels_health', JSON.stringify(updatedHealth));
+    
+    // 3. Move selection to the next working channel if possible
+    const currentActiveList = channels.filter(c => c.id !== channelId && !deletedIds.includes(c.id) && channelHealth[c.id] !== 'broken');
+    if (currentActiveList.length > 0) {
+      setSelectedChannel(currentActiveList[0]);
+    } else {
+      setSelectedChannel(null);
+    }
+
+    if (!silent) {
+      alert('অচল চ্যানেলটি সফলভাবে মুছে ফেলা হয়েছে!');
+    } else {
+      console.log(`[Auto-Heal] Offline channel ${channelId} successfully hidden from site list.`);
+    }
+    loadChannels();
   };
 
   // Reset stream reports list
@@ -1730,6 +1871,7 @@ export default function App() {
         if (selectedGroup === 'failed') {
           if (!isBroken) return false;
         } else {
+          // If this is a general/active category or 'all', hide any broken channels immediately so users never click on them and get errors
           if (isBroken) return false;
         }
 
@@ -2355,7 +2497,12 @@ export default function App() {
                         marqueeText
                       })
                     })
-                    .then(res => res.json())
+                    .then(res => {
+                      if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+                        return res.json();
+                      }
+                      throw new Error('Not OK or response is not JSON');
+                    })
                     .then(data => {
                       if (data.success) {
                         alert('অভিনন্দন! আপনার ব্র্যান্ডিং এবং কাস্টম লোগো কনফিগারেশন সার্ভারে সফলভাবে সংরক্ষণ করা হয়েছে। এখন সবার ল্যান্ডিং পেজেই এই লোগোটি রিয়েল-টাইমে শো করবে।');
@@ -2364,7 +2511,7 @@ export default function App() {
                       }
                     })
                     .catch(e => {
-                      alert('সার্ভার কানেকশন ত্রুটি: ' + e.message);
+                      alert('সার্ভার কানেকশন বা রেট-লিমিট ত্রুটি: ' + e.message);
                     });
                   }}
                   className="w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl cursor-pointer transition-all active:scale-[0.98] shadow-lg shadow-sky-500/10 hover:shadow-sky-500/20 text-center flex items-center justify-center gap-2"
@@ -2383,6 +2530,189 @@ export default function App() {
             {/* TAB 2: CHANNEL AND PLAYLIST MANAGEMENT */}
             {adminActiveTab === 'channels' && (
               <div className="flex flex-col gap-6 animate-fade-in font-sans">
+                {/* AUTOMATED CHANNEL HEALTH SCANNER & REAL-TIME CLEANSER */}
+                <div className="bg-slate-950/65 border border-slate-900 rounded-3xl p-5 select-none flex flex-col gap-4 relative overflow-hidden shadow-xl">
+                  {/* Decorative faint glow */}
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+                  
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-900 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 font-sans">
+                        <span className="text-lg animate-pulse">📡</span>
+                      </div>
+                      <div>
+                        <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-sans">চ্যানেল ইন্টিগ্রিটি ও রিয়েল-টাইম অটো-ক্লিনজার</h3>
+                        <p className="text-[10px] text-slate-400 font-medium font-sans">Automated Stream Health & Cleanup System</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[9px] px-2.5 py-1 rounded-full font-bold uppercase border tracking-wider flex items-center gap-1.5
+                        ${scanState.isRunning
+                          ? 'bg-rose-500/10 border-rose-500/25 text-rose-400 animate-pulse'
+                          : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+                        }
+                      `}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-ping" />
+                        {scanState.isRunning ? 'স্ক্যানিং চলছে (Scanning...)' : 'অপেক্ষমান (Idle)'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-relaxed max-w-3xl font-sans">
+                    এই রিয়েল-টাইม স্বয়ংক্রিয় রোবটটি আমাদের প্লেলিস্টের সকল লাইভ স্ট্রিমিং সার্ভারে সংযোগ টেস্ট পাঠায়। কোনো সার্ভিস অফলাইন, ব্রোকেন বা এরর দেখামাত্রই সেটি চিরতরে একটি সুরক্ষিত ফাইলে ব্ল্যাকলিস্ট (Blacklist) করে ইউজার ডেটা থেকে সরিয়ে ফেলে এবং কোনো বাফার বা এরর ছাড়াই শতভাগ ক্লিন ব্রডকাস্ট নিশ্চিত করে।
+                  </p>
+
+                  {/* SCANNING METRICS GRID */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-slate-900/40 border border-slate-900 rounded-2xl p-3 flex flex-col gap-1 font-sans">
+                      <span className="text-[9px] text-slate-500 font-bold uppercase font-sans">মোট প্রদেয় চ্যানেল</span>
+                      <span className="text-lg font-black text-slate-200 font-mono">{scanState.totalChannels || channels.length}</span>
+                    </div>
+                    <div className="bg-slate-900/40 border border-slate-900 rounded-2xl p-3 flex flex-col gap-1 font-sans">
+                      <span className="text-[9px] text-slate-500 font-bold uppercase font-sans">যাচাই সম্পন্ন (Audited)</span>
+                      <span className="text-lg font-black text-slate-200 font-mono">
+                        {scanState.checkedChannels} <span className="text-[9px] text-slate-500 font-normal">({scanState.totalChannels ? Math.round((scanState.checkedChannels / scanState.totalChannels) * 100) : 0}%)</span>
+                      </span>
+                    </div>
+                    <div className="bg-emerald-500/5 border border-slate-900 rounded-2xl p-3 flex flex-col gap-1 font-sans">
+                      <span className="text-[9px] text-emerald-500/60 font-bold uppercase font-sans">সচল লিংক (Verified)</span>
+                      <span className="text-lg font-black text-emerald-450 font-mono">
+                        {(scanState.checkedChannels - scanState.brokenChannelsCount) || 0}
+                      </span>
+                    </div>
+                    <div className="bg-rose-500/5 border border-slate-900 rounded-2xl p-3 flex flex-col gap-1 font-sans">
+                      <span className="text-[9px] text-rose-500/60 font-bold uppercase font-sans">অপসারিত মৃত লিংক (Blocked)</span>
+                      <span className="text-lg font-black text-rose-450 font-mono">
+                        {scanState.brokenChannelsCount || blacklistedIds.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* PROGRESS BAR */}
+                  {scanState.isRunning && (
+                    <div className="flex flex-col gap-1.5 bg-slate-900/50 p-3 rounded-2xl border border-slate-905">
+                      <div className="flex items-center justify-between text-[10px] font-bold font-sans">
+                        <span className="text-amber-400 animate-pulse">যাচাই করা হচ্ছে: {scanState.currentChannelName}</span>
+                        <span className="text-slate-400 font-mono">{scanState.checkedChannels} / {scanState.totalChannels}</span>
+                      </div>
+                      <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-850">
+                        <div 
+                          className="bg-gradient-to-r from-emerald-500 via-sky-500 to-indigo-500 h-full transition-all duration-300"
+                          style={{ width: `${scanState.totalChannels ? (scanState.checkedChannels / scanState.totalChannels) * 100 : 0}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CONTROLLER ACTIONS BUTTONS */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    {!scanState.isRunning ? (
+                      <button
+                        type="button"
+                        onClick={handleStartScan}
+                        className="py-2.5 px-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:brightness-110 text-white font-extrabold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-emerald-900/10 border border-emerald-500/20 font-sans"
+                      >
+                        <span>🚀 পরিপূর্ণ রিয়েল-টাইম টেস্ট শুরু করুন (Start Comprehensive Scan & Cleanup)</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleStopScan}
+                        className="py-2.5 px-5 bg-gradient-to-r from-rose-600 to-red-600 hover:brightness-110 text-white font-extrabold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-rose-900/10 border border-rose-500/20 font-sans"
+                      >
+                        <span>🔴 টেস্ট স্থগিত করুন (Interrupt Scan Audit)</span>
+                      </button>
+                    )}
+
+                    <div className="ml-auto text-[10px] text-slate-500 font-mono flex items-center gap-2 font-sans">
+                      <span>Last Audit: {new Date().toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  {/* LIVE REAL-TIME TERMINAL LOG */}
+                  <div className="flex flex-col gap-1.5 font-sans">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                      ⌨️ রিয়েল-টাইম কার্যক্রম লগ (Live Cleanser Console Log)
+                    </span>
+                    <div className="bg-slate-950 border border-slate-900 rounded-2xl p-4.5 h-[150px] overflow-y-auto font-mono text-[10px] space-y-1.5 scrollbar-thin">
+                      {scanState.logs && scanState.logs.length > 0 ? (
+                        scanState.logs.map((log: any, idx: number) => {
+                          let textClass = 'text-slate-400';
+                          if (log.type === 'success') textClass = 'text-emerald-400';
+                          if (log.type === 'warn') textClass = 'text-amber-400';
+                          if (log.type === 'error') textClass = 'text-rose-450 font-bold';
+                          return (
+                            <div key={idx} className={`flex items-start gap-2.5 leading-relaxed border-b border-slate-900/30 pb-1 ${textClass}`}>
+                              <span className="text-[9px] text-slate-600 shrink-0 select-none">[{log.timestamp}]</span>
+                              <span>{log.message}</span>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <p className="text-slate-650 italic text-center py-5">কোনো রিয়েল-টাইম কার্যক্রম লগ পাওয়া যায়নি। স্ক্যান বা প্লেব্যাক ট্র্যাপ ইভেন্ট রিসিভ হওয়া মাত্র এখানে তথ্য ভেসে উঠবে।</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ACTIVE BLACKLIST AND RECOVERY VIEW */}
+                  <div className="border-t border-slate-905 pt-4 flex flex-col gap-2.5 font-sans">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <span className="text-[10px] font-extrabold text-rose-450 uppercase tracking-wide">
+                        ⚠️ বর্তমানে ফিল্টার ফাইলে ব্ল্যাকলিস্টেড চ্যানেলসমূহ ({blacklistedIds.length} টি)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (window.confirm('নিশ্চিত? এটি সমস্ত ব্ল্যাকলিস্ট করা চ্যানেলকে রিসেট এবং পুনরায় রিস্টোর করবে!')) {
+                            try {
+                              for (const cid of blacklistedIds) {
+                                await fetch('/api/channels/unblacklist', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ channelId: cid })
+                                });
+                              }
+                              await fetchBlacklisted();
+                              await loadChannels(true);
+                              alert('ব্ল্যাকলিস্ট সম্পন্নভাবে রিসেট ও রিস্টোর করা হয়েছে!');
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }
+                        }}
+                        disabled={blacklistedIds.length === 0}
+                        className="text-[9px] text-sky-400 hover:text-sky-300 font-bold bg-sky-500/5 border border-sky-950 px-2 py-1 rounded-lg cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        সবগুলো পুনরায় রিস্টোর করুন (Reset Blacklist)
+                      </button>
+                    </div>
+
+                    {blacklistedIds.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-[140px] overflow-y-auto pr-1 scrollbar-thin">
+                        {blacklistedIds.map((cid) => {
+                          const found = channels.find(c => c.id === cid);
+                          const displayName = found ? found.name : `Offline Stream (${cid.substring(0, 10)})`;
+                          return (
+                            <div key={cid} className="bg-slate-900/60 border border-slate-900 p-2.5 rounded-xl flex items-center justify-between text-[10px] font-medium text-slate-300 gap-2">
+                              <span className="truncate">{displayName}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleUnblacklist(cid)}
+                                className="text-[9px] text-emerald-400 hover:text-white bg-emerald-500/10 hover:bg-emerald-600 px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                              >
+                                রিস্টোর
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-emerald-500/60 italic pl-1 font-sans">অভিনন্দন! বর্তমানে কোনো স্থায়ী ব্ল্যাকলিস্টেড চ্যানেল নেই। সমস্ত লিংক সচল ও পরিষ্কার।</p>
+                    )}
+                  </div>
+                </div>
+
                 {/* GRID FOR PORTAL CONTROLS */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   
@@ -3818,36 +4148,6 @@ export default function App() {
               </button>
             )}
 
-            {/* TV Mode Layout scaler button */}
-            <button
-              id="btn-header-tv-scale-toggle"
-              onClick={() => setIsTvModeOptimized(prev => !prev)}
-              tabIndex={0}
-              title="টিভি মোড স্কেলিং টগল করুন"
-              className={`flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 border rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0 tv-focusable
-                ${isTvModeOptimized 
-                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 font-extrabold shadow-md' 
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-705'
-                }
-              `}
-            >
-              <Monitor className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden sm:inline">TV Mode: {isTvModeOptimized ? 'ON' : 'OFF'}</span>
-              <span className="sm:hidden text-[9px]">TV Mode</span>
-            </button>
-
-            {/* Smart TV Remote Control Instruction Help Button */}
-            <button
-               id="btn-header-tv-guide-trigger"
-               onClick={() => setIsTvGuideOpen(true)}
-               tabIndex={0}
-               title="স্মার্ট টিভি ও অ্যানড্রয়েড টিভি রিমোট কন্ট্রোল ব্যবহারবিধি"
-               className="flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 bg-indigo-950/85 border border-indigo-550/40 hover:bg-slate-850 text-[10px] sm:text-xs font-bold text-indigo-400 hover:text-white rounded-lg transition-all shadow-md cursor-pointer active:scale-95 shrink-0 tv-focusable"
-            >
-              <Tv className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span>TV রিমোট গাইড</span>
-            </button>
-
             <button
                id="btn-header-refresh-playlist"
                onClick={() => loadChannels(true)}
@@ -3927,6 +4227,9 @@ export default function App() {
                   channel={selectedChannel} 
                   onReportWorkingState={handleReportWorkingState} 
                   serverId={activeServerId}
+                  allChannels={channels}
+                  onSelectChannel={handleSelectChannel}
+                  onDeleteChannel={handleDeleteChannel}
                 />
                 
                 {/* Connecting Server overlay indicator */}
@@ -3939,97 +4242,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Dynamic Live Chat panel integration placed directly under display */}
-              {selectedChannel && (
-                <div className="flex flex-col gap-2.5 select-none">
-                  {isChatOpen && (
-                    <LiveChat
-                      channelId={selectedChannel.id}
-                      currentUser={currentUser}
-                      isOpen={isChatOpen}
-                      onClose={() => setIsChatOpen(false)}
-                    />
-                  )}
-                  
-                  <button
-                    id="btn-toggle-live-chat-panel"
-                    type="button"
-                    onClick={() => setIsChatOpen(!isChatOpen)}
-                    className={`w-full py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.8 transition-all cursor-pointer shadow active:scale-95
-                      ${isChatOpen 
-                        ? 'bg-rose-500/10 hover:bg-rose-500/15 border-rose-950/40 text-rose-450' 
-                        : 'bg-gradient-to-r from-sky-600 via-sky-650 to-indigo-650 hover:from-sky-500 hover:to-indigo-500 text-white border-sky-500/10 shadow-md hover:shadow-sky-600/10'
-                      }
-                    `}
-                  >
-                    <MessageSquare className="w-4 h-4 text-sky-400 shrink-0" />
-                    <span>{isChatOpen ? 'லைவ் চ্যাট ক্লোজ করুন (Collapse Chat)' : 'লাইভ চ্যাট রুম ওপেন করুন (Open Chat)'}</span>
-                  </button>
-                </div>
-              )}
 
-              {/* MAGNIFICENT 4 REAL-TIME HIGH SPEED SERVERS SELECTOR BLOCK */}
-              <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
-                    <Radio className="w-4 h-4 text-pink-500 animate-pulse" />
-                    <span>সার্ভার</span>
-                  </div>
-                  <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 px-2 py-0.5 rounded-full font-mono font-bold animate-pulse">
-                    ● real-time
-                  </span>
-                </div>
-                
-                {/* Active server readout details */}
-                <div className="p-2 px-3 bg-slate-950 border border-slate-850 rounded-xl text-[11px] text-slate-400 flex items-center justify-between font-mono">
-                  <span>চলতি সার্ভার (Routing):</span>
-                  {connectingServer ? (
-                    <span className="text-amber-400 font-bold animate-pulse">অনলাইন {connectingServer}...</span>
-                  ) : (
-                    <span className="text-pink-400 font-bold">সার্ভার {activeServerId === '1' ? '১' : activeServerId === '2' ? '২' : activeServerId === '3' ? '৩' : '৪'}</span>
-                  )}
-                </div>
-
-                {/* Grid layout for 4 real-time servers */}
-                <div className="grid grid-cols-4 gap-2.5">
-                  {[
-                    { id: '1', eng: '1', ben: '১', ping: '12ms', load: '14%' },
-                    { id: '2', eng: '2', ben: '২', ping: '18ms', load: '19%' },
-                    { id: '3', eng: '3', ben: '৩', ping: '15ms', load: '22%' },
-                    { id: '4', eng: '4', ben: '৪', ping: '20ms', load: '28%' }
-                  ].map((srv) => {
-                    const isActive = activeServerId === srv.id;
-                    return (
-                      <button
-                        key={srv.id}
-                        onClick={() => {
-                          setConnectingServer(srv.ben);
-                          setTimeout(() => {
-                            setConnectingServer('');
-                            setActiveServerId(srv.id);
-                            setActiveServer(`Server ${srv.eng}`);
-                            localStorage.setItem('site_active_server_id', srv.id);
-                            localStorage.setItem('site_active_server', `Server ${srv.eng}`);
-                          }, 800);
-                        }}
-                        disabled={!!connectingServer}
-                        className={`py-2 px-1 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all duration-200 active:scale-95 cursor-pointer
-                          ${isActive
-                            ? 'bg-pink-500/10 border-pink-505 text-pink-400 shadow shadow-pink-500/10'
-                            : 'bg-slate-950 hover:bg-slate-850 border-slate-850 text-slate-400 hover:text-slate-200'
-                          }
-                        `}
-                      >
-                        <span className="text-sm font-extrabold">{srv.ben}</span>
-                        <div className="flex flex-col items-center text-[7px] font-mono text-slate-505 leading-none mt-0.5">
-                          <span>{srv.ping}</span>
-                          <span className="text-[6px] opacity-70">Load: {srv.load}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
 
 
             </div>
@@ -4042,172 +4255,257 @@ export default function App() {
               <DynamicAdContainer html={adCodes.topBanner} />
             )}
             
-            {/* Search and Filters Hub */}
-            <div className="lg:sticky lg:top-24 z-20 bg-slate-900 rounded-2xl p-4 border border-slate-800/60 shadow-xl flex flex-col gap-4">
-              
-              {/* Moving Announcement/Marquee Notice bar */}
-              <div id="notice-scrolling-container" className="bg-slate-950/90 border border-slate-850 rounded-xl px-3 py-2 flex items-center gap-2 overflow-hidden select-none">
-                <span className="flex items-center gap-1 shrink-0 text-[10px] font-extrabold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-sans tracking-wide">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  চলতি ঘোষণা
-                </span>
-                <Marquee className="text-xs text-slate-300 font-medium font-sans cursor-pointer flex-1" scrollamount="3" behavior="scroll" direction="left">
-                  {marqueeText}
-                </Marquee>
-              </div>
-
-              {/* Row 1: Search Input */}
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Search className="w-4.5 h-4.5" />
-                </span>
-                <input
-                  id="channels-text-search-input"
-                  type="text"
-                  placeholder="চ্যানেলের নাম দিয়ে খুঁজুন..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 bg-slate-950 border border-slate-800 focus:border-sky-500/80 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500/20 transition-all font-sans"
-                />
-                {searchQuery && (
-                  <button
-                    id="btn-clear-search-query"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Row 2: Categories Tab Scroller */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-                  <span className="flex items-center gap-1 font-semibold text-slate-300">
-                    ক্যাটাগরি
-                  </span>
-                </div>
-                
-                {/* Scrollable track for category buttons */}
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-800">
-                  {CATEGORIES.map((cat) => {
-                    const count = categoryCounts[cat.id] || 0;
-                    const isActive = selectedGroup === cat.id;
-
-                    // Skip displaying empty groups unless they are 'all', 'favorites' or 'failed'
-                    if (count === 0 && cat.id !== 'all' && cat.id !== 'favorites' && cat.id !== 'failed') return null;
-
-                    return (
-                      <button
-                        id={`category-tab-btn-${cat.id}`}
-                        key={cat.id}
-                        onClick={() => setSelectedGroup(cat.id)}
-                        className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg shrink-0 transition-all duration-200 cursor-pointer border
-                          ${isActive 
-                            ? 'bg-gradient-to-r from-pink-500 to-rose-500 border-pink-400 text-white shadow-lg shadow-pink-950/40' 
-                            : 'bg-slate-950 text-slate-400 border-slate-850 hover:border-slate-800 hover:text-slate-200 hover:bg-slate-900'
-                          }
-                        `}
-                      >
-                        {cat.id === 'favorites' && <Heart className={`w-3.5 h-3.5 ${isActive ? 'fill-white' : 'text-pink-500 fill-pink-500'}`} />}
-                        <span>{cat.nameBangla}</span>
-                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold
-                          ${isActive ? 'bg-pink-700 text-white' : 'bg-slate-900 text-slate-500'}
-                        `}>
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Channels List Grid Area */}
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-between items-center px-1 text-slate-400 font-sans">
-                <span className="text-xs font-semibold flex items-center gap-1.5 uppercase tracking-wider">
-                  <ListFilter className="w-4 h-4 text-pink-405" /> চ্যানেলসমূহ
-                </span>
-                
-                <span className="text-2xs font-mono text-slate-500">
-                  মোট ফিল্টার্ড: {filteredChannels.length}টি
-                </span>
-              </div>
-
-              {/* Status loading view */}
-              {loading && channels.length === 0 ? (
-                <div id="loader-fallback-block" className="bg-slate-900/60 border border-slate-900 rounded-2xl p-16 text-center shadow-xl">
-                  <div className="relative w-12 h-12 mx-auto mb-4">
-                    <span className="absolute inset-0 border-3 border-slate-800 rounded-full"></span>
-                    <span className="absolute inset-0 border-3 border-pink-500 rounded-full animate-spin border-t-transparent"></span>
+            {mobileActiveTab === 'sports' ? (
+              <SportsScheduleDashboard 
+                channels={channels}
+                onSelectChannel={handleSelectChannel}
+                onClose={() => setMobileActiveTab('home')}
+              />
+            ) : mobileActiveTab === 'chat' ? (
+              selectedChannel ? (
+                <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800/60 shadow-xl flex flex-col gap-4 animate-fade-in font-sans">
+                  <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
+                      </span>
+                      <h3 className="text-sm font-extrabold text-white flex items-center gap-1.5 leading-none">
+                        💬 {selectedChannel.name} চ্যাট রুম
+                      </h3>
+                    </div>
+                    <button 
+                      onClick={() => setMobileActiveTab('home')}
+                      className="text-[10px] text-slate-400 hover:text-slate-200 cursor-pointer bg-slate-950 p-1 px-2.5 rounded-lg border border-slate-800 font-bold hover:border-slate-700"
+                    >
+                      চ্যানেল লিস্ট
+                    </button>
                   </div>
-                  <h3 className="text-sm font-semibold text-slate-300">চ্যানেল লোড হচ্ছে...</h3>
-                </div>
-              ) : error && channels.length === 0 ? (
-                <div id="error-fallback-block" className="bg-slate-905 border border-slate-900 rounded-2xl p-10 text-center shadow-xl">
-                  <AlertCircle className="w-12 h-12 text-rose-505 mx-auto mb-3" />
-                  <h3 className="text-sm font-bold text-slate-200">সার্ভার সংযোগে ত্রুটি!</h3>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 leading-relaxed">
-                    {error}
-                  </p>
-                  <button
-                    id="btn-error-reload-trigger"
-                    onClick={() => loadChannels(false)}
-                    className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white rounded-lg transition-colors border border-slate-700 cursor-pointer"
-                  >
-                    পুনরায় চেষ্টা করুন
-                  </button>
-                </div>
-              ) : filteredChannels.length === 0 ? (
-                // Empty search result State
-                <div id="no-results-fallback-block" className="bg-slate-910/20 border border-slate-900/60 rounded-2xl p-14 text-center">
-                  <div className="text-3xl text-slate-500 mb-3">🔍</div>
-                  <h3 className="text-sm font-semibold text-slate-300">কোনো চ্যানেল পাওয়া যায়নি</h3>
-                  <button
-                    id="btn-reset-filters"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedGroup('all');
-                    }}
-                    className="mt-4 px-3.5 py-1.5 bg-sky-950/30 hover:bg-sky-900/40 text-sky-400 text-xs font-semibold rounded-lg border border-sky-900/40 transition-colors"
-                  >
-                    ফিল্টার রিসেট করুন
-                  </button>
+                  <LiveChat
+                    channelId={selectedChannel.id}
+                    currentUser={currentUser}
+                    isOpen={true}
+                    onClose={() => setMobileActiveTab('home')}
+                  />
                 </div>
               ) : (
-                // Dynamic viewport optimized slicer (ONLY renders visibleCount initially to secure 60FPS UI response speeds)
-                <div className="flex flex-col gap-5">
-                  <div id="channels-result-scroller" className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-1.5 sm:gap-3 md:gap-4 lg:gap-3 xl:gap-4 max-h-[500px] lg:max-h-[calc(100vh-365px)] overflow-y-auto pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-850">
-                    {filteredChannels.slice(0, visibleCount).map((ch) => (
-                      <ChannelCard
-                        key={ch.id}
-                        channel={ch}
-                        isSelected={selectedChannel?.id === ch.id}
-                        isFavorite={favorites.includes(ch.id)}
-                        onSelect={handleSelectChannel}
-                        onToggleFavorite={handleToggleFavorite}
-                        workingReport={channelHealth[ch.id] || 'untested'}
-                      />
-                    ))}
+                <div className="bg-slate-900/60 rounded-2xl p-12 border border-slate-800/60 shadow-xl text-center flex flex-col items-center justify-center gap-2 animate-fade-in font-sans select-none">
+                  <span className="text-3xl text-slate-500 animate-pulse">💬</span>
+                  <p className="text-xs font-bold text-slate-300 mt-2">চ্যাট করতে আগে একটি ক্যাটাগরি বা চ্যানেল সিলেক্ট করুন</p>
+                  <p className="text-[10px] text-slate-500 max-w-xs leading-relaxed mt-0.5">যেকোনো চ্যানেল প্লে করলেই স্টেডিয়াম লাইভ চ্যাট রুমে সকল বন্ধুদের সাথে কথা বলতে পারবেন।</p>
+                  <button 
+                    onClick={() => setMobileActiveTab('home')}
+                    className="mt-4 px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-extrabold text-[11px] rounded-xl cursor-pointer shadow-lg active:scale-95 transition-all text-center"
+                  >
+                    সব চ্যানেল দেখুন
+                  </button>
+                </div>
+              )
+            ) : (
+              <>
+                {/* Search and Filters Hub */}
+                <div className="lg:sticky lg:top-24 z-20 bg-slate-900 rounded-2xl p-4 border border-slate-800/60 shadow-xl flex flex-col gap-4">
+                  
+                  {/* Moving Announcement/Marquee Notice bar */}
+                  <div id="notice-scrolling-container" className="bg-slate-950/90 border border-slate-850 rounded-xl px-3 py-2 flex items-center gap-2 overflow-hidden select-none">
+                    <span className="flex items-center gap-1 shrink-0 text-[10px] font-extrabold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-sans tracking-wide">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      চলতি ঘোষণা
+                    </span>
+                    <Marquee className="text-xs text-slate-300 font-medium font-sans cursor-pointer flex-1" scrollamount="3" behavior="scroll" direction="left">
+                      {marqueeText}
+                    </Marquee>
                   </div>
 
-                  {/* Load More Pagination Container (Exposed if more items matching filters are queued for rendering) */}
-                  {filteredChannels.length > visibleCount && (
-                    <div id="load-more-section" className="flex justify-center py-2">
+                  {/* Row 1: Search Input */}
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                      <Search className="w-4.5 h-4.5" />
+                    </span>
+                    <input
+                      id="channels-text-search-input"
+                      type="text"
+                      placeholder="চ্যানেলের নাম দিয়ে খুঁজুন..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-10 py-3 bg-slate-950 border border-slate-800 focus:border-sky-500/80 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500/20 transition-all font-sans"
+                    />
+                    {searchQuery && (
                       <button
-                        id="btn-load-more-dynamic-channels"
-                        onClick={() => setVisibleCount(prev => prev + 120)}
-                        className="px-6 py-3 bg-slate-900 hover:bg-slate-850/80 text-sky-450 hover:text-white border border-slate-800 hover:border-slate-700 font-sans text-xs font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95 hover:shadow-sky-500/10"
+                        id="btn-clear-search-query"
+                        onClick={() => setSearchQuery('')}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 cursor-pointer"
                       >
-                        <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                        <span>আরো চ্যানেল দেখুন (বাকি আছে {filteredChannels.length - visibleCount}টি)</span>
+                        <X className="w-4 h-4" />
                       </button>
+                    )}
+                  </div>
+
+                  {/* Row 2: Categories Tab Scroller */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-xs text-slate-400 px-1">
+                      <span className="flex items-center gap-1 font-semibold text-slate-300">
+                        ক্যাটাগরি
+                      </span>
+                    </div>
+                    
+                    {/* Scrollable track for category buttons */}
+                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-800">
+                      {CATEGORIES.map((cat) => {
+                        const count = categoryCounts[cat.id] || 0;
+                        const isActive = selectedGroup === cat.id;
+
+                        // Skip displaying empty groups unless they are 'all', 'favorites' or 'failed'
+                        if (count === 0 && cat.id !== 'all' && cat.id !== 'favorites' && cat.id !== 'failed') return null;
+
+                        return (
+                          <button
+                            id={`category-tab-btn-${cat.id}`}
+                            key={cat.id}
+                            onClick={() => setSelectedGroup(cat.id)}
+                            className={`flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg shrink-0 transition-all duration-200 cursor-pointer border
+                              ${isActive 
+                                ? 'bg-gradient-to-r from-pink-500 to-rose-500 border-pink-400 text-white shadow-lg shadow-pink-950/40' 
+                                : 'bg-slate-950 text-slate-400 border-slate-850 hover:border-slate-800 hover:text-slate-200 hover:bg-slate-900'
+                              }
+                            `}
+                          >
+                            {cat.id === 'favorites' && <Heart className={`w-3.5 h-3.5 ${isActive ? 'fill-white' : 'text-pink-500 fill-pink-500'}`} />}
+                            <span>{cat.nameBangla}</span>
+                            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold
+                              ${isActive ? 'bg-pink-700 text-white' : 'bg-slate-900 text-slate-500'}
+                            `}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Channels List Grid Area */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between items-center px-1 text-slate-400 font-sans">
+                    <span className="text-xs font-semibold flex items-center gap-1.5 uppercase tracking-wider">
+                      <ListFilter className="w-4 h-4 text-pink-405" /> {selectedGroup === 'failed' ? 'অচল চ্যানেলসমূহ' : 'চ্যানেলসমূহ'}
+                    </span>
+                    
+                    <div className="flex items-center gap-2">
+                      {selectedGroup === 'failed' && filteredChannels.length > 0 && (
+                        <button
+                          id="delete-all-failed-channels-btn"
+                          onClick={() => {
+                            if (window.confirm('আপনি কি সত্যিই সমস্ত অচল বা লোড না হওয়া চ্যানেল ওয়েবসাইট থেকে চিরতরে মুছে ফেলতে চান?')) {
+                              const deletedIdsRaw = localStorage.getItem('site_deleted_channel_ids');
+                              const deletedIds: string[] = deletedIdsRaw ? JSON.parse(deletedIdsRaw) : [];
+                              
+                              filteredChannels.forEach(ch => {
+                                if (!deletedIds.includes(ch.id)) {
+                                  deletedIds.push(ch.id);
+                                }
+                              });
+                              
+                              localStorage.setItem('site_deleted_channel_ids', JSON.stringify(deletedIds));
+                              
+                              // Also clean from health cache
+                              const updatedHealth = { ...channelHealth };
+                              filteredChannels.forEach(ch => {
+                                delete updatedHealth[ch.id];
+                              });
+                              setChannelHealth(updatedHealth);
+                              localStorage.setItem('live_channels_health', JSON.stringify(updatedHealth));
+                              
+                              alert('সবগুলো অচল চ্যানেল সফলভাবে ডিলিট করা হয়েছে!');
+                              loadChannels();
+                            }
+                          }}
+                          className="px-2.5 py-1.5 bg-rose-900/30 hover:bg-rose-900/50 text-rose-400 hover:text-white border border-rose-900/40 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          🗑️ সব ডিলিট করুন (Delete All)
+                        </button>
+                      )}
+                      <span className="text-2xs font-mono text-slate-500">
+                        মোট ফিল্টার্ড: {filteredChannels.length}টি
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Status loading view */}
+                  {loading && channels.length === 0 ? (
+                    <div id="loader-fallback-block" className="bg-slate-900/60 border border-slate-900 rounded-2xl p-16 text-center shadow-xl">
+                      <div className="relative w-12 h-12 mx-auto mb-4">
+                        <span className="absolute inset-0 border-3 border-slate-800 rounded-full"></span>
+                        <span className="absolute inset-0 border-3 border-pink-500 rounded-full animate-spin border-t-transparent"></span>
+                      </div>
+                      <h3 className="text-sm font-semibold text-slate-300">চ্যানেল লোড হচ্ছে...</h3>
+                    </div>
+                  ) : error && channels.length === 0 ? (
+                    <div id="error-fallback-block" className="bg-slate-905 border border-slate-900 rounded-2xl p-10 text-center shadow-xl">
+                      <AlertCircle className="w-12 h-12 text-rose-505 mx-auto mb-3" />
+                      <h3 className="text-sm font-bold text-slate-200">সার্ভার সংযোগে ত্রুটি!</h3>
+                      <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 leading-relaxed">
+                        {error}
+                      </p>
+                      <button
+                        id="btn-error-reload-trigger"
+                        onClick={() => loadChannels(false)}
+                        className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white rounded-lg transition-colors border border-slate-700 cursor-pointer"
+                      >
+                        পুনরায় চেষ্টা করুন
+                      </button>
+                    </div>
+                  ) : filteredChannels.length === 0 ? (
+                    // Empty search result State
+                    <div id="no-results-fallback-block" className="bg-slate-910/20 border border-slate-900/60 rounded-2xl p-14 text-center">
+                      <div className="text-3xl text-slate-500 mb-3">🔍</div>
+                      <h3 className="text-sm font-semibold text-slate-300">কোনো চ্যানেল পাওয়া যায়নি</h3>
+                      <button
+                        id="btn-reset-filters"
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSelectedGroup('all');
+                        }}
+                        className="mt-4 px-3.5 py-1.5 bg-sky-950/30 hover:bg-sky-900/40 text-sky-400 text-xs font-semibold rounded-lg border border-sky-900/40 transition-colors"
+                      >
+                        ফিল্টার রিসেট করুন
+                      </button>
+                    </div>
+                  ) : (
+                    // Dynamic viewport optimized slicer (ONLY renders visibleCount initially to secure 60FPS UI response speeds)
+                    <div className="flex flex-col gap-5">
+                      <div id="channels-result-scroller" className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-1.5 sm:gap-3 md:gap-4 lg:gap-3 xl:gap-4 max-h-[500px] lg:max-h-[calc(100vh-365px)] overflow-y-auto pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-850">
+                        {filteredChannels.slice(0, visibleCount).map((ch) => (
+                          <ChannelCard
+                            key={ch.id}
+                            channel={ch}
+                            isSelected={selectedChannel?.id === ch.id}
+                            isFavorite={favorites.includes(ch.id)}
+                            onSelect={handleSelectChannel}
+                            onToggleFavorite={handleToggleFavorite}
+                            workingReport={channelHealth[ch.id] || 'untested'}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Load More Pagination Container (Exposed if more items matching filters are queued for rendering) */}
+                      {filteredChannels.length > visibleCount && (
+                        <div id="load-more-section" className="flex justify-center py-2">
+                          <button
+                            id="btn-load-more-dynamic-channels"
+                            onClick={() => setVisibleCount(prev => prev + 120)}
+                            className="px-6 py-3 bg-slate-900 hover:bg-slate-850/80 text-sky-450 hover:text-white border border-slate-800 hover:border-slate-700 font-sans text-xs font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg active:scale-95 hover:shadow-sky-500/10"
+                          >
+                            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                            <span>আরো চ্যানেল দেখুন (বাকি আছে {filteredChannels.length - visibleCount}টি)</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
 
             {/* BOTTOM BANNER AD SLOT */}
             {adCodes.bottomBanner && (
@@ -4308,7 +4606,7 @@ export default function App() {
                   {/* BDIX Live Button */}
                   <button
                     onClick={() => {
-                      setSelectedGroup('Bangla');
+                      setSelectedGroup('all');
                       setSearchQuery('bdix');
                       setIsSidebarOpen(false);
                       setCurrentPage('app');
@@ -4643,18 +4941,8 @@ export default function App() {
                 {/* Grid of keys operations */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-2">
                   <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl">
-                    <span className="text-xs font-bold text-amber-400 block mb-1">🎯 রিমোটের অ্যারো বাটন (Arrow Keys):</span>
-                    <span className="text-[11px] text-slate-400">রিমোটের **Up, Down, Left, Right** বাটন ব্যবহার করে এক বাটন থেকে অন্য বাটনে বা এক চ্যানেল থেকে অন্য চ্যানেলে চমৎকারভাবে ফোকাস করতে পারবেন। ফোকাসড উপাদানটির চারপাশে উজ্জ্বল হলুদ বর্ডার দেখা যাবে।</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl">
-                    <span className="text-xs font-bold text-emerald-400 block mb-1">🔘 ওকে / এন্টার বাটন (OK / Enter):</span>
-                    <span className="text-[11px] text-slate-400">যেকোনো ফোকাসড চ্যানেল বা ভিডিও প্লেয়ার বাটনের ওপর থাকাকালীন রিমোটের মাঝের গোল **OK/Enter** বাটন প্রেস করলেই সেটি সাথে সাথে চালু হয়ে যাবে।</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl">
-                    <span className="text-xs font-bold text-sky-400 block mb-1">🔍 টিভি স্কেলিং বাটন (TV Scale Mode):</span>
-                    <span className="text-[11px] text-slate-400">হেডারের **"TV Mode"** বাটনটি অন করলে ১০ ফুট দূর থেকে টিভির উজ্জ্বল স্ক্রিনে দেখার সুবিধার্থে ফন্ট সাইজ এবং চ্যানেল গ্রিড চমৎকারভাবে বড় হয়ে অপ্টিমাইজড হয়ে যাবে।</span>
+                    <span className="text-xs font-bold text-amber-400 block mb-1">🎮 রিমোট কন্ট্রোল দিয়ে নড়াচড়া ও ক্লিক (D-Pad & Enter):</span>
+                    <span className="text-[11px] text-slate-400">আপনার টিভি রিমোটের Arrow Keys (Left, Right, Up, Down) চেপে নড়াচড়া করুন এবং নির্বাচিত চ্যানেলে ক্লিক করতে OK / Enter বাটন চাপুন। এটি করার ফলে স্ক্রিনটি ব্রাউজার পেজের চেয়ে বড় হয়ে অপ্টিমাইজড হয়ে যাবে।</span>
                   </div>
 
                   <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl">
@@ -4958,98 +5246,32 @@ export default function App() {
                           placeholder="স্ট্রিম লিংক (.m3u8, .mpd, mp4 link)"
                           className="bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none placeholder-slate-500"
                         />
-                                       {/* Real-time Global Maintenance Mode Control Panel */}
-
-
-                      <div className="flex flex-col gap-2.5 mt-1.5">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            const nextMode = !siteSettings.maintenanceMode;
-                            const ok = await saveSiteSettings({ maintenanceMode: nextMode });
-                            if (ok) {
-                              alert(`রক্ষণাবেক্ষণ মোড সফলভাবে ${nextMode ? 'অন (Active)' : 'অফ (Inactive)'} করা হয়েছে! এটি ৩ সেকেন্ডের মাঝে রিয়েল-টাইমে গ্রাহকের স্ক্রিনে রিফ্রেশ ছাড়াই কাজ করা শুরু করবে।`);
-                            }
-                          }}
-                          className={`w-full py-2 px-3 rounded text-[11px] font-black tracking-wide cursor-pointer transition-all text-center flex items-center justify-center gap-1.5
-                            ${siteSettings.maintenanceMode 
-                              ? 'bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-450 hover:to-rose-550 text-white shadow-lg font-extrabold' 
-                              : 'bg-indigo-950 hover:bg-indigo-900 border border-indigo-800/40 text-indigo-400 font-extrabold'}
-                          `}
-                        >
-                          <Tv className="w-3.5 h-3.5" />
-                          <span>{siteSettings.maintenanceMode ? '🔴 রক্ষণাবেক্ষণ মোড বন্ধ করুন (Restore Site)' : '🟢 রক্ষণাবেক্ষণ মোড চালু করুন (Lockdown)'}</span>
-   
-                    <div className="p-4 bg-slate-950 border border-slate-850 rounded-2xl flex flex-col justify-between gap-3">
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-black text-rose-400 uppercase tracking-widest flex items-center gap-1.5 font-sans">
-                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
-                            ২. গলোবাল রক্ষণাবেক্ষণ লকডাউন
-                          </span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded leading-none transition-colors
-                            ${siteSettings.maintenanceMode 
-                              ? 'bg-rose-550/15 text-rose-455 border border-rose-500/30' 
-                              : 'bg-slate-900 text-slate-450 border border-slate-800'
-                            }
-                          `}>
-                            {siteSettings.maintenanceMode ? 'লকডাউন অন (ON)' : 'সাইট রানিং (OFF)'}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-slate-450 font-sans block mt-1.5 leading-relaxed">
-                          এটি অন করলে পুরো ওয়েবসাইট অফলাইন লকডাউন হয়ে যাবে। সকল মোবাইল, ডেস্কটপ ও অ্যান্ড্রয়েড টিভি ইউজাররা একটি রিয়েল-টাইম প্রোগ্রেস বার (লোপিং ৬৫%-৯৮%) ও কাস্টম নোটিশ দেখতে পারবে।
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col gap-2.5 mt-1.5">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            const nextMode = !siteSettings.maintenanceMode;
-                            const ok = await saveSiteSettings({ maintenanceMode: nextMode });
-                            if (ok) {
-                              alert(`রক্ষণাবেক্ষণ মোড সফলভাবে ${nextMode ? 'অন (Active)' : 'অফ (Inactive)'} করা হয়েছে! এটি ৩ সেকেন্ডের মাঝে রিয়েল-টাইমে গ্রাহকের স্ক্রিনে রিফ্রেশ ছাড়াই কাজ করা শুরু করবে।`);
-                            }
-                          }}
-                          className={`w-full py-2 px-3 rounded text-[11px] font-black tracking-wide cursor-pointer transition-all text-center flex items-center justify-center gap-1.5
-                            ${siteSettings.maintenanceMode 
-                              ? 'bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-450 hover:to-rose-550 text-white shadow-lg font-extrabold' 
-                              : 'bg-indigo-950 hover:bg-indigo-900 border border-indigo-800/40 text-indigo-400 font-extrabold'}
-                          `}
-                        >
-                          <Tv className="w-3.5 h-3.5" />
-                          <span>{siteSettings.maintenanceMode ? '🔴 রক্ষণাবেক্ষণ মোড বন্ধ করুন (Restore Site)' : '🟢 রক্ষণাবেক্ষণ মোড চালু করুন (Lockdown)'}</span>
-                        </button>
-
-                        <div className="border-t border-slate-900 pt-2.5">
-                          <label className="text-[9px] font-bold uppercase text-slate-400 block mb-1">রক্ষণাবেক্ষণ নোটিশ বার্তা (Custom Notice Msg)</label>
-                          <textarea
-                            id="admin-maintenance-msg-input-2"
-                            defaultValue={siteSettings.maintenanceMessage || ''}
-                            rows={3}
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500 resize-none leading-relaxed font-sans"
-                            placeholder="যেমন: আমাদের সিস্টেম সার্ভার আপডেট চলছে। দ্রুতই পুনরায় ফিরে আসছি..."
-                          />
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              const textarea = document.getElementById('admin-maintenance-msg-input-2') as HTMLTextAreaElement;
-                              if (textarea) {
-                                const ok = await saveSiteSettings({ maintenanceMessage: textarea.value.trim() });
-                                if (ok) {
-                                  alert('রক্ষণাবেক্ষণ নোটিশ বার্তাটি সফলভাবে রিয়েল-টাইমে আপডেট করা হয়েছে!');
-                                }
-                              }
-                            }}
-                            className="mt-1.5 w-full py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1"
+                        <input
+                          name="ch_logo"
+                          type="text"
+                          placeholder="লোগো ছবি লিংক (Optional logo URL)"
+                          className="bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none placeholder-slate-500"
+                        />
+                        <div className="flex gap-2">
+                          <select
+                            name="ch_group"
+                            className="bg-slate-900 border border-slate-800 rounded p-2 text-xs text-slate-200 focus:outline-none flex-1"
                           >
-                            <Sparkles className="w-3 h-3 text-slate-950" />
-                            <span>বার্তা সংরক্ষণ ও লাইভ প্রচার করুন (Update Message)</span>
+                            <option value="Sports">Sports (খেলাধুলা)</option>
+                            <option value="Cricket">Cricket Feed</option>
+                            <option value="Bangla">Bangla TV</option>
+                            <option value="Entertainment">বিনোদন</option>
+                            <option value="News">সংবাদ</option>
+                          </select>
+                          <button
+                            type="submit"
+                            className="bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-[11px] px-3.5 py-2 rounded transition-all cursor-pointer shrink-0"
+                          >
+                            যোগ করুন ➕
                           </button>
                         </div>
                       </div>
-                    </div>
-                  </form>
+                    </form>
                   </div>
 
                   {/* Active TV channels List */}
@@ -5459,11 +5681,93 @@ export default function App() {
       {/* Floating Customer Support Chat Button & Overlay Sheet */}
       {currentPage === 'app' && (
         <>
-          {/* Floating Circle Button with pulsing glow */}
+          {/* Mobile Responsive Bottom Navigation Bar */}
+          <div className="fixed bottom-0 left-0 right-0 z-[1001] bg-slate-950/95 border-t border-slate-900 backdrop-blur-md py-2.5 px-4 flex justify-around items-center md:hidden pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.6)] select-none">
+            {/* HOME TAB */}
+            <button
+              onClick={() => {
+                setMobileActiveTab('home');
+                setSelectedGroup('all');
+                // Scroll player back to viewport top
+                const playerEl = document.getElementById('player-view-container');
+                if (playerEl) {
+                  playerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className={`flex flex-col items-center gap-1 cursor-pointer transition-all active:scale-90 relative ${
+                mobileActiveTab === 'home' && selectedGroup !== 'favorites'
+                  ? 'text-sky-400 font-extrabold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-[10px] tracking-tight font-sans">হোম</span>
+              {mobileActiveTab === 'home' && selectedGroup !== 'favorites' && (
+                <span className="absolute -bottom-1 w-5 h-1 bg-sky-500 rounded-full animate-pulse" />
+              )}
+            </button>
+
+            {/* LIVE MATCHES TAB */}
+            <button
+              onClick={() => {
+                setMobileActiveTab('sports');
+              }}
+              className={`flex flex-col items-center gap-1 cursor-pointer transition-all active:scale-90 relative ${
+                mobileActiveTab === 'sports'
+                  ? 'text-amber-400 font-extrabold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Trophy className={`w-5 h-5 ${mobileActiveTab === 'sports' ? 'animate-bounce' : ''}`} />
+              <span className="text-[10px] tracking-tight font-sans">লাইভ ম্যাচ</span>
+              {mobileActiveTab === 'sports' && (
+                <span className="absolute -bottom-1 w-5 h-1 bg-amber-500 rounded-full animate-pulse" />
+              )}
+            </button>
+
+            {/* STADIUM CHAT TAB */}
+            <button
+              onClick={() => {
+                setMobileActiveTab('chat');
+              }}
+              className={`flex flex-col items-center gap-1 cursor-pointer transition-all active:scale-90 relative ${
+                mobileActiveTab === 'chat'
+                  ? 'text-pink-400 font-extrabold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span className="text-[10px] tracking-tight font-sans">গ্রুপ চ্যাট</span>
+              {mobileActiveTab === 'chat' && (
+                <span className="absolute -bottom-1 w-5 h-1 bg-pink-500 rounded-full animate-pulse" />
+              )}
+            </button>
+
+            {/* FAVORITES TAB */}
+            <button
+              onClick={() => {
+                setMobileActiveTab('home');
+                setSelectedGroup('favorites');
+              }}
+              className={`flex flex-col items-center gap-1 cursor-pointer transition-all active:scale-90 relative ${
+                mobileActiveTab === 'home' && selectedGroup === 'favorites'
+                  ? 'text-rose-400 font-extrabold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Heart className={`w-5 h-5 ${mobileActiveTab === 'home' && selectedGroup === 'favorites' ? 'fill-rose-500 text-rose-500 font-sans' : ''}`} />
+              <span className="text-[10px] tracking-tight font-sans">প্রিয় চ্যানেল</span>
+              {mobileActiveTab === 'home' && selectedGroup === 'favorites' && (
+                <span className="absolute -bottom-1 w-5 h-1 bg-rose-500 rounded-full animate-pulse" />
+              )}
+            </button>
+          </div>
+
+          {/* Floating Circle Button with pulsing glow (Repositioned to bottom-20 on mobile) */}
           <button
             id="floating-live-support-button"
             onClick={() => setIsSupportModalOpen(true)}
-            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-[999] w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group cursor-pointer border border-emerald-400/40 select-none animate-fade-in"
+            className="fixed bottom-20 right-6 md:bottom-8 md:right-8 z-[999] w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group cursor-pointer border border-emerald-400/40 select-none animate-fade-in"
             title="লাইভ সাপোর্ট চ্যাট"
           >
             {/* Pulsing ring */}
@@ -5494,19 +5798,6 @@ export default function App() {
             currentUser={currentUser}
             isInline={false}
           />
-
-          {/* Floating TV Guide Sidebar Option on the Right edge */}
-          {isLoggedIn && (
-            <button
-              onClick={() => setIsTvGuideOpen(true)}
-              className="fixed right-0 top-1/2 transform -translate-y-1/2 z-40 bg-gradient-to-l from-amber-600 to-amber-500 hover:from-amber-550 hover:to-amber-450 border-l border-t border-b border-amber-450 text-slate-950 font-black text-[11px] py-3.5 px-2 rounded-l-2xl shadow-xl flex flex-col items-center gap-2.5 transition-all duration-300 hover:pr-4 cursor-pointer hover:scale-103 active:scale-95 tv-focusable"
-              title="স্মার্ট টিভি ও রিমোট কন্ট্রোল গাইড"
-              tabIndex={0}
-            >
-              <Tv className="w-5 h-5 text-slate-950 shrink-0 animate-bounce" />
-              <span className="writing-vertical tracking-widest font-extrabold uppercase [writing-mode:vertical-lr] font-sans">টিভি গাইড</span>
-            </button>
-          )}
 
           {/* SMART TV AND ANDROID TV CONTROL BENGALI DETAILED GUIDE MODAL */}
           <AnimatePresence>

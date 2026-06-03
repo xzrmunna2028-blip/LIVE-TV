@@ -13,6 +13,8 @@ export interface Channel {
   status?: 'online' | 'offline' | 'unknown';
   isCustomAdded?: boolean;
   latency?: number;
+  servers?: { name: string; url: string }[];
+  channelNum?: number;
 }
 
 export interface PlaylistInfo {

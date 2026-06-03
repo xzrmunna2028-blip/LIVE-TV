@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport'/>
+<title>ShopnilTV - Premium Live Streaming</title>
+<link href='https://cdn.plyr.io/3.7.8/plyr.css' rel='stylesheet'/>
+<script src='https://cdn.jsdelivr.net/npm/hls.js@latest'></script>
+<script src='https://cdn.plyr.io/3.7.8/plyr.js'></script>
+<style id='page-skin-1' type='text/css'><!--
+:root {
+--bg-color: #f8f9fa;
+--text-color: #333;
+--card-name-bg: #1a1e27;
+--card-name-color: #fff;
+--primary-gradient: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+--active-border: linear-gradient(45deg, #ff007f, #7928ca);
+}
+body.dark-mode {
+--bg-color: #0a0c10;
+--text-color: #fff;
+--card-name-bg: #2a2d35;
+}
+body {
+margin: 0;
+padding: 0;
+font-family: sans-serif;
+background-color: var(--bg-color);
+color: var(--text-color);
+user-select: none;
+-webkit-user-select: none;
+}
+/* Container to center and scale perfectly on Desktop */
+.container-inner {
+max-width: 1100px;
+margin: 0 auto;
+width: 100%;
+}
+.notice-bar {
+background: #0f1218;
+color: #4facfe;
+padding: 10px 15px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 13px;
+font-weight: bold;
+}
+.close-btn {
+background: #ff4757;
+color: white;
+border: none;
+padding: 5px 10px;
+border-radius: 4px;
+font-size: 11px;
+font-weight: bold;
+cursor: pointer;
+}
+/* Sticky Section for Header & Player */
+.sticky-section {
+position: -webkit-sticky;
+position: sticky;
+top: 0;
+z-index: 999;
+background-color: var(--bg-color);
+padding-bottom: 15px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+width: 100%;
+}
+body.dark-mode .sticky-section { box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+.main-header {
+padding: 15px;
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 15px;
+}
+.logo-row {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+.logo-box {
+background: #0f1218;
+color: #fff;
+padding: 6px 15px;
+border-radius: 8px;
+font-weight: 900;
+font-size: 16px;
+letter-spacing: 1px;
+display: flex;
+align-items: center;
+gap: 8px;
+border-left: 2px solid #4facfe;
+box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+position: relative;
+}
+.logo-box::before {
+content: '';
+position: absolute;
+top: -5px;
+left: 20px;
+width: 15px;
+height: 2px;
+background: #4facfe;
+box-shadow: 0 0 10px #4facfe;
+}
+.dots { display: flex; flex-direction: column; gap: 2px; }
+.dots i { width: 4px; height: 4px; border-radius: 50%; }
+.slogan-text {
+color: #e83e8c;
+font-size: 10px;
+font-weight: 900;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+display: block;
+}
+.action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+padding: 8px 15px;
+border-radius: 20px;
+font-weight: bold;
+font-size: 12px;
+border: none;
+display: flex;
+align-items: center;
+gap: 6px;
+cursor: pointer;
+box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.btn-dark { background: #fff; color: #000; }
+body.dark-mode .btn-dark { background: #2a2d35; color: #fff; }
+.btn-pip {
+background: linear-gradient(45deg, #00c6ff, #0072ff);
+color: white;
+box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+}
+.btn-live {
+background: linear-gradient(45deg, #ff4757, #ff6b81);
+color: white;
+box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+}
+.banner-area { padding: 5px 15px 15px 15px; }
+.banner-img { width: 100%; border-radius: 10px; display: block; }
+.player-wrapper {
+width: 100%;
+aspect-ratio: 16/9;
+background-color: #000;
+border-top-left-radius: 20px;
+border-top-right-radius: 20px;
+overflow: hidden;
+box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+max-height: 60vh;
+}
+.now-playing-bar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+background: #0f1218;
+color: #fff;
+padding: 8px 15px;
+border-bottom-left-radius: 20px;
+border-bottom-right-radius: 20px;
+box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+gap: 10px;
+}
+#nowPlayingText {
+flex-grow: 1;
+text-align: center;
+font-size: 13px;
+font-weight: bold;
+color: #00e676;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.nav-btn {
+background: #2a2d35;
+color: white;
+border: 1px solid #4facfe;
+padding: 6px 12px;
+border-radius: 15px;
+cursor: pointer;
+font-size: 11px;
+font-weight: bold;
+transition: 0.3s;
+white-space: nowrap;
+}
+.nav-btn:hover {
+background: var(--primary-gradient);
+color: #fff;
+border-color: transparent;
+}
+.search-container { padding: 0 15px 15px 15px; }
+.search-box {
+width: 100%;
+padding: 14px 20px;
+border-radius: 25px;
+border: none;
+outline: none;
+box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+font-size: 14px;
+box-sizing: border-box;
+background: #fff;
+}
+body.dark-mode .search-box { background: #1a1e27; color: #fff; }
+.categories {
+display: flex;
+gap: 10px;
+padding: 0 15px 15px 15px;
+overflow-x: auto;
+scrollbar-width: none;
+}
+.categories::-webkit-scrollbar { display: none; }
+.cat-btn {
+padding: 10px 22px;
+border-radius: 25px;
+border: none;
+background: #fff;
+color: #333;
+font-weight: bold;
+font-size: 13px;
+cursor: pointer;
+white-space: nowrap;
+box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+body.dark-mode .cat-btn { background: #1a1e27; color: #fff; }
+.cat-btn.active { background: var(--primary-gradient); color: white; }
+.section-title {
+padding: 10px 15px;
+font-size: 14px;
+font-weight: bold;
+color: #ff007f;
+text-transform: uppercase;
+margin-top: 10px;
+}
+/* Responsive Grid for PC and Mobile */
+.channel-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 15px;
+padding: 0 15px 10px 15px;
+}
+@media (min-width: 480px) { .channel-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 768px) { .channel-grid { grid-template-columns: repeat(6, 1fr); } }
+@media (min-width: 1024px) { .channel-grid { grid-template-columns: repeat(8, 1fr); } }
+.channel-item {
+display: flex;
+flex-direction: column;
+align-items: center;
+cursor: pointer;
+transition: transform 0.2s;
+}
+.channel-item:active { transform: scale(0.95); }
+.icon-wrapper {
+width: 75px;
+height: 75px;
+border-radius: 50%;
+background: #fff;
+display: flex;
+justify-content: center;
+align-items: center;
+box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+border: 3px solid transparent;
+margin-bottom: 8px;
+transition: 0.3s;
+}
+body.dark-mode .icon-wrapper { background: #1a1e27; }
+.channel-item.playing .icon-wrapper {
+background: linear-gradient(white, white) padding-box, var(--active-border) border-box;
+border-color: transparent;
+box-shadow: 0 4px 15px rgba(255, 0, 127, 0.2);
+}
+body.dark-mode .channel-item.playing .icon-wrapper {
+background: linear-gradient(#1a1e27, #1a1e27) padding-box, var(--active-border) border-box;
+}
+.icon-wrapper img { width: 45px; height: 45px; object-fit: contain; border-radius: 50%; }
+.channel-name {
+background: var(--card-name-bg);
+color: var(--card-name-color);
+font-size: 11px;
+font-weight: 600;
+padding: 6px 12px;
+border-radius: 15px;
+text-align: center;
+width: 95%;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+box-sizing: border-box;
+}
+/* Colorful Animated Footer */
+.footer-logo {
+text-align: center;
+padding: 30px 0 40px 0;
+font-size: 28px;
+font-weight: 900;
+background: linear-gradient(to right, #ff007f, #00f2fe, #4facfe, #ff007f);
+background-size: 200% auto;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+animation: shine 3s linear infinite;
+letter-spacing: 2px;
+text-transform: uppercase;
+}
+@keyframes shine { to { background-position: 200% center; } }
+
+--></style>
+<meta name='google-adsense-platform-account' content='ca-host-pub-1556223355139109'/>
+<meta name='google-adsense-platform-domain' content='blogspot.com'/>
+
+</head>
+<body>
+<div class='notice-bar' id='noticeBar'>
+<div class='container-inner' style='display:flex; justify-content:space-between; align-items:center;'>
+<span>💻 ShopnilTV - Premium Live Portal</span>
+<button class='close-btn' onclick='document.getElementById(&#39;noticeBar&#39;).style.display=&#39;none&#39;'>Close [X]</button>
+</div>
+</div>
+<!-- Sticky Section Starts Here -->
+<div class='sticky-section'>
+<div class='container-inner'>
+<div class='main-header'>
+<div class='logo-row'>
+<div class='logo-box'>
+                        SHOPNIL TV
+                        <span class='dots'>
+<i style='background:#00d2ff'></i>
+<i style='background:#00e676'></i>
+<i style='background:#ff007f'></i>
+</span>
+</div>
+<div class='slogan-text'>PREMIUM LIVE STREAMING</div>
+</div>
+<div class='action-row'>
+<button class='btn btn-dark' onclick='toggleTheme()'>🌙 Dark</button>
+<button class='btn btn-pip' onclick='togglePiP()'>🔲 PiP</button>
+<button class='btn btn-live'>🔴 LIVE</button>
+</div>
+</div>
+<div style='padding: 0 15px;'>
+<div class='player-wrapper'>
+<video controls='controls' id='video' muted='muted' playsinline='playsinline'></video>
+</div>
+<!-- Controls for Next/Prev inside sticky section -->
+<div class='now-playing-bar'>
+<button class='nav-btn' onclick='playPrev()'>&#9198; Prev</button>
+<span id='nowPlayingText'>Playing: T Sports HD</span>
+<button class='nav-btn' onclick='playNext()'>Next &#9197;</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Section Ends Here -->
+<div class='container-inner'>
+<div class='banner-area'>
+<img alt='Promo Banner' class='banner-img' onerror='this.style.display=&#39;none&#39;' src='https://i.ibb.co.com/DPbwJWtk/1780342158507.png'/>
+</div>
+<div class='search-container'>
+<input class='search-box' id='searchInput' placeholder='Search your favorite channels...' type='text'/>
+</div>
+<div class='categories'>
+<button class='cat-btn active' onclick='filterCategory(&#39;all&#39;, this)'>All Channels</button>
+<button class='cat-btn' onclick='filterCategory(&#39;bangla&#39;, this)'>Bangla</button>
+<button class='cat-btn' onclick='filterCategory(&#39;sports&#39;, this)'>Sports</button>
+<button class='cat-btn' onclick='filterCategory(&#39;news&#39;, this)'>News</button>
+<button class='cat-btn' onclick='filterCategory(&#39;kids&#39;, this)'>Kids</button>
+<button class='cat-btn' onclick='filterCategory(&#39;movies&#39;, this)'>Movies</button>
+<button class='cat-btn' onclick='filterCategory(&#39;english&#39;, this)'>Hindi/Eng</button>
+<button class='cat-btn' onclick='filterCategory(&#39;religion&#39;, this)'>Religion</button>
+</div>
+<!-- Adsterra Banner Ad -->
+<div style='text-align: center; margin: 5px auto 15px auto; max-width: 100%; overflow: hidden;'>
+<script type='text/javascript'>
+              //<![CDATA[
+              atOptions = {
+                'key' : 'dee1f8817a51db7578f2df10c2daa12e',
+                'format' : 'iframe',
+                'height' : 60,
+                'width' : 468,
+                'params' : {}
+              };
+              //]]>
+            </script>
+<script src='https://www.highperformanceformat.com/dee1f8817a51db7578f2df10c2daa12e/invoke.js' type='text/javascript'></script>
+</div>
+<div id='channelContainer'>
+<!-- Bangla Category -->
+<div class='category-section' data-cat='bangla'>
+<div class='section-title'>🍿 Bangla Entertainment</div>
+<div class='channel-grid'>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/btvctg/index.m3u8?e=1779283747&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9bca925fbdfe526b29d41ab7802348ec&#39;, this, &#39;BTV CTG&#39;)'><div class='icon-wrapper'><img alt='BTV CTG' src='https://s3.aynaott.com/storage/00da8a07fb26b2fb79359ee535e4c7bc'/></div><div class='channel-name'>BTV CTG</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/channeli/index.m3u8?e=1779283749&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=1d2782c406bc6c9f853716c3dc41a439&#39;, this, &#39;Channel I&#39;)'><div class='icon-wrapper'><img alt='Channel I' src='https://s3.aynaott.com/storage/8e998f20a9cc52cb8eb1f52a5bf38204'/></div><div class='channel-name'>Channel I</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/ntvbd/index.m3u8?e=1779283750&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=dac30ebda5dba60e895e85ddee645992&#39;, this, &#39;NTV&#39;)'><div class='icon-wrapper'><img alt='NTV' src='https://s3.aynaott.com/storage/1a619c9b917eb35898020cd323e415a7'/></div><div class='channel-name'>NTV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/banglavision/index.m3u8?e=1779283750&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c6bb7760d6eb9b999205a81ca4f4f51c&#39;, this, &#39;Bangla Vision&#39;)'><div class='icon-wrapper'><img alt='Bangla Vision' src='https://s3.aynaott.com/storage/788ab3e49b2aa6af247722762ed6e72a'/></div><div class='channel-name'>Bangla Vision</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/RtvHD/index.m3u8?e=1779283751&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=678f1f8ec03b1af7b76d013d33f45198&#39;, this, &#39;RTV&#39;)'><div class='icon-wrapper'><img alt='RTV' src='https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d'/></div><div class='channel-name'>RTV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/atnbangla/index.m3u8?e=1779283752&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=e20058ae495a80a83ec09cb9d82b9253&#39;, this, &#39;ATN Bangla&#39;)'><div class='icon-wrapper'><img alt='ATN Bangla' src='https://s3.aynaott.com/storage/eff41809fca04f7c1da5481e135d7913'/></div><div class='channel-name'>ATN Bangla</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/etv/index.m3u8?e=1779283752&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=2c4b5c7a7044076e38b667d37971baec&#39;, this, &#39;ETV&#39;)'><div class='icon-wrapper'><img alt='ETV' src='https://s3.aynaott.com/storage/8a1af81802b0728c064c2adabcdc72c8'/></div><div class='channel-name'>ETV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/maasrangatv/index.m3u8?e=1779283753&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d29aadd6d2d6f7a0a28fabc7830ae6e3&#39;, this, &#39;Maasranga TV&#39;)'><div class='icon-wrapper'><img alt='Maasranga TV' src='https://s3.aynaott.com/storage/1b5cb8c7901739cd7d201a38d2ab4737'/></div><div class='channel-name'>Maasranga TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/DeeptoTVHD/index.m3u8?e=1779283753&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=12455a1472f0cbf29e22967cc44a49c0&#39;, this, &#39;Deepto TV&#39;)'><div class='icon-wrapper'><img alt='Deepto TV' src='https://s3.aynaott.com/storage/76717b7a598a30815a1bdb16ecd3af6c'/></div><div class='channel-name'>Deepto TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/Ravc7gPCZpxk/index.m3u8?e=1779283754&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=0cdc69aae0d57f2ce93a41a608a3d821&#39;, this, &#39;Gazi TV&#39;)'><div class='icon-wrapper'><img alt='Gazi TV' src='https://s3.aynaott.com/storage/417a833f6d83021c99bfc3d4176610f4'/></div><div class='channel-name'>Gazi TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/deshtv/index.m3u8?e=1779283755&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9cf4584fd86e1427935f23b30fd28799&#39;, this, &#39;Desh TV&#39;)'><div class='icon-wrapper'><img alt='Desh TV' src='https://s3.aynaott.com/storage/d10390e5434e8cb44172257abd714beb'/></div><div class='channel-name'>Desh TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/boishakhitv/index.m3u8?e=1779283755&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f3f4ec98ffbd9567c21e8b2ee98e32d5&#39;, this, &#39;Boishakhi TV&#39;)'><div class='icon-wrapper'><img alt='Boishakhi TV' src='https://s3.aynaott.com/storage/58658d4594ca1ff3c5031c9d8e3d9fc0'/></div><div class='channel-name'>Boishakhi TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/channel9/index.m3u8?e=1779283756&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=6d1662351f39dd5277df069a01f46fee&#39;, this, &#39;Channel 9&#39;)'><div class='icon-wrapper'><img alt='Channel 9' src='https://s3.aynaott.com/storage/a959f06b4fc9e1421f867b6c1601fe43'/></div><div class='channel-name'>Channel 9</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/asiantv/index.m3u8?e=1779283756&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=46e2c2d74460202bdd6638ed54273e2a&#39;, this, &#39;Asian TV&#39;)'><div class='icon-wrapper'><img alt='Asian TV' src='https://s3.aynaott.com/storage/5282cec3a2e9349b750540d658cf1b6c'/></div><div class='channel-name'>Asian TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/satv/index.m3u8?e=1779283757&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=336f19de5e4aacae753d7524d86d1a89&#39;, this, &#39;SA TV&#39;)'><div class='icon-wrapper'><img alt='SA TV' src='https://s3.aynaott.com/storage/f710d2ff532cb7e7b75566232c5b72d3'/></div><div class='channel-name'>SA TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/banglatv/index.m3u8?e=1779283758&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f3e9e2737e35147900c0f4add619ead6&#39;, this, &#39;Bangla TV&#39;)'><div class='icon-wrapper'><img alt='Bangla TV' src='https://s3.aynaott.com/storage/e42ecfa90e3d6b15bdb7fea5ef673864'/></div><div class='channel-name'>Bangla TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/anandatv/index.m3u8?e=1779283759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=504b9350b4703116ca4ab20e4013288e&#39;, this, &#39;Ananda TV&#39;)'><div class='icon-wrapper'><img alt='Ananda TV' src='https://s3.aynaott.com/storage/897698f593fc07974fc46881a440733d'/></div><div class='channel-name'>Ananda TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/mytv/index.m3u8?e=1779283760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=0a2ae0189a44e789d3fecffe5a474ec3&#39;, this, &#39;My TV&#39;)'><div class='icon-wrapper'><img alt='My TV' src='https://s3.aynaott.com/storage/c5b2c623863fbe4033d59d52ff7371ac'/></div><div class='channel-name'>My TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/globaltvhd/index.m3u8?e=1779283760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9877fe1456ffd7b4e155ff0dc042c176&#39;, this, &#39;Global TV&#39;)'><div class='icon-wrapper'><img alt='Global TV' src='https://s3.aynaott.com/storage/ffd7ba9b76ad555933f94bcb7ff26b44'/></div><div class='channel-name'>Global TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/bijoytv/index.m3u8?e=1779283761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=5c8b85f4f92c654640f3abdc1ac061c6&#39;, this, &#39;Bijoy TV&#39;)'><div class='icon-wrapper'><img alt='Bijoy TV' src='https://s3.aynaott.com/storage/f23d6f82c1a16458fe0e4c6f11b8fd87'/></div><div class='channel-name'>Bijoy TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/nexustv/index.m3u8?e=1779283761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=bbcba35ac711c3545a56b3580503ee00&#39;, this, &#39;NEXUS TV&#39;)'><div class='icon-wrapper'><img alt='NEXUS TV' src='https://s3.aynaott.com/storage/90635c3edf6e3c8dd92210b7248f1fa0'/></div><div class='channel-name'>NEXUS TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/mohonatv/index.m3u8?e=1779283762&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=017ac949515fd9b0181090287f362d2b&#39;, this, &#39;Mohona TV&#39;)'><div class='icon-wrapper'><img alt='Mohona TV' src='https://s3.aynaott.com/storage/73082846fdc15d9f0e7268b104c55d92'/></div><div class='channel-name'>Mohona TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://5dd3981940faa.streamlock.net:443/thikanatv/thikanatv/playlist.m3u8&#39;, this, &#39;Thikana&#39;)'><div class='icon-wrapper'><img alt='Thikana' src='https://s3.aynaott.com/storage/6d1aaa03b84a69992940873fc11af8fc'/></div><div class='channel-name'>Thikana</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/7ff57cc9046b4c188b51a0d506f36e7f/index_3.m3u8&#39;, this, &#39;DD Bangla&#39;)'><div class='icon-wrapper'><img alt='DD Bangla' src='https://s3.aynaott.com/storage/e5117c508d18adf0a3f2475eb1fd5a9d'/></div><div class='channel-name'>DD Bangla</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://live-bangla.akamaized.net/liveabr/playlist.m3u8&#39;, this, &#39;Enter 10 Bangla&#39;)'><div class='icon-wrapper'><img alt='Enter 10 Bangla' src='https://s3.aynaott.com/storage/2b00567c538d392c8050124f0064c4a1'/></div><div class='channel-name'>Enter 10 Bangla</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://yupptvcatchupire.yuppcdn.net/preview/starjalsha/1800.m3u8&#39;, this, &#39;Star Jalsha&#39;)'><div class='icon-wrapper'><img alt='Star Jalsha' src='https://raw.githubusercontent.com/Rakib49/Rakibiptv/main/images%20(9).jpeg'/></div><div class='channel-name'>Star Jalsha</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://yupptvcatchupire.yuppcdn.net/preview/colorsbanglahd/800.m3u8&#39;, this, &#39;Colors Bangla&#39;)'><div class='icon-wrapper'><img alt='Colors Bangla' src='https://dl.dropbox.com/s/44vdhjj6fja02co/CBHD.jpg'/></div><div class='channel-name'>Colors Bangla</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://yupptvcatchupire.yuppcdn.net/preview/zeebangla/2500.m3u8&#39;, this, &#39;ZEE BANGLA&#39;)'><div class='icon-wrapper'><img alt='ZEE BANGLA' src='https://tvassets.roarzone.net/images/34.png'/></div><div class='channel-name'>ZEE BANGLA</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://edge2.roarzone.net:8447/roarzone/edge3/zee_bangla_cinema/index.m3u8?token=33eb90cb5993505e7adebcdc9fe5a680f5ff40b4-89433e784e249e183a59446474d0fff1-1780020920-1780010120&#39;, this, &#39;ZEE B. CINEMA&#39;)'><div class='icon-wrapper'><img alt='ZEE B. CINEMA' src='https://tvassets.roarzone.net/images/29.png'/></div><div class='channel-name'>ZEE B. CINEMA</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://edge2.roarzone.net:8447/roarzone/edge3/sonyaath/index.m3u8?token=571cbfa1fa2e6d2ce7d53975a8ae77afb5189d20-eb13b2ccb090084878804fb0e801091a-1780020920-1780010120&#39;, this, &#39;SONY AATH&#39;)'><div class='icon-wrapper'><img alt='SONY AATH' src='https://tvassets.roarzone.net/images/33.png'/></div><div class='channel-name'>SONY AATH</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://dbcanada.sonarbanglatv.com/deshebideshe/dbtv/index.m3u8&#39;, this, &#39;Deshe Bideshe&#39;)'><div class='icon-wrapper'><img alt='Deshe Bideshe' src='https://pbs.twimg.com/profile_images/739539785304281088/zMwNO936_400x400.jpg'/></div><div class='channel-name'>Deshe Bideshe</div></div>
+</div>
+</div>
+<!-- Sports Category -->
+<div class='category-section' data-cat='sports'>
+<div class='section-title'>🏆 Sports Channels</div>
+<div class='channel-grid'>
+<div class='channel-item playing' onclick='playChannel(&#39;https://tvsen7.aynaott.com/tsports-hd/index.m3u8?e=1779283784&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3b4c5a2cfa872fa7f91ffbfb4aa0f658&#39;, this, &#39;T Sports HD&#39;)'><div class='icon-wrapper'><img alt='T Sports HD' src='https://s3.aynaott.com/storage/dbc585f70a60b9855b6e13a8ce4cb6f4'/></div><div class='channel-name'>T Sports HD</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/PtvSports/index.m3u8?e=1779283784&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=db1789e36c278bf538489fac263e0ffb&#39;, this, &#39;PTV Sports&#39;)'><div class='icon-wrapper'><img alt='PTV Sports' src='https://s3.aynaott.com/storage/9d9d7cbfba5a8ceea648bbd963ad1014'/></div><div class='channel-name'>PTV Sports</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/asports/index.m3u8?e=1779283785&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=356b906bf972b824782bb58c1ce0bb22&#39;, this, &#39;A sports&#39;)'><div class='icon-wrapper'><img alt='A sports' src='https://s3.aynaott.com/storage/64de30d2df9b2a888cb73f17614a9a8b'/></div><div class='channel-name'>A sports</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/CricketGold/index.m3u8?e=1779283786&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=7c79e4f07ef8bf05e35ecffd9e056652&#39;, this, &#39;Cricket Gold&#39;)'><div class='icon-wrapper'><img alt='Cricket Gold' src='https://s3.aynaott.com/storage/7d20b575edc4e4b5276faa8c246e72a4'/></div><div class='channel-name'>Cricket Gold</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/golfchannel/index.m3u8?e=1779283789&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=56943a1262fd47843d1dbaaaf88363bc&#39;, this, &#39;Golf Channel&#39;)'><div class='icon-wrapper'><img alt='Golf Channel' src='https://s3.aynaott.com/storage/edb73991516696dfd53efbd32d80ca58'/></div><div class='channel-name'>Golf Channel</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://linear-493.frequency.stream/dist/glewedtv/493/hls/master/playlist.m3u8&#39;, this, &#39;Bleav Football&#39;)'><div class='icon-wrapper'><img alt='Bleav Football' src='https://s3.aynaott.com/storage/030ec528e912afb9a2ec3b4c5167a928'/></div><div class='channel-name'>Bleav Football</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/foxsports2/index.m3u8?e=1779283790&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=cbb7f40b4af7be51a91e0629a5ac7238&#39;, this, &#39;Fox Sports 2&#39;)'><div class='icon-wrapper'><img alt='Fox Sports 2' src='https://s3.aynaott.com/storage/da4282cd107cc3d40efadae488b187e5'/></div><div class='channel-name'>Fox Sports 2</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/espn/index.m3u8?e=1779283793&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=cf2b4cb8b6c96ab86daee4299c792295&#39;, this, &#39;Espn&#39;)'><div class='icon-wrapper'><img alt='Espn' src='https://s3.aynaott.com/storage/b46df1959322aa48d270a6b163234c76'/></div><div class='channel-name'>Espn</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/tsn2/index.m3u8?e=1779283793&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=636d9b8b83d4316193c2d1c9aad8951c&#39;, this, &#39;TSN 2&#39;)'><div class='icon-wrapper'><img alt='TSN 2' src='https://s3.aynaott.com/storage/17642cb60c2af7fc36ca1e08cc54fdae'/></div><div class='channel-name'>TSN 2</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/talkSPORT/index.m3u8?e=1779283794&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=24b590ae2b7927c00a9acc3a97bc5d86&#39;, this, &#39;Talk Sport&#39;)'><div class='icon-wrapper'><img alt='Talk Sport' src='https://s3.aynaott.com/storage/5128cd32518d5a9ba7a37e21947fd8fd'/></div><div class='channel-name'>Talk Sport</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://kwtsplta.cdn.mangomolo.com/spl/smil:spl.stream.smil/chunklist.m3u8&#39;, this, &#39;KTV Sport Plus&#39;)'><div class='icon-wrapper'><img alt='KTV Sport Plus' src='https://s3.aynaott.com/storage/b54495ee3cdd53ddaa19d1f98120f488'/></div><div class='channel-name'>KTV Sport Plus</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://d4ddgdmj1cvnm.cloudfront.net/scheduler/scheduleMaster/409.m3u8&#39;, this, &#39;SPORTS FIRST&#39;)'><div class='icon-wrapper'><img alt='SPORTS FIRST' src='https://s3.aynaott.com/storage/748d28752dcf95740561f1ac39e15fc3'/></div><div class='channel-name'>SPORTS FIRST</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/MarqueeSportsNetwork/index.m3u8?e=1779283796&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=a91e537a0eb1a24ed472a508e90fefcc&#39;, this, &#39;Marquee Sports&#39;)'><div class='icon-wrapper'><img alt='Marquee Sports' src='https://s3.aynaott.com/storage/66bdaa21aba96de6d32a3515715f7502'/></div><div class='channel-name'>Marquee Sports</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/SportsGrid/index.m3u8?e=1779283798&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=652ed8ae174a9efdb335fb31355f0fb5&#39;, this, &#39;Sports Grid&#39;)'><div class='icon-wrapper'><img alt='Sports Grid' src='https://s3.aynaott.com/storage/1aa37e387ed56a1260b285558eec7c46'/></div><div class='channel-name'>Sports Grid</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://streams2.sofast.tv/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/e0b81a5c-6ab5-48cd-aaa9-f82de4ab5bf9/manifest.m3u8&#39;, this, &#39;Xtream Sports&#39;)'><div class='icon-wrapper'><img alt='Xtream Sports' src='https://s3.aynaott.com/storage/e1749cf3040f11c63e722c941f213927'/></div><div class='channel-name'>Xtream Sports</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/bloombergtv/index.m3u8?e=1779283799&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=ecba4c0cf6ffc82d2d0dfc78f69c1061&#39;, this, &#39;Bloomberg TV&#39;)'><div class='icon-wrapper'><img alt='Bloomberg TV' src='https://s3.aynaott.com/storage/253dcc8b5951160d6aa26bc5ac65ddb8'/></div><div class='channel-name'>Bloomberg TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://5c7b683162943.streamlock.net/live/ngrp:sportsone_all/playlist.m3u8&#39;, this, &#39;Bahrain Sports&#39;)'><div class='icon-wrapper'><img alt='Bahrain Sports' src='https://s3.aynaott.com/storage/f55bea3263be1af187fe1122e4f44142'/></div><div class='channel-name'>Bahrain Sports</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/willowhd/index.m3u8?e=1779283803&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=2fe7bf4f892cf09f80087b8146545bad&#39;, this, &#39;Willow HD TV&#39;)'><div class='icon-wrapper'><img alt='Willow HD TV' src='https://s3.aynaott.com/storage/94a778ec3219f7eb54bdf1ee07a95788'/></div><div class='channel-name'>Willow HD TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/nfl/index.m3u8?e=1779283803&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=1b632116fe249e5c6c5307adc395a1ec&#39;, this, &#39;NFL Network&#39;)'><div class='icon-wrapper'><img alt='NFL Network' src='https://s3.aynaott.com/storage/79f1ee920d6931a767ae0030e1c7c12b'/></div><div class='channel-name'>NFL Network</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/tsn1/index.m3u8?e=1779283805&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=e5ce886378c54bd381b9833b5d57649a&#39;, this, &#39;TSN 1&#39;)'><div class='icon-wrapper'><img alt='TSN 1' src='https://s3.aynaott.com/storage/59fe7ff434fed04ecec29b4d737ebc95'/></div><div class='channel-name'>TSN 1</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/tsn3/index.m3u8?e=1779283805&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=fd3b5d71227f183da51caba4325cee10&#39;, this, &#39;TSN 3&#39;)'><div class='icon-wrapper'><img alt='TSN 3' src='https://s3.aynaott.com/storage/1cb10107a47db353e35ad78d3160eda7'/></div><div class='channel-name'>TSN 3</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-6.pishow.tv/live/13/master.m3u8&#39;, this, &#39;DD Sports&#39;)'><div class='icon-wrapper'><img alt='DD Sports' src='https://s3.aynaott.com/storage/188500190395c4de0e506d518925dcc4'/></div><div class='channel-name'>DD Sports</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://xumo-xumoent-vc-122-sjv70.fast.nbcuni.com/live/master.m3u8&#39;, this, &#39;NBC Sports&#39;)'><div class='icon-wrapper'><img alt='NBC Sports' src='https://s3.aynaott.com/storage/0a241a80bf51d2c3b3722531706ce086'/></div><div class='channel-name'>NBC Sports</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://mainstreammedia-worldoffreesportsintl-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-mainstreammediafreesportsintl-rakuten/CDN/master.m3u8&#39;, this, &#39;WOF 1&#39;)'><div class='icon-wrapper'><img alt='WOF 1' src='https://s3.aynaott.com/storage/1a580ee2636a0c4761e623bc131ba7a6'/></div><div class='channel-name'>WOF 1</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://linear-599.frequency.stream/dist/stirr/599/hls/master/playlist.m3u8&#39;, this, &#39;speed sports 1&#39;)'><div class='icon-wrapper'><img alt='speed sports 1' src='https://s3.aynaott.com/storage/06f5b193bfa4d31310ee934eb3c2222e'/></div><div class='channel-name'>speed sports 1</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://mts1.iptv-playoutcenter.de/mts/mts-web/playlist.m3u8&#39;, this, &#39;MORE THEN SPORTS&#39;)'><div class='icon-wrapper'><img alt='MORE THEN SPORTS' src='https://s3.aynaott.com/storage/39174e32d4f8d29a95c881637fe1ecdb'/></div><div class='channel-name'>MORE THEN SPORTS</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://partneta.cdn.mgmlcdn.com/omsport/smil:omsport.stream.smil/chunklist.m3u8&#39;, this, &#39;Oman Sports TV&#39;)'><div class='icon-wrapper'><img alt='Oman Sports TV' src='https://s3.aynaott.com/storage/33f87783637fc95fdb8837ba9344c9e9'/></div><div class='channel-name'>Oman Sports TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/sspts1/index.m3u8&#39;, this, &#39;Star Sports 1 HD&#39;)'><div class='icon-wrapper'><img alt='Star Sports 1 HD' src='https://raw.githubusercontent.com/Rakib49/Rakibiptv/main/Star_Sports_1_HD.png'/></div><div class='channel-name'>Star Sports 1 HD</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://37b4c228.wurl.com/manifest/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWZyX0ZJRkFQbHVzRnJlbmNoX0hMUw/6f5437c5-e015-4754-8476-c8c6d27d3a55/1.m3u8&#39;, this, &#39;FIFA+ Channel&#39;)'><div class='icon-wrapper'><img alt='FIFA+ Channel' src='https://raw.githubusercontent.com/Rakib49/Rakibiptv/main/images%20(11).jpeg'/></div><div class='channel-name'>FIFA+ Channel</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://streams2.sofast.tv/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/eea68b79-bfe2-451e-a227-d637a5b9548a/manifest.m3u8&#39;, this, &#39;Sports Fishing TV&#39;)'><div class='icon-wrapper'><img alt='Sports Fishing TV' src='https://ui-avatars.com/api/?name=Fishing&background=2a2d35&color=fff&rounded=true'/></div><div class='channel-name'>Sports Fishing TV</div></div>
+</div>
+</div>
+<!-- News Category -->
+<div class='category-section' data-cat='news'>
+<div class='section-title'>📰 Live News & Info</div>
+<div class='channel-grid'>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/somoytv/index.m3u8?e=1779283766&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=269246b8a31fb3a656624d71e10e447d&#39;, this, &#39;Somoy News TV&#39;)'><div class='icon-wrapper'><img alt='Somoy News TV' src='https://s3.aynaott.com/storage/ece71c1163a377fbe2d93f9d28c34f60'/></div><div class='channel-name'>Somoy News TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/jamunatv/index.m3u8?e=1779283771&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=2592d440f00d65738bd7f6c5158ce486&#39;, this, &#39;Jamuna TV&#39;)'><div class='icon-wrapper'><img alt='Jamuna TV' src='https://s3.aynaott.com/storage/aac6488b68844e5756ab46eb79659de8'/></div><div class='channel-name'>Jamuna TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/channel24/index.m3u8?e=1779283767&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=83fee236e787fa87dbbb2bbbf6bf4c36&#39;, this, &#39;Channel 24&#39;)'><div class='icon-wrapper'><img alt='Channel 24' src='https://s3.aynaott.com/storage/129b0d0a02566999a0c164cd7d506e55'/></div><div class='channel-name'>Channel 24</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/ekattorbdtv/index.m3u8?e=1779283770&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=dc7810d37e97e9d5ef235e0781255c24&#39;, this, &#39;Ekattor TV&#39;)'><div class='icon-wrapper'><img alt='Ekattor TV' src='https://s3.aynaott.com/storage/d91767995b2f2a54852c92bbbc20daa7'/></div><div class='channel-name'>Ekattor TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/atnnews/index.m3u8?e=1779283767&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9e9b363bb761a6f0d5547b465dfbbede&#39;, this, &#39;ATN News&#39;)'><div class='icon-wrapper'><img alt='ATN News' src='https://s3.aynaott.com/storage/8a3c5215dc0b943dc0a80333c0ab21ce'/></div><div class='channel-name'>ATN News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/independenttv/index.m3u8?e=1779283768&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d1efc538ba7cd00641ea9ee32ae708fd&#39;, this, &#39;Independent TV&#39;)'><div class='icon-wrapper'><img alt='Independent TV' src='https://s3.aynaott.com/storage/6653326503fcade746d87881d5c99697'/></div><div class='channel-name'>Independent TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/dbcnews/index.m3u8?e=1779283768&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9e5c2851814ffe8483f21f50dfbcb4b9&#39;, this, &#39;DBC News&#39;)'><div class='icon-wrapper'><img alt='DBC News' src='https://s3.aynaott.com/storage/2c5a73ac3f9772a9cb2d18df1b152545'/></div><div class='channel-name'>DBC News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/ekhontv/index.m3u8?e=1779283769&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d3dc5ee2773ce51cc8c2805a647bf2de&#39;, this, &#39;Ekhon TV&#39;)'><div class='icon-wrapper'><img alt='Ekhon TV' src='https://s3.aynaott.com/storage/274c30c492e8795c8011d0129113f4bc'/></div><div class='channel-name'>Ekhon TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/news24/index.m3u8?e=1779283769&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=a773d74ac7f54526f02c2840c88335fa&#39;, this, &#39;News 24 BD&#39;)'><div class='icon-wrapper'><img alt='News 24 BD' src='https://s3.aynaott.com/storage/7c002f22c02096b0d1ba833ae9ea6d5b'/></div><div class='channel-name'>News 24 BD</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/cnn/index.m3u8?e=1779283771&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c376091ef0bd820afc51b7df095890ad&#39;, this, &#39;CNN&#39;)'><div class='icon-wrapper'><img alt='CNN' src='https://s3.aynaott.com/storage/e0b6da4715f468eb39591911a0597546'/></div><div class='channel-name'>CNN</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://live-hls-apps-aje-fa.getaj.net/AJE/index.m3u8&#39;, this, &#39;AlJazeera&#39;)'><div class='icon-wrapper'><img alt='AlJazeera' src='https://s3.aynaott.com/storage/5d707a103f48d8f9f1634f1b70e2ecdf'/></div><div class='channel-name'>AlJazeera</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/master.m3u8&#39;, this, &#39;DW News&#39;)'><div class='icon-wrapper'><img alt='DW News' src='https://s3.aynaott.com/storage/0ce159bdea29fce7e3e85d12bc8a10c5'/></div><div class='channel-name'>DW News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/nhkworld/index.m3u8?e=1779283773&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=ef0f1eac47ab752c414b7df7414f6f0f&#39;, this, &#39;NHK World&#39;)'><div class='icon-wrapper'><img alt='NHK World' src='https://s3.aynaott.com/storage/d969a37a7e1bbd49449ae092d34f0549'/></div><div class='channel-name'>NHK World</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8&#39;, this, &#39;Wion&#39;)'><div class='icon-wrapper'><img alt='Wion' src='https://s3.aynaott.com/storage/671cfb22f8d0362ae01403b6e748f2e2'/></div><div class='channel-name'>Wion</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/ANB_News/index.m3u8?e=1779283775&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=0d5440e04712dc0b1241afdae93870af&#39;, this, &#39;ANB News&#39;)'><div class='icon-wrapper'><img alt='ANB News' src='https://s3.aynaott.com/storage/4ec06dcab54cbbf5b204f797555e6b31'/></div><div class='channel-name'>ANB News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/News1India/index.m3u8?e=1779283776&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=6d6db6b052c40b28cf578dbd6f3a8074&#39;, this, &#39;News 1 India&#39;)'><div class='icon-wrapper'><img alt='News 1 India' src='https://s3.aynaott.com/storage/c643b3f7d7f79ad3913b5d2037f13a88'/></div><div class='channel-name'>News 1 India</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/SadhnaPrimeNews/index.m3u8?e=1779283776&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=b7c8bc4950351fd2e670989427bc7ecd&#39;, this, &#39;Sadhna News&#39;)'><div class='icon-wrapper'><img alt='Sadhna News' src='https://s3.aynaott.com/storage/80e4113d034ad20bcbea341dcb4ae27e'/></div><div class='channel-name'>Sadhna News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9banaen8yq/liveabr/playlist.m3u8&#39;, this, &#39;TV9 Bangla&#39;)'><div class='icon-wrapper'><img alt='TV9 Bangla' src='https://s3.aynaott.com/storage/7b93f6be496c9fd25769b09970180c4c'/></div><div class='channel-name'>TV9 Bangla</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tv-trtworld.medya.trt.com.tr/master.m3u8&#39;, this, &#39;TRT World&#39;)'><div class='icon-wrapper'><img alt='TRT World' src='https://s3.aynaott.com/storage/f63d4aad95532175f7f44be439f74111'/></div><div class='channel-name'>TRT World</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/skynews/index.m3u8?e=1779283779&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=0c0ad5384d413ff6aafd6e3acbe17cb3&#39;, this, &#39;Sky News&#39;)'><div class='icon-wrapper'><img alt='Sky News' src='https://s3.aynaott.com/storage/69d8281f965475f3293a3e30de8c0ccb'/></div><div class='channel-name'>Sky News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/HindiKhabar/index.m3u8?e=1779283779&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=7b43f60b9dbb9fbf01ff5e9abeac579d&#39;, this, &#39;Hindi Khabar&#39;)'><div class='icon-wrapper'><img alt='Hindi Khabar' src='https://s3.aynaott.com/storage/d3943796d7fe5962ca5385b656682b1a'/></div><div class='channel-name'>Hindi Khabar</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/6cd2f649739a45ca9de1daf81cc7d0f2/index.m3u8&#39;, this, &#39;News Nation&#39;)'><div class='icon-wrapper'><img alt='News Nation' src='https://s3.aynaott.com/storage/1001f1d96d63da3ced733a843613b6e0'/></div><div class='channel-name'>News Nation</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://feeds.intoday.in/hltapps/api/master.m3u8&#39;, this, &#39;India Today&#39;)'><div class='icon-wrapper'><img alt='India Today' src='https://s3.aynaott.com/storage/49b496bca6d7c67d53431e9238f83397'/></div><div class='channel-name'>India Today</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://a-cdn.klowdtv.com/live1/oan_720p/playlist.m3u8&#39;, this, &#39;OAN&#39;)'><div class='icon-wrapper'><img alt='OAN' src='https://s3.aynaott.com/storage/73820738ff3902737f987eb34612b26d'/></div><div class='channel-name'>OAN</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://live.presstv.ir/hls/presstv_5_482/index.m3u8&#39;, this, &#39;Iran Press&#39;)'><div class='icon-wrapper'><img alt='Iran Press' src='https://s3.aynaott.com/storage/201491b7327fffb27d78f800dd9f42d2'/></div><div class='channel-name'>Iran Press</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://thelegitpro.in/pntv/rplusnews24x7/index.m3u8&#39;, this, &#39;R Plus&#39;)'><div class='icon-wrapper'><img alt='R Plus' src='https://s3.aynaott.com/storage/9531f970bb7abf30ac2a48f40838c3a1'/></div><div class='channel-name'>R Plus</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/R_Bangla/index.m3u8?e=1779283835&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=fd3c370d04fa673a7faa815a98ef3ed9&#39;, this, &#39;Republic Bangla&#39;)'><div class='icon-wrapper'><img alt='Republic Bangla' src='https://s3.aynaott.com/storage/18cb20e8e53eb27249c62d3aedf51241'/></div><div class='channel-name'>Republic Bangla</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/zee24/index.m3u8?e=1779283836&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=40021614a85616c858c5a6839f22dcc6&#39;, this, &#39;Zee 24 Ghanta&#39;)'><div class='icon-wrapper'><img alt='Zee 24 Ghanta' src='https://s3.aynaott.com/storage/fea79ac5193dd9fb80aa1996f2adc1e2'/></div><div class='channel-name'>Zee 24 Ghanta</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/kolkatatv/index.m3u8?e=1779283837&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=8cc8bac4fecb91a1f2e5443bbc180545&#39;, this, &#39;kolkata TV&#39;)'><div class='icon-wrapper'><img alt='kolkata TV' src='https://s3.aynaott.com/storage/c355110e9cbebd89649a95f0f0fd77da'/></div><div class='channel-name'>kolkata TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://content.uplynk.com/channel/ext/4413701bf5a1488db55b767f8ae9d4fa/kgo_24x7_news.m3u8&#39;, this, &#39;ABC 7 Bay&#39;)'><div class='icon-wrapper'><img alt='ABC 7 Bay' src='https://s3.aynaott.com/storage/b28173a251bda1357f9884ca7eef7b89'/></div><div class='channel-name'>ABC 7 Bay</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/AbcNews/index.m3u8?e=1779283763&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=6768af084e787f0340bb860898c7323b&#39;, this, &#39;ABC News&#39;)'><div class='icon-wrapper'><img alt='ABC News' src='https://s3.aynaott.com/storage/065af1ce1aa68d9d96c27050a8125413'/></div><div class='channel-name'>ABC News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn3.wowza.com/5/ZWQ1K2NYTmpFbGsr/BEK-WOWZA-1/smil:BEKPRIMEeast.smil/playlist.m3u8&#39;, this, &#39;BEK TV News&#39;)'><div class='icon-wrapper'><img alt='BEK TV News' src='https://s3.aynaott.com/storage/4eaf83274ee309489b535852b1780ad2'/></div><div class='channel-name'>BEK TV News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://owrcovcrpy.gpcdn.net/bpk-tv/1710/output/index.m3u8&#39;, this, &#39;Star News&#39;)'><div class='icon-wrapper'><img alt='Star News' src='https://raw.githubusercontent.com/Rakib49/Rakibiptv/main/images.png'/></div><div class='channel-name'>Star News</div></div>
+</div>
+</div>
+<!-- Kids Category -->
+<div class='category-section' data-cat='kids'>
+<div class='section-title'>🧸 Kids Channels</div>
+<div class='channel-grid'>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/durontotv-live/index.m3u8?e=1779283757&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3da514e08a15c80daed60a18b3f423fa&#39;, this, &#39;Duronto TV&#39;)'><div class='icon-wrapper'><img alt='Duronto TV' src='https://s3.aynaott.com/storage/51f1530c076c027e431bf18a49613f0b'/></div><div class='channel-name'>Duronto TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/cartoonnetwork/index.m3u8?e=1779283917&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=6f8487c9adac23cedcbca869d7d7a595&#39;, this, &#39;Cartoon Network&#39;)'><div class='icon-wrapper'><img alt='Cartoon Network' src='https://s3.aynaott.com/storage/a89142109d049ae325fd1681b50bfffb'/></div><div class='channel-name'>Cartoon Network</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/disneyjr/index.m3u8?e=1779283918&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=5269dc1176c26984cb3eff6a2c891c14&#39;, this, &#39;Disney JR&#39;)'><div class='icon-wrapper'><img alt='Disney JR' src='https://s3.aynaott.com/storage/31a070024b6516e3738baec70168f0b6'/></div><div class='channel-name'>Disney JR</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/nicktoons/index.m3u8?e=1779283918&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=bbed6be573aa4a90a753bfb8fc060038&#39;, this, &#39;Nicktoons&#39;)'><div class='icon-wrapper'><img alt='Nicktoons' src='https://s3.aynaott.com/storage/a130687320f6b07db4bc3729b9d5e96e'/></div><div class='channel-name'>Nicktoons</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/nickjr/index.m3u8?e=1779283919&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=4708f179311f53518e4b1a8b697c8c1e&#39;, this, &#39;Nickjr&#39;)'><div class='icon-wrapper'><img alt='Nickjr' src='https://s3.aynaott.com/storage/921409bfe77e2e3d32492116bc22fa3e'/></div><div class='channel-name'>Nickjr</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/3abnkids/index.m3u8?e=1779283920&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=2032eede500d4def7448a9c0d71103e1&#39;, this, &#39;3ABN Kids&#39;)'><div class='icon-wrapper'><img alt='3ABN Kids' src='https://s3.aynaott.com/storage/76e36f75bf11c815a76c5622d627c814'/></div><div class='channel-name'>3ABN Kids</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://s.emisoras.tv:8081/diostevekids/index.m3u8&#39;, this, &#39;Dios Te Ve Kids&#39;)'><div class='icon-wrapper'><img alt='Dios Te Ve Kids' src='https://s3.aynaott.com/storage/6712a3c8a28689cfda4148faf095fa67'/></div><div class='channel-name'>Dios Te Ve Kids</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://newidco-kidspangtv-1-us.roku.wurl.tv/playlist.m3u8&#39;, this, &#39;Kids Pang TV&#39;)'><div class='icon-wrapper'><img alt='Kids Pang TV' src='https://s3.aynaott.com/storage/bc2a021f901e4d1de4948f314536c1bf'/></div><div class='channel-name'>Kids Pang TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/MoonbugKids/index.m3u8?e=1779283923&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=52145358ed3be27c1e34ba90b246262a&#39;, this, &#39;Moonbug Kids&#39;)'><div class='icon-wrapper'><img alt='Moonbug Kids' src='https://s3.aynaott.com/storage/d9b8deaf735ee0954260c7b3b61f508d'/></div><div class='channel-name'>Moonbug Kids</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/disney/index.m3u8?e=1779283925&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=edae9ca94bed2313e48e56a9085b496d&#39;, this, &#39;Disney Channel&#39;)'><div class='icon-wrapper'><img alt='Disney Channel' src='https://s3.aynaott.com/storage/a0c74b576321da5aa33a69806401caf1'/></div><div class='channel-name'>Disney Channel</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/disneyxd/index.m3u8?e=1779283925&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=ffdc9b78c58295f55906f225a10a425c&#39;, this, &#39;Disney XD&#39;)'><div class='icon-wrapper'><img alt='Disney XD' src='https://s3.aynaott.com/storage/f9b945284524683f1de8beb07ded8989'/></div><div class='channel-name'>Disney XD</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/nicklodean/index.m3u8?e=1779283926&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=6cbf077eae56bf7598b035f3c466d2b1&#39;, this, &#39;Nickelodeon&#39;)'><div class='icon-wrapper'><img alt='Nickelodeon' src='https://s3.aynaott.com/storage/bb2375af2d1ff8666f2c24fbcec3c541'/></div><div class='channel-name'>Nickelodeon</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/teennick/index.m3u8?e=1779283927&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3404b7a0258a1438c3f8204f2df21ddc&#39;, this, &#39;Teen Nick&#39;)'><div class='icon-wrapper'><img alt='Teen Nick' src='https://s3.aynaott.com/storage/5739277278d596533abbacc60ea694be'/></div><div class='channel-name'>Teen Nick</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/ytv/index.m3u8?e=1779283928&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=da75648d71ae8bd710a9bb53e62ce4c0&#39;, this, &#39;YTV&#39;)'><div class='icon-wrapper'><img alt='YTV' src='https://s3.aynaott.com/storage/d79d89851faee0823a1f2bed1a96e84d'/></div><div class='channel-name'>YTV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn.mycloudstream.io/hls/live/broadcast/nro19k2h/index.m3u8&#39;, this, &#39;TVCARiB Kids&#39;)'><div class='icon-wrapper'><img alt='TVCARiB Kids' src='https://s3.aynaott.com/storage/c6fde511a99e5134dbf12b77da386cb6'/></div><div class='channel-name'>TVCARiB Kids</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cc-4bhi5osabejc9.akamaized.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-4bhi5osabejc9/junglebook.m3u8&#39;, this, &#39;Jungle Book&#39;)'><div class='icon-wrapper'><img alt='Jungle Book' src='https://i.imgur.com/ubZMeQv.jpg'/></div><div class='channel-name'>Jungle Book</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://server.thelegitpro.in/rongeentv/rongeentv/tracks-v1a1/mono.m3u8&#39;, this, &#39;Rongeen TV&#39;)'><div class='icon-wrapper'><img alt='Rongeen TV' src='https://i.postimg.cc/zBCLNtGZ/Duronto.jpg'/></div><div class='channel-name'>Rongeen TV</div></div>
+</div>
+</div>
+<!-- Movies Category -->
+<div class='category-section' data-cat='movies'>
+<div class='section-title'>🎬 Movies, Music & Doc</div>
+<div class='channel-grid'>
+<div class='channel-item' onclick='playChannel(&#39;https://edge2.roarzone.net:8447/roarzone/edge3/movie_bangla/index.m3u8?token=f1153ce106f107a9c3e37bd2b551e3d0184519c3-cfc48222db91c2002e7fae0d54efda6b-1780020918-1780010118&#39;, this, &#39;MOVIE BANGLA&#39;)'><div class='icon-wrapper'><img alt='MOVIE BANGLA' src='https://tvassets.roarzone.net/images/86.png'/></div><div class='channel-name'>MOVIE BANGLA</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/pix11/index.m3u8?e=1779283842&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=11406d22f7f4a4964eff5eda975c2d3b&#39;, this, &#39;pix 11&#39;)'><div class='icon-wrapper'><img alt='pix 11' src='https://s3.aynaott.com/storage/294b72dc2ca7b74ab3312059728cab22'/></div><div class='channel-name'>pix 11</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/amc/index.m3u8?e=1779283842&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=021858f1b00e00e96d1c4781ed44da4c&#39;, this, &#39;AMC TV&#39;)'><div class='icon-wrapper'><img alt='AMC TV' src='https://s3.aynaott.com/storage/5522b7ef736d7f4e7f80ac6325dce821'/></div><div class='channel-name'>AMC TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/axs/index.m3u8?e=1779283843&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=32b8f9bb29ff4e04723a5837fba25912&#39;, this, &#39;AXS&#39;)'><div class='icon-wrapper'><img alt='AXS' src='https://s3.aynaott.com/storage/56d2c21362152b678998094f1c670dd5'/></div><div class='channel-name'>AXS</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdntv.tbs.seoul.kr/tbs/tbs_tv_web.smil/playlist.m3u8&#39;, this, &#39;TBS&#39;)'><div class='icon-wrapper'><img alt='TBS' src='https://s3.aynaott.com/storage/45a768728c7514ba59d1a0ccf806e222'/></div><div class='channel-name'>TBS</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://moviesphereuk-samsunguk.amagi.tv/playlist.m3u8&#39;, this, &#39;MovieSphere&#39;)'><div class='icon-wrapper'><img alt='MovieSphere' src='https://s3.aynaott.com/storage/4d343b446b1e7164bb7239bbe822a570'/></div><div class='channel-name'>MovieSphere</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://0145451975a64b35866170fd2e8fa486.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-5987/master.m3u8&#39;, this, &#39;Rakuten Movies&#39;)'><div class='icon-wrapper'><img alt='Rakuten Movies' src='https://s3.aynaott.com/storage/22af43810a37af9a151f1e0a23adde63'/></div><div class='channel-name'>Rakuten Movies</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://aenetworks-worldwartv-rakuten.amagi.tv/playlist.m3u8&#39;, this, &#39;World War TV&#39;)'><div class='icon-wrapper'><img alt='World War TV' src='https://s3.aynaott.com/storage/1e7dc35fdb26ce3aca17b41fae1aa56f'/></div><div class='channel-name'>World War TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://streams2.sofast.tv/sofastplayout/32eb332e-f644-46e5-ad91-e55ad80d14f7_0_HLS/master.m3u8&#39;, this, &#39;Cowboy Movie&#39;)'><div class='icon-wrapper'><img alt='Cowboy Movie' src='https://s3.aynaott.com/storage/cb1ab052f5b733bbf600a7a8e3a1164b'/></div><div class='channel-name'>Cowboy Movie</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://vods2.aynaott.com/gseriesDrama/tracks-v1a1/mono.ts.m3u8&#39;, this, &#39;G Series Drama&#39;)'><div class='icon-wrapper'><img alt='G Series Drama' src='https://raw.githubusercontent.com/Rakib49/Rakibiptv/main/images%20(7).jpeg'/></div><div class='channel-name'>G Series Drama</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://nomawnoijl.gpcdn.net/akash/partyuniverse/chunks.m3u8&#39;, this, &#39;Party Universe&#39;)'><div class='icon-wrapper'><img alt='Party Universe' src='https://raw.githubusercontent.com/Rakib49/Rakibiptv/main/images%20(1).png'/></div><div class='channel-name'>Party Universe</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-4.pishow.tv/live/1143/master.m3u8&#39;, this, &#39;Sangeet Bangla&#39;)'><div class='icon-wrapper'><img alt='Sangeet Bangla' src='https://s3.aynaott.com/storage/80424ce0682e14e7d51e28de33d5f380'/></div><div class='channel-name'>Sangeet Bangla</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://edge2.roarzone.net:8447/roarzone/edge3/b4u_music/index.m3u8?token=c8e1b3ce4fc9be68c84c9bba76eef808a3d55290-236586535b0196bd8ca943fe94d83b05-1780020920-1780010120&#39;, this, &#39;B4U MUSIC&#39;)'><div class='icon-wrapper'><img alt='B4U MUSIC' src='https://tvassets.roarzone.net/images/b4umusic.png'/></div><div class='channel-name'>B4U MUSIC</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://srknowapp.ncare.live/srktvhlswodrm/srktv.stream/playlist.m3u8&#39;, this, &#39;SRK TV&#39;)'><div class='icon-wrapper'><img alt='SRK TV' src='https://raw.githubusercontent.com/Rakib49/Rakibiptv/main/IMG_20260528_193117_215.jpg'/></div><div class='channel-name'>SRK TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://korhls.persiana.live/hls/stream.m3u8&#39;, this, &#39;Persiana Kore&#39;)'><div class='icon-wrapper'><img alt='Persiana Kore' src='https://s3.aynaott.com/storage/f24e50516ccf6b3e94a4ca749ccb3533'/></div><div class='channel-name'>Persiana Kore</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://livetv.powerapp.com.tr/powerturkTV/powerturkhd.smil/playlist.m3u8&#39;, this, &#39;Power Turk&#39;)'><div class='icon-wrapper'><img alt='Power Turk' src='https://s3.aynaott.com/storage/c4f27e64c99b50629e7021b99ac9387a'/></div><div class='channel-name'>Power Turk</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://autentic-adventure-earth-1-eu.rakuten.wurl.tv/playlist.m3u8&#39;, this, &#39;Adven. Earth&#39;)'><div class='icon-wrapper'><img alt='Adven. Earth' src='https://s3.aynaott.com/storage/13c04e44967d653c70eac9670b47fa5d'/></div><div class='channel-name'>Adven. Earth</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://202.70.146.135:8000/play/a05z/index.m3u8&#39;, this, &#39;Discovery BD&#39;)'><div class='icon-wrapper'><img alt='Discovery BD' src='https://raw.githubusercontent.com/subirkumarpaul/Logo/main/Discovery%20.png'/></div><div class='channel-name'>Discovery BD</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tiger-hub.vercel.app@vodzong.mjunoon.tv:8087/streamtest/Animal-Planet-158-3/playlist.m3u8&#39;, this, &#39;Animal Planet&#39;)'><div class='icon-wrapper'><img alt='Animal Planet' src='https://s3.aynaott.com/storage/18d95033c5d53fc3b159141a842fdeac'/></div><div class='channel-name'>Animal Planet</div></div>
+</div>
+</div>
+<!-- English/Hindi Category -->
+<div class='category-section' data-cat='english'>
+<div class='section-title'>🌐 English & Hindi</div>
+<div class='channel-grid'>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/RDSSocialTV/index.m3u8?e=1779283862&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=fbef4d16f6abea87ad32acccd9c2a28c&#39;, this, &#39;RDS Social TV&#39;)'><div class='icon-wrapper'><img alt='RDS Social TV' src='https://s3.aynaott.com/storage/f1fbcbc6cd325f5324eabb3bc733584e'/></div><div class='channel-name'>RDS Social TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/hbo/index.m3u8?e=1779283863&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=e4e97ebbe24cbdf38c9cd086323b3039&#39;, this, &#39;HBO&#39;)'><div class='icon-wrapper'><img alt='HBO' src='https://s3.aynaott.com/storage/4a1291716680b5c095d33e106337bb04'/></div><div class='channel-name'>HBO</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/hbo2/index.m3u8?e=1779283871&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c965d65d5d57410abd166c88e5c70c8b&#39;, this, &#39;HBO 2&#39;)'><div class='icon-wrapper'><img alt='HBO 2' src='https://s3.aynaott.com/storage/b64c028d8c0895ed81f3201d5979f7ba'/></div><div class='channel-name'>HBO 2</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/cgtnDocumentary/index.m3u8?e=1779283864&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c389fe4be96377c6619bf96af82d5542&#39;, this, &#39;CGTN Docu&#39;)'><div class='icon-wrapper'><img alt='CGTN Docu' src='https://s3.aynaott.com/storage/319020b844885cbabcd34e3f2f84d283'/></div><div class='channel-name'>CGTN Docu</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/foxbusiness/index.m3u8?e=1779283865&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c24958e7d2f98a772a97c77e942dc078&#39;, this, &#39;Fox business&#39;)'><div class='icon-wrapper'><img alt='Fox business' src='https://s3.aynaott.com/storage/20e4602dd584784607e5eff3963cdde6'/></div><div class='channel-name'>Fox business</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/fox5/index.m3u8?e=1779283866&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3aab593a32cb4b2754467570e1c42136&#39;, this, &#39;Fox 5&#39;)'><div class='icon-wrapper'><img alt='Fox 5' src='https://s3.aynaott.com/storage/4f6486854be670f7458ab60d0402ee42'/></div><div class='channel-name'>Fox 5</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen5.aynaott.com/discoveryfamily/index.m3u8?e=1779283866&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f8ded49bb7e99514409772c85d44b971&#39;, this, &#39;Disc. Family&#39;)'><div class='icon-wrapper'><img alt='Disc. Family' src='https://s3.aynaott.com/storage/3f7983c0bc7cacd206dd195a2eff6b10'/></div><div class='channel-name'>Disc. Family</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/bravo/index.m3u8?e=1779283867&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=a60fb7d13dd4ea9bfa8669b1fc29a53c&#39;, this, &#39;BRAVO&#39;)'><div class='icon-wrapper'><img alt='BRAVO' src='https://s3.aynaott.com/storage/7604a2c87620363fce86b73731b8035d'/></div><div class='channel-name'>BRAVO</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/comedycentral/index.m3u8?e=1779283868&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=dee438a9c2f015c824a618447e11d623&#39;, this, &#39;COMEDY CENTRAL&#39;)'><div class='icon-wrapper'><img alt='COMEDY CENTRAL' src='https://s3.aynaott.com/storage/211d55de947bdf03f5c18b7e30e0d98b'/></div><div class='channel-name'>COMEDY CENTRAL</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/cooking/index.m3u8?e=1779283869&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=aaa8e6d5eb83ab5d37ccd6f73988828d&#39;, this, &#39;COOKING TV&#39;)'><div class='icon-wrapper'><img alt='COOKING TV' src='https://s3.aynaott.com/storage/bf9792dc04cace6a25407b6304a35046'/></div><div class='channel-name'>COOKING TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/epix/index.m3u8?e=1779283869&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=63c6b35b74665280499da54c568ff282&#39;, this, &#39;EPIX TV&#39;)'><div class='icon-wrapper'><img alt='EPIX TV' src='https://s3.aynaott.com/storage/c0b0c986890a8c88c3566d93e18cada6'/></div><div class='channel-name'>EPIX TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/fx/index.m3u8?e=1779283870&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=6a5cabf0ab9a0d4bc794ec00af1f0371&#39;, this, &#39;FX TV&#39;)'><div class='icon-wrapper'><img alt='FX TV' src='https://s3.aynaott.com/storage/f403cc315ca6269c5fcbf1875c95d329'/></div><div class='channel-name'>FX TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/foodnetwork/index.m3u8?e=1779283870&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=dda0004b8e85ccc033f3473846741003&#39;, this, &#39;Food Network&#39;)'><div class='icon-wrapper'><img alt='Food Network' src='https://s3.aynaott.com/storage/582675c375dfa47c2d66e6639fcd2eac'/></div><div class='channel-name'>Food Network</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/hgtv/index.m3u8?e=1779283871&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=b765b233682cebe7bcfb9cc380cd3353&#39;, this, &#39;HGTV&#39;)'><div class='icon-wrapper'><img alt='HGTV' src='https://s3.aynaott.com/storage/be15ed692e22ad4b7dcb9d7251ce32a6'/></div><div class='channel-name'>HGTV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/laff/index.m3u8?e=1779283872&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d3bc12ec0ed6e181f5e328053530e9c7&#39;, this, &#39;LAFF TV&#39;)'><div class='icon-wrapper'><img alt='LAFF TV' src='https://s3.aynaott.com/storage/ac4e2fb2e4eccd7417e5cc5b5a733369'/></div><div class='channel-name'>LAFF TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/lifetime/index.m3u8?e=1779283872&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=68ae0dcb6c7f8191fdf0362cf9a7ec37&#39;, this, &#39;LIFE TIME&#39;)'><div class='icon-wrapper'><img alt='LIFE TIME' src='https://s3.aynaott.com/storage/90258e6758834a12979d27097bee04a7'/></div><div class='channel-name'>LIFE TIME</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/natgeo/index.m3u8?e=1779283873&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=b98710c5aef12640970c358e3a0472e5&#39;, this, &#39;Nat Geo TV&#39;)'><div class='icon-wrapper'><img alt='Nat Geo TV' src='https://s3.aynaott.com/storage/2dce8297266bbc9c235c27119f914e1b'/></div><div class='channel-name'>Nat Geo TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/syfy/index.m3u8?e=1779283874&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=e8228a5c9face446d6cc4fd3aa7e6287&#39;, this, &#39;SYFY TV&#39;)'><div class='icon-wrapper'><img alt='SYFY TV' src='https://s3.aynaott.com/storage/addd5f3c52326489e02df9aa14bb4ea5'/></div><div class='channel-name'>SYFY TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/tlc_hd/index.m3u8?e=1779283875&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=e1b76eb7edd1d45d50cf85f4bf7a26ef&#39;, this, &#39;TLC HD&#39;)'><div class='icon-wrapper'><img alt='TLC HD' src='https://s3.aynaott.com/storage/ba3c9fa1144bc65322f8ae3a1bb69cc9'/></div><div class='channel-name'>TLC HD</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/travelxp/index.m3u8?e=1779283876&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=61edf9ea37355b98aa9524cacb226e3b&#39;, this, &#39;Travel Channel&#39;)'><div class='icon-wrapper'><img alt='Travel Channel' src='https://s3.aynaott.com/storage/a7f87f1e71905ee14429ed26abd29b2a'/></div><div class='channel-name'>Travel Channel</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://streams2.sofast.tv/sofastplayout/33c31ac4-51fa-46ae-afd0-0d1fe5e60a80_0_HLS/master.m3u8&#39;, this, &#39;4k Travel TV&#39;)'><div class='icon-wrapper'><img alt='4k Travel TV' src='https://s3.aynaott.com/storage/6ccc7357c3d8d35770732126dd819596'/></div><div class='channel-name'>4k Travel TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://amg00861-amg00861c10-rakuten-uk-3152.playouts.now.amagi.tv/playlist.m3u8&#39;, this, &#39;InTravel&#39;)'><div class='icon-wrapper'><img alt='InTravel' src='https://s3.aynaott.com/storage/b35e9c1bcde3e6876892a22f91a9c4b5'/></div><div class='channel-name'>InTravel</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://ptravelhls.persiana.live/hls/stream.m3u8&#39;, this, &#39;Persiana Travel&#39;)'><div class='icon-wrapper'><img alt='Persiana Travel' src='https://s3.aynaott.com/storage/be9b48d87dcd7711cac19c17d8e01b27'/></div><div class='channel-name'>Persiana Travel</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://27c980761ff9437d929e64647afe183a.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-eu_TravelXP/playlist.m3u8&#39;, this, &#39;Travel XP&#39;)'><div class='icon-wrapper'><img alt='Travel XP' src='https://s3.aynaott.com/storage/a676d2f5ddf6e5f978b3d51876dceecf'/></div><div class='channel-name'>Travel XP</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://dfhsahpa45kk2.cloudfront.net/scheduler/scheduleMaster/476.m3u8&#39;, this, &#39;Wild TV&#39;)'><div class='icon-wrapper'><img alt='Wild TV' src='https://s3.aynaott.com/storage/597c839e577e81813e44812cedc50892'/></div><div class='channel-name'>Wild TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/ibtvusa/index.m3u8?e=1779283876&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=b37bd23b29929a3ddf623a234640435a&#39;, this, &#39;IBTV USA&#39;)'><div class='icon-wrapper'><img alt='IBTV USA' src='https://s3.aynaott.com/storage/1678abdbf203bb77af4bbf2905a3de59'/></div><div class='channel-name'>IBTV USA</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/cnbc/index.m3u8?e=1779283878&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c2df62f70129f9cc7e25ecbdc050b59b&#39;, this, &#39;CNBC TV&#39;)'><div class='icon-wrapper'><img alt='CNBC TV' src='https://s3.aynaott.com/storage/16a213d06e7362d97cb6085e70c9b5a2'/></div><div class='channel-name'>CNBC TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/cbs/index.m3u8?e=1779283878&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=38581bcdfcfefaccc60cd13023d0c783&#39;, this, &#39;CBS TV&#39;)'><div class='icon-wrapper'><img alt='CBS TV' src='https://s3.aynaott.com/storage/41536a676b99c1996efbccd8f65df42b'/></div><div class='channel-name'>CBS TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/cp24/index.m3u8?e=1779283879&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d067c44283da7ab173a48b7a7023089b&#39;, this, &#39;CP 24&#39;)'><div class='icon-wrapper'><img alt='CP 24' src='https://s3.aynaott.com/storage/9f391e512f41bec54b163b83667da453'/></div><div class='channel-name'>CP 24</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/mtv/index.m3u8?e=1779283879&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=eabe7b33941d288d3e5759384db43d1c&#39;, this, &#39;MTV&#39;)'><div class='icon-wrapper'><img alt='MTV' src='https://s3.aynaott.com/storage/c0bfcdb40393eb5824907adaaa63a653'/></div><div class='channel-name'>MTV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/usa/index.m3u8?e=1779283880&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=618f7c1e32e8a9d455697be12191f933&#39;, this, &#39;USA TV&#39;)'><div class='icon-wrapper'><img alt='USA TV' src='https://s3.aynaott.com/storage/376b8483457b06dbc5b7b7b327a21ac6'/></div><div class='channel-name'>USA TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/msnbc/index.m3u8?e=1779283880&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=52aa596396f3495ef93e44de7133e626&#39;, this, &#39;MSNBC News&#39;)'><div class='icon-wrapper'><img alt='MSNBC News' src='https://s3.aynaott.com/storage/9a9ca715640d3dc227a0a74750ab17f2'/></div><div class='channel-name'>MSNBC News</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-apse1-prod.tsv2.amagi.tv/linear/amg01076-lightningintern-actionhollywood-samsungnz/playlist.m3u8&#39;, this, &#39;Action H\\&#39;wood&#39;)'><div class='icon-wrapper'><img alt='Action H&#39;wood' src='https://s3.aynaott.com/storage/baef6dd41c3ee6fabbb59bb8403cc1eb'/></div><div class='channel-name'>Action H'wood</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01438-ewscrippscompan-courttv-tablo/playlist.m3u8&#39;, this, &#39;Court TV&#39;)'><div class='icon-wrapper'><img alt='Court TV' src='https://s3.aynaott.com/storage/7deacf82c7f75cf7aaee5e0935c3d2c8'/></div><div class='channel-name'>Court TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/GoldminesBollywood/index.m3u8&#39;, this, &#39;Goldmines&#39;)'><div class='icon-wrapper'><img alt='Goldmines' src='https://s3.aynaott.com/storage/e92e9e2fb70909f3dd30a8d89e644119'/></div><div class='channel-name'>Goldmines</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/AssamTalks/index.m3u8?e=1779283888&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=00d6be9c7179c8b12fb13515e7ab2386&#39;, this, &#39;Assam Talks&#39;)'><div class='icon-wrapper'><img alt='Assam Talks' src='https://s3.aynaott.com/storage/e7d8cff366343b850d04a655c6fbf2ff'/></div><div class='channel-name'>Assam Talks</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/TaazaTV/index.m3u8?e=1779283889&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=cc44db12b53dcec714c1fc339270755d&#39;, this, &#39;Taaza TV&#39;)'><div class='icon-wrapper'><img alt='Taaza TV' src='https://s3.aynaott.com/storage/01c9cb3e1a4c90da6685700da863f0ce'/></div><div class='channel-name'>Taaza TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/Dangal/index.m3u8?e=1779283890&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=0538e40970744c2993c693c596911e2a&#39;, this, &#39;Dangal&#39;)'><div class='icon-wrapper'><img alt='Dangal' src='https://s3.aynaott.com/storage/cb1c3e153b951760fb0396cd27b8a715'/></div><div class='channel-name'>Dangal</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-3.pishow.tv/live/230/master.m3u8&#39;, this, &#39;ShemarooTV&#39;)'><div class='icon-wrapper'><img alt='ShemarooTV' src='https://s3.aynaott.com/storage/c63628e7301ba1eded68c0f75ab8d903'/></div><div class='channel-name'>ShemarooTV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-2.pishow.tv/live/226/master.m3u8&#39;, this, &#39;Music India&#39;)'><div class='icon-wrapper'><img alt='Music India' src='https://s3.aynaott.com/storage/20c3a2638df99ece9eb12aabfc03a8c3'/></div><div class='channel-name'>Music India</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/9xjalwa/index.m3u8?e=1779283896&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c537db14645c6338e56ccd72bb375808&#39;, this, &#39;9x Jalwa&#39;)'><div class='icon-wrapper'><img alt='9x Jalwa' src='https://s3.aynaott.com/storage/d2d8f00a60dc64dad6c0181cd86f7869'/></div><div class='channel-name'>9x Jalwa</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/9X_Tashan/index.m3u8?e=1779283897&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=fb3597d8295ee74869ab8887d2b85cfc&#39;, this, &#39;9X Tashan&#39;)'><div class='icon-wrapper'><img alt='9X Tashan' src='https://s3.aynaott.com/storage/5d052254516639955d06182690d3fda2'/></div><div class='channel-name'>9X Tashan</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/Dhinchaak/index.m3u8?e=1779283897&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=5754f86405785dc7f982d3a318f39f65&#39;, this, &#39;Dhinchaak&#39;)'><div class='icon-wrapper'><img alt='Dhinchaak' src='https://s3.aynaott.com/storage/f4edcca7247bbb4a263a51d7ebb82282'/></div><div class='channel-name'>Dhinchaak</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-4.pishow.tv/live/1473/master.m3u8&#39;, this, &#39;Khushboo&#39;)'><div class='icon-wrapper'><img alt='Khushboo' src='https://s3.aynaott.com/storage/d90eb718a6674494d2dac28e1d96bf44'/></div><div class='channel-name'>Khushboo</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/ManoranjanTV/index.m3u8?e=1779283898&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=315418928d40457555e899e78d4a0a9c&#39;, this, &#39;Manoranjan TV&#39;)'><div class='icon-wrapper'><img alt='Manoranjan TV' src='https://s3.aynaott.com/storage/1a62a70103bac9999411a72b8a8b7ccc'/></div><div class='channel-name'>Manoranjan TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/Network10/index.m3u8?e=1779283899&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c18347bf18a650b71c67461777874c66&#39;, this, &#39;Network 10&#39;)'><div class='icon-wrapper'><img alt='Network 10' src='https://s3.aynaott.com/storage/09e356a3181cc613cf5680619d50a5f5'/></div><div class='channel-name'>Network 10</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/RepublicTVBharat/index.m3u8?e=1779283899&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=4c0f183f73a081615f7bbf6e17adbdf7&#39;, this, &#39;Republic Bharat&#39;)'><div class='icon-wrapper'><img alt='Republic Bharat' src='https://s3.aynaott.com/storage/947715e0a22f16ac21805073ce6eb0b6'/></div><div class='channel-name'>Republic Bharat</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://vods2.aynaott.com/hindimovies/index.m3u8&#39;, this, &#39;Hindi Movie Clsc&#39;)'><div class='icon-wrapper'><img alt='Hindi Movie Clsc' src='https://s3.aynaott.com/storage/3132515182ec50091b496fe515564084'/></div><div class='channel-name'>Hindi Movie Clsc</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://awaazindia.livebox.co.in/AwaazIndaTVhls/Live.m3u8&#39;, this, &#39;Awaaz India&#39;)'><div class='icon-wrapper'><img alt='Awaaz India' src='https://s3.aynaott.com/storage/6f17785db48e7b5fb68b7d441ad3ad10'/></div><div class='channel-name'>Awaaz India</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://jk3lz82elw79-hls-live.5centscdn.com/harPalGeo/955ad3298db330b5ee880c2c9e6f23a0.sdp/playlist.m3u8&#39;, this, &#39;Geo ENT&#39;)'><div class='icon-wrapper'><img alt='Geo ENT' src='https://s3.aynaott.com/storage/e0d54d73e6b9cf211cd760650467e596'/></div><div class='channel-name'>Geo ENT</div></div>
+</div>
+</div>
+<!-- Religion/Weather Category -->
+<div class='category-section' data-cat='religion'>
+<div class='section-title'>🕌 Religious, Weather & Info</div>
+<div class='channel-grid'>
+<div class='channel-item' onclick='playChannel(&#39;https://owrcovcrpy.gpcdn.net/bpk-tv/1724/output/index.m3u8&#39;, this, &#39;Islamic TV&#39;)'><div class='icon-wrapper'><img alt='Islamic TV' src='https://raw.githubusercontent.com/Rakib49/Rakibiptv/main/images%20(8).jpeg'/></div><div class='channel-name'>Islamic TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://dzkyvlfyge.erbvr.com/PeaceTvBangla/tracks-v2a1/mono.m3u8&#39;, this, &#39;Peace TV Bangla&#39;)'><div class='icon-wrapper'><img alt='Peace TV Bangla' src='https://i.ibb.co/Gfw89mC/20240804-033102.png'/></div><div class='channel-name'>Peace TV Bangla</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://protokolldns.xyz/rtvislamweb554/index.m3u8&#39;, this, &#39;RTV Islam&#39;)'><div class='icon-wrapper'><img alt='RTV Islam' src='https://s3.aynaott.com/storage/f00eda9194eb13e8ef1d1387889173bf'/></div><div class='channel-name'>RTV Islam</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-4.pishow.tv/live/229/master.m3u8&#39;, this, &#39;Channel Win&#39;)'><div class='icon-wrapper'><img alt='Channel Win' src='https://s3.aynaott.com/storage/3458d0d9097a8283a94a13374bcbf5c7'/></div><div class='channel-name'>Channel Win</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/deen/index.m3u8?e=1779283935&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d49bc388cc0adea4907ecc83f4c83c4c&#39;, this, &#39;Deen TV&#39;)'><div class='icon-wrapper'><img alt='Deen TV' src='https://s3.aynaott.com/storage/66ac3ae1e56001353b69bb5f63ebcc6e'/></div><div class='channel-name'>Deen TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/eman/index.m3u8?e=1779283935&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=08f8a7c54838dd4274f8b058bbed710e&#39;, this, &#39;Eman Channel&#39;)'><div class='icon-wrapper'><img alt='Eman Channel' src='https://s3.aynaott.com/storage/09d759c7bb93fa3fb76014c8936201ce'/></div><div class='channel-name'>Eman Channel</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen7.aynaott.com/MadaniTV/index.m3u8?e=1779283937&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=8e3699711dd88227b533acc570b06a7b&#39;, this, &#39;MADANI TV&#39;)'><div class='icon-wrapper'><img alt='MADANI TV' src='https://s3.aynaott.com/storage/813fca9bc7df9a4810efe2eb87c57039'/></div><div class='channel-name'>MADANI TV</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://tvsen6.aynaott.com/TheWeatherChannel/index.m3u8?e=1779283877&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=bff83cb7a2fcd3dbef83a9a3c7b969c4&#39;, this, &#39;WEATHER CH.&#39;)'><div class='icon-wrapper'><img alt='WEATHER CH.' src='https://s3.aynaott.com/storage/67e08c23033802b4443baf81d1b048bf'/></div><div class='channel-name'>WEATHER CH.</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg00684-accuweather-accuweather-plex/playlist.m3u8&#39;, this, &#39;AccuWeather&#39;)'><div class='icon-wrapper'><img alt='AccuWeather' src='https://s3.aynaott.com/storage/21992f5e8529a9d2a94b6edf917dbd8f'/></div><div class='channel-name'>AccuWeather</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://247wlive.foxweather.com/stream/index.m3u8&#39;, this, &#39;Fox Weather&#39;)'><div class='icon-wrapper'><img alt='Fox Weather' src='https://s3.aynaott.com/storage/6dd20ecde19ea3f6b6cf6c040701973e'/></div><div class='channel-name'>Fox Weather</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://distro001-gb-hls1-prd.delivery.skycdp.com/easel_cdn/ngrp:weather_loop.stream_all/playlist.m3u8&#39;, this, &#39;Sky Weather&#39;)'><div class='icon-wrapper'><img alt='Sky Weather' src='https://s3.aynaott.com/storage/78b7ab973209ec06346cf8acfd8544cd'/></div><div class='channel-name'>Sky Weather</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://jukin-weatherspy-2-in.samsung.wurl.tv/playlist.m3u8&#39;, this, &#39;Weather SPY&#39;)'><div class='icon-wrapper'><img alt='Weather SPY' src='https://s3.aynaott.com/storage/b0bdea4df810e2d46f689cbb6c990c91'/></div><div class='channel-name'>Weather SPY</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://livecdn.live247stream.com/discoverpakistan/web/playlist.m3u8&#39;, this, &#39;Discover PK&#39;)'><div class='icon-wrapper'><img alt='Discover PK' src='https://s3.aynaott.com/storage/1b9208802bbf0cc01f1e8319b0ec633d'/></div><div class='channel-name'>Discover PK</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://live.kwikmotion.com/sbrksasaudiaradiolive/srpksasaudiaradio/playlist.m3u8&#39;, this, &#39;Saudia Radio&#39;)'><div class='icon-wrapper'><img alt='Saudia Radio' src='https://s3.aynaott.com/storage/76d7d7446ee57ec14ff67c1678725d19'/></div><div class='channel-name'>Saudia Radio</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://mediaserver.abnvideos.com/streams/abnurdu.m3u8&#39;, this, &#39;ABN&#39;)'><div class='icon-wrapper'><img alt='ABN' src='https://s3.aynaott.com/storage/9882913a8d68aa99c0501b64749d6320'/></div><div class='channel-name'>ABN</div></div>
+<div class='channel-item' onclick='playChannel(&#39;https://reflect-vod-cmac.cablecast.tv/live-11/live/stream-2/live.m3u8&#39;, this, &#39;CMAC TV&#39;)'><div class='icon-wrapper'><img alt='CMAC TV' src='https://s3.aynaott.com/storage/14a329b450239b9a4beaa4953c33367b'/></div><div class='channel-name'>CMAC TV</div></div>
+</div>
+</div>
+</div>
+<!-- End of channel container -->
+<!-- Animated Footer -->
+<div class='footer-logo'>SHOPNIL TV</div>
+</div>
+<!-- End of main container-inner -->
+<!-- Required Blogger elements hidden at bottom -->
+<div style='display:none;'>
+<div class='main no-items section' id='main'></div>
+</div>
+<!-- Adsterra Popunder / Social Bar Ad -->
+<script src='https://pl29598587.effectivecpmnetwork.com/48/86/2e/48862e76a6a145405b0c37f20e36c035.js' type='text/javascript'></script>
+<script type='text/javascript'>
+    //<![CDATA[
+        var video = document.getElementById('video');
+        var currentChannelElement = null;
+        
+        var player = new Plyr(video, {
+            controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'pip', 'fullscreen'],
+            autoplay: true,
+            muted: true
+        });
+        
+        var hls = new Hls();
+
+        function playChannel(url, clickedElement, channelName) {
+            currentChannelElement = clickedElement;
+            
+            if (Hls.isSupported()) {
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play().catch(function(e) { console.log("Play error:", e); });
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play().catch(function(e) { console.log("Play error:", e); });
+                });
+            }
+            
+            var items = document.querySelectorAll('.channel-item');
+            items.forEach(function(item) { item.classList.remove('playing'); });
+            if(clickedElement) { clickedElement.classList.add('playing'); }
+            
+            if(channelName) {
+                document.getElementById('nowPlayingText').innerText = "Playing: " + channelName;
+            }
+        }
+
+        // Helper function for Prev/Next
+        function getVisibleChannels() {
+            let items = document.querySelectorAll('.channel-item');
+            let visibleItems = [];
+            for(let i = 0; i < items.length; i++) {
+                if(items[i].offsetWidth > 0 && items[i].offsetHeight > 0) {
+                    visibleItems.push(items[i]);
+                }
+            }
+            return visibleItems;
+        }
+
+        function playNext() {
+            let visible = getVisibleChannels();
+            if(visible.length === 0) return;
+            let index = visible.indexOf(currentChannelElement);
+            if(index >= 0 && index < visible.length - 1) {
+                visible[index + 1].click();
+            } else {
+                visible[0].click(); // loop to first
+            }
+        }
+
+        function playPrev() {
+            let visible = getVisibleChannels();
+            if(visible.length === 0) return;
+            let index = visible.indexOf(currentChannelElement);
+            if(index > 0) {
+                visible[index - 1].click();
+            } else {
+                visible[visible.length - 1].click(); // loop to last
+            }
+        }
+
+        window.addEventListener('load', function() {
+            var firstChannel = document.querySelector('.channel-item');
+            if(firstChannel) {
+                firstChannel.click();
+            }
+        });
+
+        function toggleTheme() {
+            var btn = document.querySelector('.btn-dark');
+            document.body.classList.toggle('dark-mode');
+            if(document.body.classList.contains('dark-mode')) {
+                btn.innerHTML = '☀️ Light';
+            } else {
+                btn.innerHTML = '🌙 Dark';
+            }
+        }
+        
+        function togglePiP() {
+            if (document.pictureInPictureElement) {
+                document.exitPictureInPicture().catch(err => console.error(err));
+            } else {
+                if (document.pictureInPictureEnabled) {
+                    video.requestPictureInPicture().catch(err => console.error(err));
+                } else {
+                    alert("Your browser does not support Picture-in-Picture.");
+                }
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            let term = e.target.value.toLowerCase();
+            let channels = document.querySelectorAll('.channel-item');
+            
+            channels.forEach(function(channel) {
+                let name = channel.querySelector('.channel-name').textContent.toLowerCase();
+                if(name.includes(term)) {
+                    channel.style.display = 'flex';
+                } else {
+                    channel.style.display = 'none';
+                }
+            });
+        });
+
+        function filterCategory(catName, btnElement) {
+            var buttons = document.querySelectorAll('.cat-btn');
+            buttons.forEach(function(btn) { btn.classList.remove('active'); });
+            btnElement.classList.add('active');
+
+            var sections = document.querySelectorAll('.category-section');
+            sections.forEach(function(sec) {
+                if(catName === 'all') {
+                    sec.style.display = 'block';
+                } else {
+                    if(sec.getAttribute('data-cat') === catName) {
+                        sec.style.display = 'block';
+                    } else {
+                        sec.style.display = 'none';
+                    }
+                }
+            });
+            
+            document.getElementById('searchInput').value = '';
+            var allChannels = document.querySelectorAll('.channel-item');
+            allChannels.forEach(function(ch) { ch.style.display = 'flex'; });
+        }
+    //]]>
+    </script>
+
+<script type="text/javascript" src="https://www.blogger.com/static/v1/widgets/387437488-widgets.js"></script>
+<script type='text/javascript'>
+window['__wavt'] = 'AAVkm1tLz00UiYiUGUMR26QSiiCF:1780380730537';_WidgetManager._Init('//www.blogger.com/rearrange?blogID\x3d2048022787721639857','//shopniltv.blogspot.com/?m\x3d1','2048022787721639857');
+_WidgetManager._SetDataContext([{'name': 'blog', 'data': {'blogId': '2048022787721639857', 'title': 'ShopnilTv', 'url': 'https://shopniltv.blogspot.com/?m\x3d1', 'canonicalUrl': 'https://shopniltv.blogspot.com/', 'homepageUrl': 'https://shopniltv.blogspot.com/?m\x3d1', 'searchUrl': 'https://shopniltv.blogspot.com/search', 'canonicalHomepageUrl': 'https://shopniltv.blogspot.com/', 'blogspotFaviconUrl': 'https://shopniltv.blogspot.com/favicon.ico', 'bloggerUrl': 'https://www.blogger.com', 'hasCustomDomain': false, 'httpsEnabled': true, 'enabledCommentProfileImages': true, 'gPlusViewType': 'FILTERED_POSTMOD', 'adultContent': false, 'analyticsAccountNumber': '', 'encoding': 'UTF-8', 'locale': 'en', 'localeUnderscoreDelimited': 'en', 'languageDirection': 'ltr', 'isPrivate': false, 'isMobile': true, 'isMobileRequest': true, 'mobileClass': ' mobile', 'isPrivateBlog': false, 'isDynamicViewsAvailable': true, 'feedLinks': '\x3clink rel\x3d\x22alternate\x22 type\x3d\x22application/atom+xml\x22 title\x3d\x22ShopnilTv - Atom\x22 href\x3d\x22https://shopniltv.blogspot.com/feeds/posts/default\x22 /\x3e\n\x3clink rel\x3d\x22alternate\x22 type\x3d\x22application/rss+xml\x22 title\x3d\x22ShopnilTv - RSS\x22 href\x3d\x22https://shopniltv.blogspot.com/feeds/posts/default?alt\x3drss\x22 /\x3e\n\x3clink rel\x3d\x22service.post\x22 type\x3d\x22application/atom+xml\x22 title\x3d\x22ShopnilTv - Atom\x22 href\x3d\x22https://www.blogger.com/feeds/2048022787721639857/posts/default\x22 /\x3e\n', 'meTag': '\x3clink rel\x3d\x22me\x22 href\x3d\x22https://www.blogger.com/profile/00338493194096007624\x22 /\x3e\n', 'adsenseHostId': 'ca-host-pub-1556223355139109', 'adsenseHasAds': false, 'adsenseAutoAds': false, 'boqCommentIframeForm': true, 'loginRedirectParam': '', 'isGoogleEverywhereLinkTooltipEnabled': true, 'view': '', 'dynamicViewsCommentsSrc': '//www.blogblog.com/dynamicviews/4224c15c4e7c9321/js/comments.js', 'dynamicViewsScriptSrc': '//www.blogblog.com/dynamicviews/fd3827f039554d71', 'plusOneApiSrc': 'https://apis.google.com/js/platform.js', 'disableGComments': true, 'interstitialAccepted': false, 'sharing': {'platforms': [{'name': 'Get link', 'key': 'link', 'shareMessage': 'Get link', 'target': ''}, {'name': 'Facebook', 'key': 'facebook', 'shareMessage': 'Share to Facebook', 'target': 'facebook'}, {'name': 'BlogThis!', 'key': 'blogThis', 'shareMessage': 'BlogThis!', 'target': 'blog'}, {'name': 'X', 'key': 'twitter', 'shareMessage': 'Share to X', 'target': 'twitter'}, {'name': 'Pinterest', 'key': 'pinterest', 'shareMessage': 'Share to Pinterest', 'target': 'pinterest'}, {'name': 'Email', 'key': 'email', 'shareMessage': 'Email', 'target': 'email'}], 'disableGooglePlus': true, 'googlePlusShareButtonWidth': 0, 'googlePlusBootstrap': '\x3cscript type\x3d\x22text/javascript\x22\x3ewindow.___gcfg \x3d {\x27lang\x27: \x27en\x27};\x3c/script\x3e'}, 'hasCustomJumpLinkMessage': false, 'jumpLinkMessage': 'Read more', 'pageType': 'index', 'pageName': '', 'pageTitle': 'ShopnilTv'}}, {'name': 'features', 'data': {}}, {'name': 'messages', 'data': {'edit': 'Edit', 'linkCopiedToClipboard': 'Link copied to clipboard!', 'ok': 'Ok', 'postLink': 'Post Link'}}, {'name': 'template', 'data': {'name': 'custom', 'localizedName': 'Custom', 'isResponsive': true, 'isAlternateRendering': false, 'isCustom': true}}, {'name': 'view', 'data': {'classic': {'name': 'classic', 'url': '?view\x3dclassic'}, 'flipcard': {'name': 'flipcard', 'url': '?view\x3dflipcard'}, 'magazine': {'name': 'magazine', 'url': '?view\x3dmagazine'}, 'mosaic': {'name': 'mosaic', 'url': '?view\x3dmosaic'}, 'sidebar': {'name': 'sidebar', 'url': '?view\x3dsidebar'}, 'snapshot': {'name': 'snapshot', 'url': '?view\x3dsnapshot'}, 'timeslide': {'name': 'timeslide', 'url': '?view\x3dtimeslide'}, 'isMobile': false, 'title': 'ShopnilTv', 'description': '', 'url': 'https://shopniltv.blogspot.com/?m\x3d1', 'type': 'feed', 'isSingleItem': false, 'isMultipleItems': true, 'isError': false, 'isPage': false, 'isPost': false, 'isHomepage': true, 'isArchive': false, 'isLabelSearch': false}}, {'name': 'widgets', 'data': []}]);
+</script>
+</body>
+</html>

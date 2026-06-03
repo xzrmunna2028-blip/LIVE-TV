@@ -64,22 +64,27 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
   // 1. Fetch support status (Enabled vs Disabled) on mount and periodically
   const fetchStatus = () => {
     fetch('/api/support/status')
-      .then(res => res.json())
+      .then(res => {
+        const contentType = res.headers.get('content-type');
+        if (res.ok && contentType && contentType.includes('application/json')) {
+          return res.json();
+        }
+        throw new Error('Not OK or not JSON');
+      })
       .then(data => {
-        if (typeof data.supportEnabled === 'boolean') {
+        if (data && typeof data.supportEnabled === 'boolean') {
           setSupportEnabled(data.supportEnabled);
         }
         setLoadingStatus(false);
       })
       .catch(err => {
-        console.error('Error fetching support status:', err);
         setLoadingStatus(false);
       });
   };
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 8000);
+    const interval = setInterval(fetchStatus, 30000); // Poll every 30s instead of 8s to prevent rate limits
     return () => clearInterval(interval);
   }, []);
 
