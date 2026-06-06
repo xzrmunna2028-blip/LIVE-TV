@@ -12,12 +12,15 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Channel, PlaylistInfo } from './types';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { db } from './firebase';
 import CustomPlayer from './components/CustomPlayer';
 import ChannelCard from './components/ChannelCard';
 import LandingPage, { FreeWorldCupBDLogo, StatsDisplay } from './components/LandingPage';
 import AuthModal from './components/AuthModal';
 import LiveChat from './components/LiveChat';
 import SupportChat from './components/SupportChat';
+import AdminSupportPanel from './components/AdminSupportPanel';
 import ProfileEditModal from './components/ProfileEditModal';
 import DynamicAdContainer from './components/DynamicAdContainer';
 import NoticeModal from './components/NoticeModal';
@@ -36,64 +39,320 @@ interface GroupCategory {
 
 const CATEGORIES: GroupCategory[] = [
   { id: 'all', nameBangla: 'সব চ্যানেল', nameEnglish: 'All Channels' },
-  { id: 'live', nameBangla: 'লাইভ (LIVE)', nameEnglish: 'Live Status' },
-  { id: 'popular', nameBangla: 'পপুলার (Popular)', nameEnglish: 'Popular' },
   { id: 'favorites', nameBangla: 'প্রিয় তালিকা', nameEnglish: 'Favorites' },
-  { id: 'Bangla', nameBangla: 'বাংলাদেশি', nameEnglish: 'Bangla' },
-  { id: 'Sports', nameBangla: 'খেলাধুলা', nameEnglish: 'Sports' },
-  { id: 'News', nameBangla: 'খবর', nameEnglish: 'News' },
-  { id: 'Kids', nameBangla: 'কার্টুন', nameEnglish: 'Kids' },
-  { id: 'Movies', nameBangla: 'বিনোদন ও সিনেমা', nameEnglish: 'Movies' },
-  { id: 'Hindi/Eng', nameBangla: 'হিন্দি/ইংরেজি', nameEnglish: 'Hindi/English' },
-  { id: 'Religion', nameBangla: 'ধর্মীয়', nameEnglish: 'Religion' },
-  { id: 'failed', nameBangla: 'ফেইল চ্যানেল (Failed)', nameEnglish: 'Failed Channels' }
+  { id: 'Sports', nameBangla: 'খেলাধুলা (Sports)', nameEnglish: 'Sports' },
+  { id: 'Bangla', nameBangla: 'বাংলাদেশি (Bangla)', nameEnglish: 'Bangla' },
+  { id: 'Serials', nameBangla: 'সিরিয়াল ও নাটক (Serials)', nameEnglish: 'Serials' },
+  { id: 'News', nameBangla: 'খবর (News)', nameEnglish: 'News' },
+  { id: 'failed', nameBangla: 'ফেল চ্যানেল (Failed)', nameEnglish: 'Failed Channels' }
 ];
 
 const Marquee = 'marquee' as any;
 
 const STATIC_FALLBACK_CHANNELS: Channel[] = [
   {
-    id: "fb_tsports",
-    name: "T Sports Live HD",
-    url: "https://live.tsports.com/tsports/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/dbc585f70a60b9855b6e13a8ce4cb6f4",
+    id: "fb_req_star_jolsha",
+    name: "STAR JOLSHA HD",
+    url: "https://yupptvcatchupire.yuppcdn.net/preview/starjalsha/1800.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Jalsha-HD.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_zee_bangla",
+    name: "ZEE BANGLA",
+    url: "https://tvsen5.aynaott.com/PNEb3v2q6GBk/tracks-v1a1/mono.ts.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-Bangla-HD.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_zee_bangla_shonar",
+    name: "ZEE BANGLA SHONAR HD",
+    url: "https://server.itcnbd.live/stream/zee_bangla_cinema.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-Bangla-Cinema.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_enter10_hd",
+    name: "ENTER 10 HD",
+    url: "https://live-bangla.akamaized.net/liveabr/pub-iobanglakp3sff/live_720p/chunks.m3u8",
+    logo: "https://i.imgur.com/8Qj8W9N.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_sony_aat_hd",
+    name: "SONY AAT HD",
+    url: "https://server.itcnbd.live/stream/sonyaath.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Aath.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_sony_tv_hd",
+    name: "SONY TV HD",
+    url: "https://server.itcnbd.live/stream/sonyentertainmnt_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Entertainment-Television-HD.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_sony_sab",
+    name: "SONY SAB",
+    url: "https://server.itcnbd.live/stream/sonysab_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sab.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_zee_tv_hd",
+    name: "ZEE TV HD",
+    url: "https://server.itcnbd.live/stream/zee_tv_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-TV-HD.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_and_tv",
+    name: "& TV",
+    url: "https://server.itcnbd.live/stream/and_tv_hd.m3u8",
+    logo: "https://i.imgur.com/uR7917l.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_zee_cafe",
+    name: "ZEE CAFE",
+    url: "https://server.itcnbd.live/stream/zee_cafe_hd.m3u8",
+    logo: "https://i.imgur.com/pZqN6i2.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_and_pictures_hd",
+    name: "& PICTURES HD",
+    url: "https://server.itcnbd.live/stream/andpicture_hd.m3u8",
+    logo: "https://i.imgur.com/V7RST2k.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_zing_music",
+    name: "ZING MUSIC",
+    url: "https://server.itcnbd.live/stream/zing_sd.m3u8",
+    logo: "https://i.imgur.com/UfU8bYt.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_sangeet_bangla",
+    name: "সংগীত বাংলা (SANGEET BANGLA)",
+    url: "http://10.20.30.40:8088/702/tracks-v1a1/mono.m3u8",
+    logo: "https://i.imgur.com/N6K2241.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_9xm_music",
+    name: "9XM MUSIC",
+    url: "https://wiselp.wiseplayout.com/9XM/HD1080/HD1080.m3u8",
+    logo: "https://i.imgur.com/s6n5O4Z.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_9x_jalwa",
+    name: "9X JALWA",
+    url: "https://wiselp.wiseplayout.com/9X_Jalwa/SD216/SD216.m3u8",
+    logo: "https://i.imgur.com/y1V9zYk.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_9x_tashan",
+    name: "9X TASHAN",
+    url: "https://9xjio.wiseplayout.com/9X_Tashan/SD504/SD504.m3u8",
+    logo: "https://i.imgur.com/nsw8N1M.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_dance_tv",
+    name: "DANCE TV",
+    url: "https://m1b2.worldcast.tv/dancetelevisionone/2/dancetelevisionone.m3u8",
+    logo: "https://i.imgur.com/R3ZtkpL.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_joo_music",
+    name: "JOO MUSIC",
+    url: "https://livecdn.live247stream.com/joomusic/tv/joomusic/stream/chunks.m3u8",
+    logo: "https://i.imgur.com/39N6Fk1.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_music_india",
+    name: "MUSIC INDIA",
+    url: "https://cdn-2.pishow.tv/live/226/226_2.m3u8",
+    logo: "https://i.imgur.com/7A2xUf6.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_8xm",
+    name: "8XM",
+    url: "https://ml-pull-dvc-myco.io:2096/8XM_MUSIC/tracks-v1a1/mono.ts.m3u8",
+    logo: "https://i.imgur.com/qU3g94A.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_party_universe",
+    name: "PARTY UNIVERS",
+    url: "https://nomawnoijl.gpcdn.net/akash/partyuniverse/chunks.m3u8",
+    logo: "https://i.imgur.com/C7W2yZ6.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_atn_music",
+    name: "ATN MUSIC",
+    url: "https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI2/atnmusic.stream/live-orgin/atnmusic.stream/chunks.m3u8",
+    logo: "https://i.imgur.com/o7hVfK5.png",
+    group: "Serials",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_t_sports",
+    name: "T SPORTS Live",
+    url: "http://198.195.239.50:8095/Tsports/tracks-v1a1/mono.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/T-Sports.png",
     group: "Sports",
     playlistSource: "Built-in fallbacks",
     status: "online"
   },
   {
-    id: "fb_gtv",
-    name: "GTV (Gazi TV) Live",
-    url: "https://live.gtvbd.com/gtvbd/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/417a833f6d83021c99bfc3d4176610f4",
+    id: "fb_req_ten_cricket",
+    name: "TEN CRICKET",
+    url: "https://server.itcnbd.live/stream/ten_cricket.m3u8",
+    logo: "https://i.imgur.com/JjKz9W6.png",
     group: "Sports",
     playlistSource: "Built-in fallbacks",
     status: "online"
   },
   {
-    id: "fb_somoy_tv",
-    name: "Somoy TV Live News",
-    url: "https://live.somoynews.tv/somonewslive/index.m3u8",
-    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png",
-    group: "News",
+    id: "fb_req_sony_ten_sports_1",
+    name: "SONY TEN SPORTS 1",
+    url: "https://server.itcnbd.live/stream/sony_sports_1_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-1.png",
+    group: "Sports",
     playlistSource: "Built-in fallbacks",
     status: "online"
   },
   {
-    id: "fb_jamuna_tv",
-    name: "Jamuna TV Live News",
-    url: "https://jamunapr.b-cdn.net/jamunatv/index.m3u8",
-    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560213832.png",
-    group: "News",
+    id: "fb_req_sony_ten_sports_2",
+    name: "SONY TEN SPORTS 2",
+    url: "https://server.itcnbd.live/stream/sony_sports_2_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-2.png",
+    group: "Sports",
     playlistSource: "Built-in fallbacks",
     status: "online"
   },
   {
-    id: "fb_channel24",
-    name: "Channel 24 Live News",
-    url: "https://live.channel24bd.tv/c24/index.m3u8",
-    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735556516924.png",
-    group: "News",
+    id: "fb_req_sony_ten_sports_5",
+    name: "SONY TEN SPORTS 5",
+    url: "https://server.itcnbd.live/stream/sony_sports_5_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-5.png",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_star_sports_1",
+    name: "STAR SPORTS 1",
+    url: "https://starsportshindiii.pages.dev/720p.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Sports-1-Hindi-HD.png",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_dd_sports",
+    name: "D D SPORTS",
+    url: "https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index_3.m3u8",
+    logo: "https://i.imgur.com/O61z6Oa.png",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_fifa_plus",
+    name: "FIFA PLUS",
+    url: "https://a62dad94.wurl.com/manifest/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/058eff13-1fe8-4619-94fc-eeab40e86d10/1.m3u8",
+    logo: "https://i.imgur.com/G7GnyfW.png",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_euro_sports",
+    name: "EURO SPORTS",
+    url: "https://server.itcnbd.live/stream/euro_sports_hd.m3u8",
+    logo: "https://i.imgur.com/k9v9z99.png",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_willow_sports",
+    name: "WILLOW SPORTS",
+    url: "https://tvsen5.aynaott.com/willowhd/tracks-v1a1/mono.ts.m3u8",
+    logo: "https://i.imgur.com/w9U3v8z.png",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_star_sports_select_1",
+    name: "STAR SPORTS SELECT 1",
+    url: "http://198.195.239.50:8095/StarSportsSelect1/tracks-v1a1/mono.m3u8",
+    logo: "https://i.imgur.com/9n6bW1h.png",
+    group: "Sports",
+    playlistSource: "Built-in fallbacks",
+    status: "online"
+  },
+  {
+    id: "fb_req_star_sports_select_2",
+    name: "STAR SPORTS SELECT 2",
+    url: "http://198.195.239.50:8095/StarSportsSelect2/tracks-v1a1/mono.m3u8",
+    logo: "https://i.imgur.com/9n6bW1h.png",
+    group: "Sports",
     playlistSource: "Built-in fallbacks",
     status: "online"
   }
@@ -141,6 +400,10 @@ export default function App() {
     siteNameBangla: string;
     marqueeText: string;
     siteLogoUrl: string;
+    adTopCode?: string;
+    adBottomCode?: string;
+    adPopCode?: string;
+    adSocialCode?: string;
     customAds: {
       id: string;
       title: string;
@@ -156,6 +419,10 @@ export default function App() {
     siteNameBangla: 'ফ্রী ওয়ার্ল্ড কাপ বিডি',
     marqueeText: 'স্বাগতম Free World Cup BD-তে!',
     siteLogoUrl: '',
+    adTopCode: '',
+    adBottomCode: '',
+    adPopCode: '',
+    adSocialCode: '',
     customAds: []
   });
 
@@ -191,6 +458,22 @@ export default function App() {
   }, [selectedChannel, rememberLast]);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [showApkBanner, setShowApkBanner] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return !localStorage.getItem('hideApkInstallBanner');
+    }
+    return true;
+  });
+
+  // Auto-dismiss the floating notification after 7.5 seconds
+  useEffect(() => {
+    if (showApkBanner) {
+      const timer = setTimeout(() => {
+        setShowApkBanner(false);
+      }, 7500);
+      return () => clearTimeout(timer);
+    }
+  }, [showApkBanner]);
   const [isDonationModalOpen, setIsDonationModalOpen] = useState<boolean>(false);
   const [isCopyrightModalOpen, setIsCopyrightModalOpen] = useState<boolean>(false);
 
@@ -601,6 +884,15 @@ export default function App() {
       .then(data => {
         if (data) {
           setSiteSettings(data);
+          
+          // Dynamically synchronize the backend-persisted advertisement script blocks
+          setAdCodes({
+            topBanner: data.adTopCode !== undefined ? data.adTopCode : (localStorage.getItem('site_ad_top_code') || ''),
+            bottomBanner: data.adBottomCode !== undefined ? data.adBottomCode : (localStorage.getItem('site_ad_bottom_code') || ''),
+            popUnder: data.adPopCode !== undefined ? data.adPopCode : (localStorage.getItem('site_ad_pop_code') || ''),
+            socialBar: data.adSocialCode !== undefined ? data.adSocialCode : (localStorage.getItem('site_ad_social_code') || ''),
+          });
+
           if (data.siteNameEnglish) {
             setSiteNameEnglish(data.siteNameEnglish);
             localStorage.setItem('site_name_english', data.siteNameEnglish);
@@ -627,6 +919,14 @@ export default function App() {
   const saveSiteSettings = async (updatedFields: Partial<typeof siteSettings>) => {
     try {
       const workingSettings = { ...siteSettings, ...updatedFields };
+      
+      // Real-time Firebase Sync update
+      try {
+        await setDoc(doc(db, "settings", "site"), workingSettings, { merge: true });
+      } catch (fErr) {
+        console.warn("Firestore settings write failed:", fErr);
+      }
+
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -652,6 +952,60 @@ export default function App() {
       localStorage.setItem('site_name_bangla', 'ফ্রী ওয়ার্ল্ড কাপ বিডি');
       setSiteNameBangla('ফ্রী ওয়ার্ল্ড কাপ বিডি');
     }
+
+    // A. Realtime Firebase Site Settings Sync
+    const unsubscribeSettings = onSnapshot(doc(db, "settings", "site"), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setSiteSettings(prev => ({ ...prev, ...data }));
+        
+        if (data.adTopCode !== undefined) setAdCodes(p => ({ ...p, topBanner: data.adTopCode }));
+        if (data.adBottomCode !== undefined) setAdCodes(p => ({ ...p, bottomBanner: data.adBottomCode }));
+        if (data.adPopCode !== undefined) setAdCodes(p => ({ ...p, popUnder: data.adPopCode }));
+        if (data.adSocialCode !== undefined) setAdCodes(p => ({ ...p, socialBar: data.adSocialCode }));
+
+        if (data.siteNameEnglish) {
+          setSiteNameEnglish(data.siteNameEnglish);
+          localStorage.setItem('site_name_english', data.siteNameEnglish);
+        }
+        if (data.siteNameBangla) {
+          setSiteNameBangla(data.siteNameBangla);
+          localStorage.setItem('site_name_bangla', data.siteNameBangla);
+        }
+        if (data.marqueeText) {
+          setMarqueeText(data.marqueeText);
+          localStorage.setItem('site_marquee_text', data.marqueeText);
+        }
+        if (data.siteLogoUrl !== undefined) {
+          setSiteLogoUrl(data.siteLogoUrl);
+          localStorage.setItem('site_logo_url', data.siteLogoUrl);
+        }
+      }
+    }, (err) => {
+      console.warn("Firebase settings subscription failed:", err);
+    });
+
+    // B. Realtime Firebase Moderation Lists Sync
+    const unsubscribeModeration = onSnapshot(doc(db, "moderation", "global"), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (Array.isArray(data.verifiedUsers)) {
+          setAdminVerifiedUsers(data.verifiedUsers);
+          localStorage.setItem('bongo_stream_verified_users', JSON.stringify(data.verifiedUsers));
+        }
+        if (Array.isArray(data.bannedUsers)) {
+          setAdminBannedUsers(data.bannedUsers);
+          localStorage.setItem('bongo_stream_banned_users', JSON.stringify(data.bannedUsers));
+        }
+        if (Array.isArray(data.mutedUsers)) {
+          setAdminMutedUsers(data.mutedUsers);
+          localStorage.setItem('bongo_stream_muted_users', JSON.stringify(data.mutedUsers));
+        }
+      }
+    }, (err) => {
+      console.warn("Firebase moderation subscription failed:", err);
+    });
+
     fetchSiteSettings();
     const intervalSettings = setInterval(fetchSiteSettings, 20000); // Poll settings every 20s instead of 3s to prevent rate-limits
 
@@ -704,6 +1058,8 @@ export default function App() {
     const intervalSync = setInterval(syncModerationAndData, 30000); // Poll database sync every 30s instead of 5s to prevent rate limits
 
     return () => {
+      unsubscribeSettings();
+      unsubscribeModeration();
       clearInterval(intervalSettings);
       clearInterval(intervalSync);
     };
@@ -777,6 +1133,66 @@ export default function App() {
     socialBar: !!adCodes.socialBar
   };
   const setAdBlocks = (param: any) => {};
+
+  // Native HTML/Script injector for Pop-Under and Social Bar ad networks
+  useEffect(() => {
+    // 1. Remove any previous injected ad containers to prevent infinite duplication
+    const removePreviousAds = () => {
+      const prevPop = document.getElementById('injected-popunder-container');
+      if (prevPop) prevPop.remove();
+      const prevSocial = document.getElementById('injected-socialbar-container');
+      if (prevSocial) prevSocial.remove();
+    };
+
+    removePreviousAds();
+
+    // Helper to safely execute scripts from raw HTML
+    const injectRawHtmlAndScripts = (html: string, id: string) => {
+      if (!html) return;
+      const container = document.createElement('div');
+      container.id = id;
+      container.className = "ad-network-wrapper";
+      container.style.display = 'block';
+      container.style.position = 'relative';
+      container.style.zIndex = '999999';
+      document.body.appendChild(container);
+
+      const parser = new DOMParser();
+      const parsedDoc = parser.parseFromString(html, 'text/html');
+      
+      // First, append any non-script elements
+      const bodyChildren = Array.from(parsedDoc.body.childNodes);
+      bodyChildren.forEach(node => {
+        if (node.nodeName !== 'SCRIPT') {
+          container.appendChild(document.importNode(node, true));
+        }
+      });
+
+      // Now, parse and execute script tags correctly (by re-creating them so browser executes them)
+      const scripts = Array.from(parsedDoc.querySelectorAll('script'));
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => {
+          newScript.setAttribute(attr.name, attr.value);
+        });
+        if (oldScript.innerHTML) {
+          newScript.innerHTML = oldScript.innerHTML;
+        }
+        container.appendChild(newScript);
+      });
+    };
+
+    if (adCodes.popUnder) {
+      injectRawHtmlAndScripts(adCodes.popUnder, 'injected-popunder-container');
+    }
+    if (adCodes.socialBar) {
+      injectRawHtmlAndScripts(adCodes.socialBar, 'injected-socialbar-container');
+    }
+
+    return () => {
+      removePreviousAds();
+    };
+  }, [adCodes.popUnder, adCodes.socialBar]);
 
   // M3U custom playlists list
   const [playlists, setPlaylists] = useState<PlaylistInfo[]>(() => {
@@ -1106,6 +1522,19 @@ export default function App() {
     }
   });
 
+  // Synchronize moderation array changes back to Firebase Firestore in real-time when admin changes them
+  useEffect(() => {
+    if (isAdminAuthorized) {
+      setDoc(doc(db, "moderation", "global"), {
+        verifiedUsers: adminVerifiedUsers,
+        bannedUsers: adminBannedUsers,
+        mutedUsers: adminMutedUsers
+      }, { merge: true }).catch(err => {
+        console.warn("Firebase global moderation write failed:", err);
+      });
+    }
+  }, [adminVerifiedUsers, adminBannedUsers, adminMutedUsers, isAdminAuthorized]);
+
   // Real-time online users presences
   const [onlinePresenceUsers, setOnlinePresenceUsers] = useState<any[]>([]);
   const [partnerMembers, setPartnerMembers] = useState<any[]>([]);
@@ -1132,9 +1561,9 @@ export default function App() {
   }, []);
 
   // Modal and checker system for real updates checking dynamically
-  const [isUpdateCheckerOpen, setIsUpdateCheckerOpen] = useState<boolean>(false);
+  const [isUpdateCheckerOpen, setIsUpdateCheckerOpen] = useState<boolean>(true);
   const [isCheckingUpdateProgress, setIsCheckingUpdateProgress] = useState<boolean>(false);
-  const [checkedForUpdates, setCheckedForUpdates] = useState<boolean>(false);
+  const [checkedForUpdates, setCheckedForUpdates] = useState<boolean>(true);
 
   const handleTriggerUpdateFlow = () => {
     setIsUpdateCheckerOpen(true);
@@ -1154,6 +1583,13 @@ export default function App() {
     setUpdateProgress(0);
     setIsUpdateCompleted(false);
     setUpdateStageText('Initializing APK repository connection...');
+    
+    // Automatically trigger APK download package
+    try {
+      window.open('https://d.apkpure.com/b/APK/com.free.world.cup.bd?version=latest', '_blank');
+    } catch (e) {
+      window.location.href = 'https://d.apkpure.com/b/APK/com.free.world.cup.bd?version=latest';
+    }
   };
 
   useEffect(() => {
@@ -1750,8 +2186,10 @@ export default function App() {
   // Track stream playback feedback from player
   const handleReportWorkingState = (channelId: string, working: boolean) => {
     if (!working) {
-      // Auto-Heal: remove immediately when stream is certified failing/offline so user never runs into it again
-      handleDeleteChannel(channelId, true);
+      // Mark as broken so it moves to "ফেল চ্যানেল" (failed) category
+      const updatedHealth = { ...channelHealth, [channelId]: 'broken' as const };
+      setChannelHealth(updatedHealth);
+      localStorage.setItem('live_channels_health', JSON.stringify(updatedHealth));
       return;
     }
     const updatedHealth = { ...channelHealth, [channelId]: 'working' as const };
@@ -1760,6 +2198,19 @@ export default function App() {
   };
 
   const handleDeleteChannel = (channelId: string, silent = false) => {
+    // 0. Submit server-side dynamic blacklist/broken report to make it permanent for everyone
+    fetch('/api/channels/report-broken', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ channelId, channelName: channelId })
+    })
+      .then(() => {
+        console.log(`[Server Filter Synchronizer] ${channelId} permanently blacklisted on server-side.`);
+      })
+      .catch(err => {
+        console.error('Error blacklisting on server-side:', err);
+      });
+
     // 1. Check if custom playlist channel and filter it out
     const savedCustomRaw = localStorage.getItem('site_custom_channels');
     if (savedCustomRaw) {
@@ -1806,6 +2257,13 @@ export default function App() {
 
   // Channel selections callback
   const handleSelectChannel = (channel: Channel) => {
+    if (selectedGroup === 'failed') {
+      if (window.confirm(`আপনি কি "${channel.name}" চ্যানেলটি চিরতরে মুছে ফেলতে চান?`)) {
+        handleDeleteChannel(channel.id);
+        alert(`"${channel.name}" সফলভাবে ডিলিট করা হয়েছে!`);
+      }
+      return;
+    }
     setSelectedChannel(channel);
     // Smooth scroll back to phone player frame on mobile viewports
     setTimeout(() => {
@@ -2194,9 +2652,65 @@ export default function App() {
     );
   }
 
+  const renderApkNotificationBanner = () => {
+    if (!showApkBanner) return null;
+    return (
+      <motion.div
+        initial={{ y: -100, x: '-50%', opacity: 0 }}
+        animate={{ y: 0, x: '-50%', opacity: 1 }}
+        exit={{ y: -100, x: '-50%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 150 }}
+        className="fixed top-4 left-1/2 -translate-x-1/2 z-[100000] w-[calc(100%-2rem)] max-w-lg bg-slate-900/95 backdrop-blur-md border border-amber-500/40 p-3 sm:p-4 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.6)] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left"
+        style={{ transformOrigin: 'top center' }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-amber-500/15 rounded-lg border border-amber-500/20 shrink-0 hidden xs:block">
+            <Smartphone className="w-5 h-5 text-amber-400 animate-pulse" />
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="text-xs sm:text-sm font-black text-amber-400 font-sans">
+                এপিকে ইন্সটল (APK Install)
+              </span>
+              <span className="text-[9px] font-black text-rose-100 bg-rose-600 px-1.5 py-0.5 rounded animate-pulse">
+                RECOMMENDED
+              </span>
+            </div>
+            <p className="text-[10px] sm:text-xs text-slate-300 font-sans mt-0.5 font-medium leading-tight">
+              সেরা অভিজ্ঞতা ও নো-বাফারিং লাইভ খেলা উপভোগ করতে আমাদের অফিশিয়াল অ্যাপটি ইন্সটল করুন।
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-center">
+          <a
+            href="https://d.apkpure.com/b/APK/com.free.world.cup.bd?version=latest"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 rounded-lg text-xs font-black transition-all transform active:scale-95 shadow-lg flex items-center gap-1.5"
+          >
+            <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>ডাউনলোড করুন</span>
+          </a>
+          <button
+            onClick={() => {
+              setShowApkBanner(false);
+              localStorage.setItem('hideApkInstallBanner', 'true');
+            }}
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-all transition-colors active:scale-95 cursor-pointer font-sans"
+          >
+            পরে করুন
+          </button>
+        </div>
+      </motion.div>
+    );
+  };
+
   if (currentPage === 'landing') {
     return (
       <div id="bongo-routing-landing-wrapper">
+        <AnimatePresence>
+          {renderApkNotificationBanner()}
+        </AnimatePresence>
         <LandingPage
           onStartApp={() => {
             if (!isLoggedIn) {
@@ -2369,7 +2883,8 @@ export default function App() {
                   { id: 'channels', label: '২. চ্যানেল ও প্লেলিস্ট' },
                   { id: 'ads', label: '৩. বিজ্ঞাপন ম্যানেজার' },
                   { id: 'moderation', label: '৪. ইউজার ও কুসংস্কার' },
-                  { id: 'system', label: '৫. নোটিশ ও ওভারলে' }
+                  { id: 'system', label: '৫. নোটিশ ও ওভারলে' },
+                  { id: 'support', label: '৬. সাপোর্ট টিকিট 💬' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -3202,12 +3717,24 @@ export default function App() {
                   {/* Save Button */}
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       localStorage.setItem('site_ad_top_code', adCodes.topBanner);
                       localStorage.setItem('site_ad_bottom_code', adCodes.bottomBanner);
                       localStorage.setItem('site_ad_pop_code', adCodes.popUnder);
                       localStorage.setItem('site_ad_social_code', adCodes.socialBar);
-                      alert('সফলভাবে সমস্ত বিজ্ঞাপন কোডসমূহ সংরক্ষণ করা হয়েছে!');
+                      
+                      const ok = await saveSiteSettings({
+                        adTopCode: adCodes.topBanner,
+                        adBottomCode: adCodes.bottomBanner,
+                        adPopCode: adCodes.popUnder,
+                        adSocialCode: adCodes.socialBar
+                      });
+                      
+                      if (ok) {
+                        alert('সফলভাবে সমস্ত বিজ্ঞাপন কোডসমূহ সার্ভার ও ব্রাউজারে সংরক্ষণ করা হয়েছে!');
+                      } else {
+                        alert('বিজ্ঞাপন কোডসমূহ সংরক্ষণ করতে সমস্যা হয়েছে, অনুগ্রহ করে পুনরায় চেষ্টা করুন।');
+                      }
                     }}
                     className="w-full bg-sky-600 hover:bg-sky-550 text-white font-extrabold text-xs py-3.5 rounded-xl transition-all cursor-pointer shadow-lg hover:shadow-sky-500/10 active:scale-95 text-center block uppercase tracking-wide"
                   >
@@ -3944,6 +4471,13 @@ export default function App() {
                 </div>
               </div>
             )}
+
+            {/* TAB 7: LIVE SUPPORT TICKETS PANEL */}
+            {adminActiveTab === 'support' && (
+              <div className="animate-fade-in font-sans">
+                <AdminSupportPanel />
+              </div>
+            )}
           </div>
         </main>
         
@@ -4016,6 +4550,9 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans transition-all selection:bg-sky-500/30 selection:text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-slate-950 to-slate-950 overflow-x-hidden max-w-full w-full ${isTvModeOptimized ? 'tv-mode-active' : ''}`}>
+      <AnimatePresence>
+        {renderApkNotificationBanner()}
+      </AnimatePresence>
       
       {/* Decorative Grid Mesh overlay to retain aesthetic cohesion */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-15 pointer-events-none" />
@@ -4474,7 +5011,7 @@ export default function App() {
                   ) : (
                     // Dynamic viewport optimized slicer (ONLY renders visibleCount initially to secure 60FPS UI response speeds)
                     <div className="flex flex-col gap-5">
-                      <div id="channels-result-scroller" className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-1.5 sm:gap-3 md:gap-4 lg:gap-3 xl:gap-4 max-h-[500px] lg:max-h-[calc(100vh-365px)] overflow-y-auto pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-850">
+                      <div id="channels-result-scroller" className="grid grid-cols-3 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-1.5 sm:gap-3 md:gap-4 lg:gap-3 xl:gap-4 max-h-[500px] lg:max-h-[calc(100vh-365px)] overflow-y-auto pr-1 pb-4 scrollbar-thin scrollbar-thumb-slate-850">
                         {filteredChannels.slice(0, visibleCount).map((ch) => (
                           <ChannelCard
                             key={ch.id}
@@ -4638,8 +5175,8 @@ export default function App() {
                   >
                     <div className="flex items-center gap-3">
                       <RefreshCw className="w-4 h-4 text-sky-450" />
-                      <span className="text-xs font-extrabold text-slate-200 group-hover:text-white transition-colors">
-                        Remember Last ...
+                      <span className="text-xs font-extrabold text-slate-200 group-hover:text-white transition-colors font-sans">
+                        Remember Last Active
                       </span>
                     </div>
                     <span className={`text-[10px] font-black px-2 py-0.5 rounded
@@ -4652,41 +5189,41 @@ export default function App() {
                   {/* Smart TV Mode Toggle */}
                   <div
                     onClick={() => setIsTvModeOptimized(prev => !prev)}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/40 hover:bg-slate-900/80 border border-slate-900 hover:border-slate-800 transition-all cursor-pointer group text-left tv-focusable"
-                    tabIndex={0}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group text-left
+                      ${isTvModeOptimized ? 'border-amber-400/40 bg-amber-400/10' : 'bg-slate-900/40 hover:bg-slate-900/80 border-slate-900 hover:border-slate-800'}
+                    `}
                   >
                     <div className="flex items-center gap-3">
-                      <Monitor className={`w-4 h-4 ${isTvModeOptimized ? 'text-amber-400 animate-pulse' : 'text-slate-400'}`} />
+                      <Tv className="w-4 h-4 text-amber-400 shrink-0" />
                       <span className="text-xs font-extrabold text-slate-200 group-hover:text-white transition-colors font-sans">
-                        টিভি অপ্টিমাইজড মোড (TV Scale)
+                        Smart TV Mode (টিভি মোড)
                       </span>
                     </div>
                     <span className={`text-[10px] font-black px-2 py-0.5 rounded
-                      ${isTvModeOptimized ? 'text-amber-400 bg-amber-500/15 border border-amber-500/20' : 'text-slate-400 bg-slate-900'}
+                      ${isTvModeOptimized ? 'text-amber-400 bg-amber-400/15 border border-amber-400/20 animate-pulse' : 'text-slate-400 bg-slate-900'}
                     `}>
                       {isTvModeOptimized ? 'ON' : 'OFF'}
                     </span>
                   </div>
 
-                  {/* Smart TV / Android TV Guide Button */}
-                  <button
-                    onClick={() => {
-                      setIsTvGuideOpen(true);
-                      setIsSidebarOpen(false);
-                    }}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/40 hover:bg-amber-500/10 border border-slate-900 hover:border-amber-500/30 transition-all cursor-pointer group text-left tv-focusable"
-                    tabIndex={0}
+                  {/* APK Download Button */}
+                  <a
+                    href="https://d.apkpure.com/b/APK/com.free.world.cup.bd?version=latest"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-amber-600/15 hover:from-amber-600/20 border border-amber-500/30 hover:border-amber-400/60 transition-all cursor-pointer group text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <Tv className="w-4 h-4 text-amber-500 animate-pulse" />
+                      <Download className="w-4 h-4 text-amber-400 animate-pulse" />
                       <span className="text-xs font-extrabold text-slate-200 group-hover:text-amber-400 transition-colors font-sans">
-                        টিভি রিমোট গাইড (TV Guide)
+                        এপিকে ডাউনলোড (APK Download)
                       </span>
                     </div>
-                    <span className="text-[9px] font-black text-slate-950 bg-amber-400 px-2 py-0.5 rounded shadow-sm">
-                      INFO
+                    <span className="text-[9px] font-black text-rose-100 bg-rose-600 px-2 py-0.5 rounded shadow-sm">
+                      FREE
                     </span>
-                  </button>
+                  </a>
                 </div>
 
                 {/* 3. COMMUNICATE CATEGORY */}
@@ -5070,7 +5607,8 @@ export default function App() {
                     { id: 'ads', label: '৩. বিজ্ঞাপন ম্যানেজার' },
                     { id: 'moderation', label: '৪. ইউজার ও কুসংস্কার' },
                     { id: 'system', label: '৫. নোটিশ ও ওভারলে' },
-                    { id: 'stats', label: '৬. পরিসংখ্যান (Stats)' }
+                    { id: 'stats', label: '৬. পরিসংখ্যান (Stats)' },
+                    { id: 'support', label: '৭. সাপোর্ট টিকিট 💬' }
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -5664,6 +6202,13 @@ export default function App() {
                 <div className="flex flex-col gap-4 animate-fade-in font-sans">
                   <h4 className="text-sm font-bold text-slate-300">রিয়েল-টাইম পরিসংখ্যান</h4>
                   <StatsDisplay />
+                </div>
+              )}
+
+              {/* TAB 7: LIVE SUPPORT TICKETS PANEL */}
+              {adminActiveTab === 'support' && (
+                <div className="animate-fade-in font-sans">
+                  <AdminSupportPanel />
                 </div>
               )}
             </div>

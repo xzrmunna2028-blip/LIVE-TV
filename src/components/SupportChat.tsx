@@ -9,6 +9,8 @@ import {
   MessageSquare, X, Send, Image as ImageIcon, Mic, Square, Trash2, 
   HelpCircle, ShieldCheck, AlertCircle, RefreshCw, Paperclip, Play, Pause, Headphones
 } from 'lucide-react';
+import { collection, query, orderBy, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 interface TicketMessage {
   id: string;
@@ -42,6 +44,8 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [selectedProblem, setSelectedProblem] = useState('চ্যানেল লোড হচ্ছে না');
+  const [initialMessage, setInitialMessage] = useState('');
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   
   // States for attachments
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // base64
@@ -53,6 +57,7 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
   const [supportEnabled, setSupportEnabled] = useState(true);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isAiTyping, setIsAiTyping] = useState(false);
 
   // Refs for audio recorder & scroll
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -126,6 +131,32 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
   useEffect(() => {
     if (!session?.id) return;
 
+    const q = query(
+      collection(db, "support", session.id, "messages"),
+      orderBy("createdAt", "asc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fbMsgs: TicketMessage[] = [];
+      snapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        fbMsgs.push({
+          id: docSnap.id,
+          sender: d.sender || "anonymous",
+          senderName: d.senderName || "Anonymous",
+          text: d.text || "",
+          time: d.time || "",
+          attachmentUrl: d.attachmentUrl || undefined,
+          attachmentType: d.attachmentType || undefined
+        });
+      });
+      if (fbMsgs.length > 0) {
+        setMessages(fbMsgs);
+      }
+    }, (error) => {
+      console.warn("Firestore support message subscription failed, falling back to REST:", error);
+    });
+
     const pullMessages = () => {
       fetch(`/api/support/messages/${session.id}`)
         .then(res => {
@@ -134,15 +165,18 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
         })
         .then(msgs => {
           if (msgs.length !== messages.length) {
-            setMessages(msgs);
+            setMessages(prev => (prev.length === 0 ? msgs : prev));
           }
         })
         .catch(err => console.warn('Polling skipped:', err));
     };
 
     pullMessages();
-    const timer = setInterval(pullMessages, 4000); // Pulse poll every 4s
-    return () => clearInterval(timer);
+    const timer = setInterval(pullMessages, 12000); // Backing fallback
+    return () => {
+      unsubscribe();
+      clearInterval(timer);
+    };
   }, [session?.id, messages.length]);
 
   // Scroll to bottom helper
@@ -151,6 +185,16 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
       chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, selectedImage, audioUrl, isOpen]);
+
+  // Handle auto-clearing typing indicator when a reply is received
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg.sender === 'support_agent' || lastMsg.sender === 'admin' || lastMsg.sender === 'system') {
+        setIsAiTyping(false);
+      }
+    }
+  }, [messages]);
 
   // 4. Initiates a helpdesk live support session
   const handleCreateSession = (e: React.FormEvent) => {
@@ -168,11 +212,51 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
       })
     })
       .then(res => res.json())
-      .then(data => {
+      .then(async (data) => {
         if (data.id) {
+          const firstMsgText = initialMessage.trim();
+          
+          // Sync session metadata document to Firestore for realtime index tracking
+          await setDoc(doc(db, "support", data.id), {
+            id: data.id,
+            username: currentUser.username,
+            name: currentUser.name,
+            problem: selectedProblem,
+            lastMessage: firstMsgText || 'লাইভ চ্যাট সেশন শুরু হয়েছে।',
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }, { merge: true }).catch(fErr => console.warn(fErr));
+
           setSession(data);
           setMessages(data.messages || []);
           localStorage.setItem(`bongo_support_session_id_${currentUser.username}`, data.id);
+
+          if (firstMsgText) {
+            setInitialMessage('');
+            
+            // Post message to backend REST endpoint to trigger Gemini and notifications
+            await fetch('/api/support/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: data.id,
+                sender: currentUser.username,
+                senderName: currentUser.name,
+                text: firstMsgText
+              })
+            }).catch(mErr => console.warn("Failed sending first message to API:", mErr));
+            
+            // Also write directly to Firestore to guarantee realtime flow
+            const firstMsgId = `msg_${Date.now()}`;
+            await setDoc(doc(db, "support", data.id, "messages", firstMsgId), {
+              sender: currentUser.username,
+              senderName: currentUser.name,
+              text: firstMsgText,
+              time: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' }),
+              createdAt: new Date().toISOString()
+            }).catch(fErr => console.warn("Failed writing first message designator:", fErr));
+          }
         }
         setIsConnecting(false);
       })
@@ -302,6 +386,25 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
     };
 
     setMessages((prev) => [...prev, optMessage]);
+    setIsAiTyping(true);
+
+    // Write message directly to Realtime Firestore support thread
+    const messageId = `msg_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    setDoc(doc(db, "support", session.id, "messages", messageId), {
+      sender: currentUser.username,
+      senderName: currentUser.name,
+      text: currentText,
+      time: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' }),
+      attachmentUrl: attachUrl || null,
+      attachmentType: attachType || null,
+      createdAt: new Date().toISOString()
+    }).catch(fErr => console.warn("Firestore support message send error:", fErr));
+
+    // Update session parent metadata
+    setDoc(doc(db, "support", session.id), {
+      lastMessage: currentText,
+      updatedAt: new Date().toISOString()
+    }, { merge: true }).catch(fErr => console.warn(fErr));
 
     try {
       const res = await fetch('/api/support/messages', {
@@ -323,7 +426,7 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
       }
 
       const updatedSession = await res.json();
-      setMessages(updatedSession.messages || []);
+      // messages update handled in real-time listener if available, otherwise fallback
     } catch (err: any) {
       alert(err.message || 'মেসেজ পাঠাতে ব্যর্থ হয়েছে। অনুগ্রহ করে পরে চেষ্টা করুন।');
       // Rollback optimistic update
@@ -357,7 +460,7 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
                 )}
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5ClassName">
+                <h4 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
                   লাইভ সাপোর্ট ডেস্ক
                 </h4>
                 <p className="text-[10px] text-emerald-400 font-semibold tracking-wider flex items-center gap-1">
@@ -453,7 +556,7 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">সমস্যার ধরন নির্বাচন করুন:</label>
                     <div className="grid grid-cols-1 gap-2">
-                      {[
+                       {[
                         'চ্যানেল লোড হচ্ছে না (Buffering/Black Screen)',
                         'টি স্পোর্টস অথবা অন্য স্পোর্টস চ্যানেল চলছে না',
                         'শব্দ আসছে না (No Audio Noise)',
@@ -475,6 +578,16 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">আপনার সমস্যার বিবরণ লিখুন (অপশনাল):</label>
+                    <textarea
+                      value={initialMessage}
+                      onChange={(e) => setInitialMessage(e.target.value)}
+                      placeholder="এখানে লিখুন... (আপনার টাইপ করা মেসেজটি সরাসরি এডমিন সাপোর্ট চ্যাটে জমা হবে)"
+                      className="w-full h-24 bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-emerald-550 font-sans resize-none"
+                    />
                   </div>
 
                   <button
@@ -553,9 +666,9 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
                                 className="object-contain max-h-48 cursor-pointer hover:opacity-90 max-w-full"
                                 referrerPolicy="no-referrer"
                                 onClick={() => {
-                                  // Simple open click for zooming
-                                  const win = window.open();
-                                  if (win) win.document.write(`<img src="${msg.attachmentUrl}" style="max-width:100%; height:auto;" />`);
+                                  if (msg.attachmentUrl) {
+                                    setZoomedImage(msg.attachmentUrl);
+                                  }
                                 }}
                               />
                             </div>
@@ -583,27 +696,44 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
                     </div>
                   );
                 })}
+
+                {isAiTyping && (
+                  <div className="flex justify-start animate-fade-in">
+                    <div className="max-w-[80%] flex flex-col items-start">
+                      <span className="text-[9px] text-slate-500 font-bold mb-0.5 select-none font-sans px-1 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                        সাপোর্ট এজেন্ট টাইপ করছেন...
+                      </span>
+                      <div className="px-4 py-2 bg-slate-900 border border-slate-800 text-slate-100 rounded-2xl rounded-tl-none text-xs flex items-center gap-1.5">
+                        <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                        <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                        <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div ref={chatBottomRef} />
               </div>
 
               {/* Active inputs and attachment queues */}
-              <div className="p-3 bg-slate-950/80 border-t border-slate-850 shrink-0">
+              <div className="p-3.5 bg-slate-950/95 border-t border-slate-800/80 shrink-0 shadow-[0_-8px_32px_rgba(0,0,0,0.6)] md:pb-3.5 pb-[calc(14px+env(safe-area-inset-bottom))]">
                 
                 {/* 1. Image preview indicator */}
                 {selectedImage && (
-                  <div className="mb-2 p-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between select-none animate-fade-in relative">
+                  <div className="mb-3 p-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between select-none animate-fade-in relative shadow-md">
                     <div className="flex items-center gap-2">
-                      <div className="w-12 h-12 rounded border border-slate-800 overflow-hidden shrink-0">
+                      <div className="w-12 h-12 rounded-lg border border-slate-800 overflow-hidden shrink-0 shadow-inner">
                         <img src={selectedImage} alt="Attachment queue" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       </div>
                       <div>
-                        <p className="text-[10px] text-white font-bold font-sans">গ্যালারি ছবি রেডি</p>
-                        <p className="text-[9px] text-slate-500">মেসেজ সেন্ড করলে ইমেজটি যাবে।</p>
+                        <p className="text-[10px] text-white font-extrabold font-sans">📸 ছবি সংযুক্ত হয়েছে</p>
+                        <p className="text-[9px] text-slate-500">মেসেজ সেন্ড করলে ছবিটি পাঠানো হবে।</p>
                       </div>
                     </div>
                     <button 
                       onClick={() => setSelectedImage(null)}
-                      className="p-1 px-2 bg-slate-805 hover:bg-slate-700 rounded text-slate-300 text-[10px]"
+                      className="p-1.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all"
                     >
                       বাতিল
                     </button>
@@ -624,7 +754,7 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
                     </div>
                     <button 
                       onClick={() => setAudioUrl(null)}
-                      className="p-1 px-2 bg-slate-805 hover:bg-slate-700 rounded text-slate-300 text-[10px]"
+                      className="p-1 px-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all"
                     >
                       বাতিল
                     </button>
@@ -728,27 +858,52 @@ export default function SupportChat({ isOpen, onClose, currentUser, isInline = f
     return (
       <div className="relative w-full h-[540px] lg:h-[calc(100vh-270px)] bg-slate-900 border border-slate-800/80 rounded-2xl flex flex-col shadow-2xl overflow-hidden">
         {renderChatInner()}
+        {zoomedImage && (
+          <div className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 font-sans" onClick={() => setZoomedImage(null)}>
+            <div className="relative max-w-4xl max-h-full" onClick={(e) => e.stopPropagation()}>
+              <img src={zoomedImage} alt="Zoomed view" className="max-w-full max-h-[85vh] rounded-lg object-contain shadow-2xl border border-slate-800" referrerPolicy="no-referrer" />
+              <button onClick={() => setZoomedImage(null)} className="absolute -top-12 right-0 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-full p-2 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <AnimatePresence>
-      <div 
-        className="fixed inset-0 z-[999] flex justify-end bg-black/40 backdrop-blur-xs transition-opacity duration-300 overflow-hidden w-full h-full"
-        onClick={onClose}
-      >
-        <motion.div 
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-          onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-md h-full bg-slate-900 border-l border-slate-800 flex flex-col shadow-2xl overflow-hidden"
+    <>
+      <AnimatePresence>
+        <div 
+          className="fixed inset-0 z-[1100] flex justify-end bg-black/50 backdrop-blur-xs transition-opacity duration-300 overflow-hidden w-full h-full"
+          onClick={onClose}
         >
-          {renderChatInner()}
-        </motion.div>
-      </div>
-    </AnimatePresence>
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md h-full bg-slate-900 border-l border-slate-800 flex flex-col shadow-2xl overflow-hidden"
+          >
+            {renderChatInner()}
+          </motion.div>
+        </div>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {zoomedImage && (
+          <div className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4 font-sans" onClick={() => setZoomedImage(null)}>
+            <div className="relative max-w-4xl max-h-full" onClick={(e) => e.stopPropagation()}>
+              <img src={zoomedImage} alt="Zoomed view" className="max-w-full max-h-[85vh] rounded-lg object-contain shadow-2xl border border-slate-800" referrerPolicy="no-referrer" />
+              <button onClick={() => setZoomedImage(null)} className="absolute -top-12 right-0 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white rounded-full p-2 cursor-pointer transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

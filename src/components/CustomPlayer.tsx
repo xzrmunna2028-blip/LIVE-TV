@@ -43,55 +43,45 @@ const TRANSLATED_SPORTS_CC = [
   "সরাসরি বোল্ড হয়ে উইকেট হারালেন ব্যাটসম্যান!",
   "দুর্দান্ত কাভার ড্রাইভ খেলে দিলেন!",
   "চমৎকার ফিল্ডিং টপকে বল সীমানার বাইরে ৪ রান!",
-  "স্ট্রাইকার অত্যন্ত দ্রুত গতিতে দৌড়াচ্ছেন!",
-  "দ্বিতীয় রানের চেষ্টায় নিরাপদ ক্রিজ ছুঁয়ে ফেললেন!",
-  "কি অবিশ্বাস্য রোমাঞ্চকর ম্যাচ চলছে আজ!",
-  "সবার চোখ এখন মাঠের মাঝখানে আটকে রয়েছে!",
-  "ডিফেন্স এড়িয়ে চমৎকার পাস বাড়িয়ে দিলেন স্ট্রাইকারকে!",
-  "এবং কি চমৎকার গোল করে দলকে এগিয়ে নিলেন! ⚽⚡",
-  "বোলারের এলবিডব্লিউর জোরালো আপিল!",
-  "আম্পায়ারের নট আউট, তবে রিভিউ নেওয়ার সিদ্ধান্ত!",
-  "চরম চাপের মুখে দাঁড়িয়ে দুর্দান্ত একটি ছক্কা! 🏏",
-  "পুরো গ্যালারি একদম ফেটে পড়লো করতালিতে!"
+  "ফাউল! কিন্তু রেফারি খেলা চালিয়ে যাওয়ার নির্দেশ দিলেন।",
+  "অবিশ্বাস্য গোলকিপিং! নিশ্চিত গোল থেকে বাঁচিয়ে দিলেন দলকে!",
+  "মাঝমাঠ থেকে সুন্দর একটি পাস দিলেন ফরোয়ার্ডের দিকে।",
+  "অসাধারণ শট! গোল পোস্টের সামান্য উপর দিয়ে চলে গেল বলটি।",
+  "হৃদয়স্পন্দন বাড়িয়ে দেওয়া রোমাঞ্চকর খেলা চলছে!",
+  "দারুণ আক্রমণ ছিল কিন্তু অফসাইডের সিদ্ধান্ত রেফারি স্যারের।"
 ];
 
 const TRANSLATED_NEWS_CC = [
-  "প্রধানমন্ত্রী আজ নতুন শিল্প উন্নয়ন পরিকল্পনার খসড়া অনুমোদনের ঘোষণা দিয়েছেন...",
-  "তিনি জানান দেশের অগ্রগতিতে এই নতুন সিদ্ধান্ত গুরুত্বপূর্ণ ভূমিকা রাখবে।",
-  "ব্যস্ততম সড়কগুলোতে যানজট পরিস্থিতি নিয়ন্ত্রণে বিশেষ ট্রাফিক পুলিশ মোতায়েন করা হয়েছে...",
-  "কর্মকর্তারা জনগণকে ট্রাফিক নিয়ম কঠোরভাবে মেনে চলার অনুরোধ জানিয়েছেন।",
-  "আবহাওয়াবিদ্যা অফিসের পক্ষ থেকে উপকূলীয় এলাকায় কড়া সতর্কতা জারি করা হয়েছে...",
-  "ঝড়ো হাওয়া এবং অতিবৃষ্টির কারণে নিচু এলাকায় প্লাবনের আশঙ্কা করা হচ্ছে।⛈️",
-  "জাতীয় সংসদে নতুন অর্থবছরের বাজেট প্রস্তাব পেশ করা হয়েছে...",
-  "অর্থনৈতিক বিশ্লেষকরা এই বাজেটকে বেশ বাস্তবমুখী বলে আখ্যা দিয়েছেন।"
+  "আজকের প্রধান খবর, দেশজুড়ে উৎসবমুখর পরিবেশে খেলা উপভোগ করছেন সাধারণ মানুষ।",
+  "আবহাওয়া দপ্তরের পূর্বাভাস অনুযায়ী সন্ধ্যা নাগাদ সামান্য বৃষ্টিপাতের সম্ভাবনা রয়েছে।",
+  "আইসিসি বিশ্বকাপের চূড়ান্ত প্রস্তুতি কমিটির গুরুত্বপূর্ন সভা অনুষ্ঠিত হয়েছে।",
+  "দর্শকদের নিরাপত্তার স্বার্থে স্টেডিয়াম এলাকায় অতিরিক্ত নিরাপত্তা ব্যবস্থা জোরদার করা হয়েছে।"
 ];
 
 const TRANSLATED_GENERIC_CC = [
-  "আমাদের আজকের সরাসরি স্পেশাল স্টুডিও শোতে আপনাকে স্বাগতম...",
-  "আজ আমাদের সাথে যুক্ত হয়েছেন অত্যন্ত বিশেষ অতিথিরা।",
-  "ইতিহাসের পাতায় এক নজরকাড়া রোমাঞ্চকর ভ্রমণ...",
-  "আমাদের চারপাশের চমৎকার সমস্ত সৌন্দর্য ও অজানা কাহিনী নিয়ে আমাদের এই আয়োজন...",
-  "অনুগ্রহ করে ধারাভাষ্য এবং সেরা রেজুলেশন উপভোগ করতে আমাদের সাথেই থাকুন... ⚡",
-  "লাইভ ব্রডকাস্ট সিঙ্ক সম্পন্ন হয়েছে, স্মুথ বাফারিং ও সেরা ক্লিয়ারিটি সক্রিয়।"
+  "লাইভ সম্প্রচারের সাথে থাকুন, উপভোগ করুন বিরতিহীন বিনোদন।",
+  "ফ্রি ওয়ার্ল্ড কাপ বিডি দেখার জন্য আপনাকে ধন্যবাদ!",
+  "অবিরাম হাই-স্পিড বাফারিং-ফ্রি লাইভ স্ট্রিমিং সার্ভার লোড হচ্ছে...",
+  "স্ক্রিনের নিচের সাপোর্ট লিংকে ক্লিক করে আমাদের ফেসবুক ও টেলিগ্রামে যুক্ত হতে পারেন।"
 ];
 
-export default function CustomPlayer({ 
-  channel, 
-  onReportWorkingState, 
-  serverId,
-  allChannels,
+export default function CustomPlayer({
+  channel,
+  onReportWorkingState,
+  serverId = '1',
+  allChannels = [],
   onSelectChannel,
   onDeleteChannel
 }: CustomPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const tsPlayerRef = useRef<mpegts.Player | null>(null);
-  
+
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(1); // Set to max volume
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<'video-contain' | 'video-cover' | 'video-fill'>('video-contain');
   const [useProxy, setUseProxy] = useState(false);
   const [forceHls, setForceHls] = useState(false);
@@ -106,14 +96,85 @@ export default function CustomPlayer({
   const [remoteChannels, setRemoteChannels] = useState<Channel[]>([]);
   const [isPipSupported, setIsPipSupported] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showSpinner, setShowSpinner] = useState(false);
 
-  // States for Virtual Remote Numeric keypad
+  // States for digital remote controls
   const [showRemoteKeypad, setShowRemoteKeypad] = useState(false);
   const [enteredDigits, setEnteredDigits] = useState('');
   const [remoteError, setRemoteError] = useState<string | null>(null);
 
-  // Debounced spinner state to prevent layout flickering on fast channel switches
-  const [showSpinner, setShowSpinner] = useState(false);
+  const onSelectChannelRef = useRef(onSelectChannel);
+  useEffect(() => {
+    onSelectChannelRef.current = onSelectChannel;
+  }, [onSelectChannel]);
+
+  const submitKeyedChannel = () => {
+    if (!enteredDigits) return;
+    const channelNum = parseInt(enteredDigits, 10);
+    if (isNaN(channelNum) || channelNum <= 0) {
+      setRemoteError('সঠিক নম্বর লিখুন');
+      return;
+    }
+
+    const channelsToSearch = allChannels || [];
+    if (channelsToSearch.length === 0) {
+      setRemoteError('কোনো চ্যানেল পাওয়া যায়নি');
+      return;
+    }
+
+    let matchedCh = channelsToSearch.find(c => c.id === enteredDigits || c.id === `${channelNum}`);
+    if (!matchedCh) {
+      const idx = channelNum - 1;
+      if (idx >= 0 && idx < channelsToSearch.length) {
+        matchedCh = channelsToSearch[idx];
+      }
+    }
+
+    if (matchedCh) {
+      if (onSelectChannel) {
+        onSelectChannel(matchedCh);
+      } else if (onSelectChannelRef.current) {
+        onSelectChannelRef.current(matchedCh);
+      }
+      setEnteredDigits('');
+      setRemoteError(null);
+      setShowRemoteKeypad(false); // auto-hide remote keypad on selection
+    } else {
+      setRemoteError('চ্যানেল নম্বর সঠিক নয়');
+    }
+  };
+
+  // Physical keyboard mapping
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      if (e.key >= '0' && e.key <= '9') {
+        if (navigator.vibrate) navigator.vibrate(8);
+        setShowRemoteKeypad(true);
+        setEnteredDigits(prev => {
+          const next = prev + e.key;
+          if (next.length > 3) return next.substring(0, 3);
+          return next;
+        });
+        setRemoteError(null);
+      } else if (e.key === 'Backspace') {
+        setEnteredDigits(prev => prev.slice(0, -1));
+        setRemoteError(null);
+      } else if (e.key === 'Escape') {
+        setEnteredDigits('');
+        setRemoteError(null);
+        setShowRemoteKeypad(false);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        submitKeyedChannel();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [allChannels, enteredDigits]);
 
   const tvModeRef = useRef(tvMode);
   const tvPairingCodeRef = useRef(tvPairingCode);
@@ -126,7 +187,7 @@ export default function CustomPlayer({
     if (loading) {
       const timer = setTimeout(() => {
         setShowSpinner(true);
-      }, 1800); // Show spinner overlay ONLY if stream takes >1.8s to load. This creates instant stream playback with 0 black/buffering screen flickering!
+      }, 1800);
       return () => clearTimeout(timer);
     } else {
       setShowSpinner(false);
@@ -143,102 +204,6 @@ export default function CustomPlayer({
       setForceHls(false);
     }
   }, [channel?.id, overrideChannel?.id]);
-
-  const submitKeyedChannel = (explicitDigits?: string) => {
-    const digitsToUse = explicitDigits !== undefined ? explicitDigits : enteredDigits;
-    if (!digitsToUse) return;
-    const chNum = parseInt(digitsToUse, 10);
-    const targetCh = allChannels?.find(ch => ch.channelNum === chNum);
-    
-    if (targetCh) {
-      if (onSelectChannel) {
-        onSelectChannel(targetCh);
-      }
-      setShowRemoteKeypad(false);
-      setEnteredDigits('');
-      setRemoteError(null);
-    } else {
-      setRemoteError(`চ্যানেল নম্বর #${chNum} পাওয়া যায়নি। দয়া করে আবার চেষ্টা করুন।`);
-      // Auto clear feedback after 3.5 seconds
-      setTimeout(() => {
-        setRemoteError(null);
-      }, 3500);
-    }
-  };
-
-  // Real-time remote automatic channel trigger on digit typing
-  useEffect(() => {
-    if (!enteredDigits) return;
-
-    // Wait exactly 1.3 seconds after typing stops, then automatically play the typed channel!
-    const timer = setTimeout(() => {
-      const chNum = parseInt(enteredDigits, 10);
-      const targetCh = allChannels?.find(ch => ch.channelNum === chNum);
-      if (targetCh) {
-        if (onSelectChannel) {
-          onSelectChannel(targetCh);
-        }
-        setShowRemoteKeypad(false);
-        setEnteredDigits('');
-        setRemoteError(null);
-      } else {
-        setRemoteError(`চ্যানেল নম্বর #${chNum} পাওয়া যায়নি।`);
-        setTimeout(() => {
-          setRemoteError(null);
-        }, 3000);
-      }
-    }, 1300);
-
-    return () => clearTimeout(timer);
-  }, [enteredDigits, allChannels, onSelectChannel]);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true')) {
-        return;
-      }
-
-      if (/^[0-9]$/.test(e.key)) {
-        e.preventDefault();
-        setShowRemoteKeypad(true);
-        setEnteredDigits(prev => {
-          const next = prev + e.key;
-          if (next.length > 3) return next.substring(0, 3);
-          return next;
-        });
-        setRemoteError(null);
-      } else if (showRemoteKeypad && e.key === 'Backspace') {
-        e.preventDefault();
-        setEnteredDigits(prev => prev.slice(0, -1));
-      } else if (showRemoteKeypad && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault();
-        const digitsToUse = enteredDigits;
-        if (!digitsToUse) return;
-        const chNum = parseInt(digitsToUse, 10);
-        const targetCh = allChannels?.find(ch => ch.channelNum === chNum);
-        
-        if (targetCh) {
-          if (onSelectChannel) {
-            onSelectChannel(targetCh);
-          }
-          setShowRemoteKeypad(false);
-          setEnteredDigits('');
-          setRemoteError(null);
-        } else {
-          setRemoteError(`চ্যানেল নম্বর #${chNum} পাওয়া যায়নি। দয়া করে আবার চেষ্টা করুন।`);
-        }
-      } else if (showRemoteKeypad && e.key === 'Escape') {
-        e.preventDefault();
-        setShowRemoteKeypad(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleGlobalKeyDown);
-    };
-  }, [showRemoteKeypad, enteredDigits, allChannels, onSelectChannel]);
 
   // Reset proxy bypass state whenever a different channel or server is selected
   useEffect(() => {
@@ -465,7 +430,7 @@ export default function CustomPlayer({
     .catch(err => console.error("Error dispatching remote command:", err));
   };
 
-    // CC & Quality States
+  // CC & Quality States
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [currentQuality, setCurrentQuality] = useState<string>('Auto (স্বয়ংক্রিয়)');
   const [hlsLevels, setHlsLevels] = useState<{ index: number; label: string }[]>([]);
@@ -558,10 +523,9 @@ export default function CustomPlayer({
 
       if (loading) {
         consecutiveLoadingCount += 1;
-        // If it is stuck loading/buffering for 4 seconds, trigger the playback timeout error instantly
+        // High-speed Fail-Fast Action: If a stream is stuck loading/buffering for ~1.2 seconds, auto-heal & auto-delete instantly
         if (consecutiveLoadingCount >= 4) {
-          console.warn('Watchdog: Stream loading took more than 4s, marked as broken.');
-          setError('চ্যানেল চালু হতে অত্যন্ত সময় নিচ্ছে এবং বাফারিং হচ্ছে। দয়া করে অন্য চ্যানেল চেষ্টা করুন অথবা চ্যানেলটি ডিলিট করুন!');
+          console.warn('Watchdog: Stream loading took more than 1.2s, auto-deleting channel.');
           setLoading(false);
           setIsPlaying(false);
           onReportWorkingStateRef.current(playingChannel.id, false);
@@ -575,10 +539,9 @@ export default function CustomPlayer({
         const currentTime = video.currentTime;
         if (currentTime === lastTime) {
           unchangedCount += 1;
-          // If video is reportedly "playing" but currentTime remains stuck for 4 seconds (frozen, stalled, or rendering a permanent black screen)
-          if (unchangedCount >= 4) {
-            console.warn('Watchdog: Continuous playback frozen or rendering a black screen for 4s.');
-            setError('চ্যানেলটিতে ব্ল্যাক স্ক্রিন অথবা প্লেব্যাক থেমে যাওয়ার সমস্যা হয়েছে। অনুগ্রহ করে চ্যানেলটি ডিলিট করুন বা অন্যটি চেষ্টা করুন!');
+          // If video is reportedly "playing" but currentTime remains stuck for ~2.1 seconds, auto-delete to keep streams fresh!
+          if (unchangedCount >= 7) {
+            console.warn('Watchdog: Playback frozen for 2.1s, auto-deleting channel.');
             setLoading(false);
             setIsPlaying(false);
             onReportWorkingStateRef.current(playingChannel.id, false);
@@ -589,7 +552,7 @@ export default function CustomPlayer({
           lastTime = currentTime;
         }
       }
-    }, 1000);
+    }, 300);
 
     return () => {
       clearInterval(interval);
@@ -849,139 +812,77 @@ export default function CustomPlayer({
         maxMaxBufferLength: 16,
         maxBufferSize: 12 * 1024 * 1024,  // 12MB buffer allows downloading plenty of stream ahead
         liveSyncDurationCount: 1.5,       // Small delay to ensure chunk continuity
-        liveMaxLatencyDurationCount: 4,
-        backBufferLength: 5,              // Limit memory overhead while maintaining safe back buffer
-        enableSoftwareAES: true,
-        highBufferWatchdogPeriod: 2,
-        maxLoadingDelay: 1,
       });
 
       hlsRef.current = hls;
-      hls.loadSource(activeUrl);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        setLoading(false);
+      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+        hls.loadSource(activeUrl);
+      });
+
+      hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+        const levels = hls.levels.map((lvl, index) => {
+          const height = lvl.height;
+          let label = `${height}p`;
+          if (height >= 1080) label += ' FHD';
+          else if (height >= 720) label += ' HD';
+          else if (height >= 480) label += ' SD';
+          else label += ' LQ';
+          return { index, label };
+        });
+        setHlsLevels(levels);
+
         video.play()
           .then(() => {
             setIsPlaying(true);
-            if (tvModeRef.current === 'receiver' && tvPairingCodeRef.current) {
-              fetch('/api/tv/update-state', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  pairingCode: tvPairingCodeRef.current,
-                  activeChannel: playingChannel,
-                  playbackState: { isPlaying: true, volume: video.volume * 100 }
-                })
-              }).catch(e => console.error(e));
-            }
+            setLoading(false);
+            onReportWorkingStateRef.current(playingChannel.id, true);
           })
-          .catch(() => setIsPlaying(false));
-        onReportWorkingStateRef.current(playingChannel.id, true);
-
-        if (hls.levels && hls.levels.length > 0) {
-          const list = hls.levels.map((lvl, idx) => {
-            const h = lvl.height;
-            let resName = h ? `${h}p HD` : `${Math.round(lvl.bitrate / 1000)} Kbps`;
-            if (h >= 1080) resName = '1080p FHD';
-            else if (h >= 720) resName = '720p HD';
-            return { index: idx, label: resName };
-          });
-          setHlsLevels(list);
-        }
+          .catch(() => {});
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        const isNetworkError = data.type === Hls.ErrorTypes.NETWORK_ERROR;
-        // Bypasses local cross-origin CORS limitations instantly using cors proxy wrapper
-        if (!useProxy && (data.fatal || isNetworkError)) {
-          setUseProxy(true);
-          return;
-        }
-
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
+              console.warn('Fatal network error encountered, attempting recovery...');
               hls.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
+              console.warn('Fatal media error encountered, attempting recovery...');
               hls.recoverMediaError();
               break;
             default:
-              setError('লাইভ স্ট্রিম সংযোগ বিচ্ছিন্ন হয়েছে।');
-              setLoading(false);
-              onReportWorkingStateRef.current(playingChannel.id, false);
+              console.error('Fatal HLS source breakdown occurred:', data.details);
               hls.destroy();
+              hlsRef.current = null;
+              if (!useProxy) {
+                setUseProxy(true);
+              } else {
+                setError('চ্যানেল প্লেব্যাক সিঙ্ক বা কানেকশন ত্রুটি! দয়া করে অন্য চ্যানেল চেষ্টা করুন।');
+                setLoading(false);
+                onReportWorkingStateRef.current(playingChannel.id, false);
+              }
               break;
           }
         }
       });
 
+      const handlePlaying = () => setLoading(false);
+      const handleWaiting = () => setLoading(true);
+
+      video.addEventListener('playing', handlePlaying);
+      video.addEventListener('waiting', handleWaiting);
+
       return () => {
+        video.removeEventListener('playing', handlePlaying);
+        video.removeEventListener('waiting', handleWaiting);
         hls.destroy();
+        hlsRef.current = null;
       };
-    } else {
-      setError('আপনার ব্রাউজারটি HLS সমর্থক নয়।');
-      setLoading(false);
     }
-  }, [playingChannel?.id, playingChannel?.url, useProxy, serverId, forceHls]);
-
-  const togglePlay = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (isPlaying) {
-      video.pause();
-      setIsPlaying(false);
-    } else {
-      video.play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
-    }
-  };
-
-  const handleMuteToggle = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    const nextMuted = !isMuted;
-    video.muted = nextMuted;
-    setIsMuted(nextMuted);
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const v = parseFloat(e.target.value);
-    video.volume = v;
-    video.muted = (v === 0);
-    setVolume(v);
-    setIsMuted(v === 0);
-  };
-
-  const selectQuality = (levelIdx: number, label: string) => {
-    const hls = hlsRef.current;
-    if (hls) {
-      hls.currentLevel = levelIdx;
-    }
-    setCurrentQuality(label);
-    setShowQualityMenu(false);
-    
-    // Trigger smooth transition/buffering animation for realistic quality adaptation
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 650);
-  };
-
-  const triggerFullScreen = () => {
-    const container = document.getElementById('player-view-container');
-    if (!container) return;
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
-    }
-  };
+  }, [channel?.id, overrideChannel?.id, serverId, useProxy, forceHls]);
 
   const handleRestart = () => {
     const video = videoRef.current;
@@ -993,6 +894,25 @@ export default function CustomPlayer({
 
   const toggleRotateLandscape = () => {
     setIsRotatedLandscape(prev => !prev);
+  };
+
+  const selectQuality = (index: number, label: string) => {
+    setCurrentQuality(label);
+    if (hlsRef.current) {
+      hlsRef.current.currentLevel = index;
+    }
+  };
+
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
   };
 
   // Detect if physical screen orientation is vertical potrait (phone held straight)
@@ -1047,12 +967,12 @@ export default function CustomPlayer({
 
         {/* Premium Overlay Settings Menu inside the Video Stage itself to prevent outer clipping */}
         {showQualityMenu && playingChannel && (
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-955/90 backdrop-blur-md z-[60] flex items-center justify-center p-4">
             <div className="w-full max-w-[280px] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 relative animate-fade-in">
               {/* Close Button */}
               <button
                 onClick={() => setShowQualityMenu(false)}
-                className="absolute top-2.5 right-2.5 p-1 text-slate-400 hover:text-white bg-slate-950/60 hover:bg-slate-800 border border-slate-805/40 rounded-full transition-all cursor-pointer hover:scale-105 active:scale-95"
+                className="absolute top-2.5 right-2.5 p-1 text-slate-400 hover:text-white bg-slate-955/60 hover:bg-slate-850 border border-slate-805/45 rounded-full transition-all cursor-pointer hover:scale-105 active:scale-95"
                 title="বন্ধ করুন"
               >
                 <X className="w-3.5 h-3.5" />
@@ -1063,7 +983,7 @@ export default function CustomPlayer({
                 <span>ভিডিও রেজুলেশন সেটিংস</span>
               </div>
 
-              <div className="flex flex-col gap-1 mt-3">
+              <div className="flex flex-col gap-1 mt-3 font-sans">
                 {hlsLevels.length > 0 ? (
                   <>
                     <button
@@ -1109,7 +1029,7 @@ export default function CustomPlayer({
                       <span className="text-[9px] text-emerald-400 font-bold bg-emerald-950/40 px-1 rounded">সক্রিয়</span>
                     </button>
                     {[
-                      { index: 0, label: '1080p FHD (হাই ডেফিনিশন)' },
+                      { index: 0, label: '1080p FHD (হাই ডেفিনিশন)' },
                       { index: 1, label: '720p HD (স্ট্যান্ডার্ড)' },
                       { index: 2, label: '480p SD (মিডিয়াম ক্লিয়ারিটি)' },
                       { index: 3, label: '360p LQ (ডাটা সেভার)' },
@@ -1137,221 +1057,15 @@ export default function CustomPlayer({
           </div>
         )}
 
-        {/* Floating corner controls when landscape orientation is active */}
+        {/* Custom Floating Landscape close button for quick exit */}
         {isRotatedLandscape && playingChannel && (
-          <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-auto bg-slate-955/95 backdrop-blur-lg px-4 py-3 rounded-2xl border border-slate-800 z-50 text-xs font-semibold shadow-2xl">
-            <button
-              onClick={() => setIsRotatedLandscape(false)}
-              className="flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-rose-600 via-rose-650 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold rounded-xl cursor-pointer hover:scale-102 active:scale-95 transition-all shadow-md"
-            >
-              <ArrowLeft className="w-4 h-4 text-white" />
-              <span>← ফিরে যান (ডিসপ্লে সোজা করুন)</span>
-            </button>
-            <div className="flex gap-2">
-              <button
-                onClick={togglePlay}
-                className="px-3.5 py-2.5 bg-sky-600 hover:bg-sky-505 text-white font-bold rounded-xl transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-              >
-                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-white" />}
-                <span>{isPlaying ? 'বিরাম' : 'চালু'}</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Prominent Corner Fit in typical display mode (remote is now a beautiful floating button below) */}
-        {!isRotatedLandscape && playingChannel && !error && (
-          <div className="absolute top-2.5 right-2 text-xs z-25 flex items-center gap-2">
-            <button
-              id="btn-corner-full-stretch"
-              onClick={() => {
-                setAspectRatio(prev => {
-                  if (prev === 'video-contain') return 'video-cover';
-                  if (prev === 'video-cover') return 'video-fill';
-                  return 'video-contain';
-                });
-              }}
-              title="ডিসপ্লে সাইড ফিট ও রি-স্কেল"
-              className="flex items-center gap-1.2 px-2.5 py-1.5 rounded-lg bg-slate-955/90 hover:bg-slate-900 border border-slate-800 hover:border-slate-750 text-[10px] font-bold text-slate-200 shadow-md transition-all active:scale-95 cursor-pointer select-none"
-            >
-              <Maximize className="w-3 h-3 text-sky-400" />
-              <span>রিসাইজ</span>
-            </button>
-          </div>
-        )}
-
-        {/* Floating TV Remote Button - styled exactly like the Live Support Floating Chat with a pulsing pink wave */}
-        {!isRotatedLandscape && playingChannel && !error && (
           <button
-            id="btn-player-floating-remote"
-            type="button"
-            onClick={() => {
-              setShowRemoteKeypad(prev => !prev);
-              setEnteredDigits('');
-              setRemoteError(null);
-            }}
-            className={`absolute bottom-16 right-3.5 z-40 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer border select-none shadow-[0_8px_30px_rgb(236,72,153,0.3)]
-              ${showRemoteKeypad
-                ? 'bg-gradient-to-tr from-rose-600 to-pink-600 border-pink-400 text-white animate-pulse'
-                : 'bg-gradient-to-tr from-pink-500 via-rose-500 to-pink-600 border-pink-400/40 text-white'
-              }
-            `}
-            title="ভার্চুয়াল রিমোট কন্ট্রোল"
+            onClick={toggleRotateLandscape}
+            className="absolute top-4 left-4 z-50 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full border border-white/10 transition-all active:scale-95 flex items-center justify-center cursor-pointer shadow-lg hover:scale-105"
+            title="ভিউ মোড থেকে বের হন"
           >
-            {/* Pulsing ring indicator */}
-            {!showRemoteKeypad && (
-              <span className="absolute inset-0 rounded-full bg-pink-500/25 animate-ping pointer-events-none" />
-            )}
-            <div className="relative flex items-center justify-center">
-              <Tv className="w-5.5 h-5.5 text-white" />
-            </div>
+            <Minimize className="w-5 h-5 text-amber-400" />
           </button>
-        )}
-
-        {/* Interactive Virtual Remote Control overlay directly integrated inside the player container screen */}
-        {showRemoteKeypad && playingChannel && !error && (
-          <div 
-            className="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-45 flex items-center justify-center p-3 animate-fade-in select-none"
-            onClick={() => {
-              setShowRemoteKeypad(false);
-              setEnteredDigits('');
-              setRemoteError(null);
-            }}
-          >
-            <div 
-              className="w-[240px] bg-[#0d0d12] border border-slate-800 rounded-[28px] p-4.5 flex flex-col gap-3 shadow-[0_24px_60px_rgba(0,0,0,0.95)] animate-scale-up text-left relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Glossy top subtle border glow */}
-              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-pink-500/30 to-transparent pointer-events-none" />
-              
-              <div className="flex items-center justify-between border-b border-slate-850 pb-2">
-                <div className="flex items-center gap-1.8">
-                  <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse shadow-[0_0_8px_rgba(236,72,153,0.6)] shrink-0" />
-                  <span className="text-[11px] font-black hover:text-pink-400 text-slate-200 tracking-wide font-sans">রিমোট কন্ট্রোল (TV Remote)</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowRemoteKeypad(false);
-                    setEnteredDigits('');
-                    setRemoteError(null);
-                  }}
-                  className="w-5.5 h-5.5 rounded-full bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:text-white text-slate-400 text-[10px] font-bold flex items-center justify-center cursor-pointer font-sans"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Status input screen */}
-              <div className="bg-[#050508] border border-slate-850 rounded-xl p-2.5 flex flex-col items-center justify-center min-h-[55px] relative shadow-inner">
-                <span className="text-[6.5px] font-black tracking-widest text-slate-500 uppercase font-sans mb-0.5 select-none">
-                  LAUNCH CHANNEL NUMBER
-                </span>
-                
-                {enteredDigits ? (
-                  <div className="flex flex-col items-center gap-0.5 w-[190px]">
-                    <span className="text-2xl font-black tracking-widest text-[#10b981] font-mono leading-none animate-pulse">
-                      {enteredDigits}
-                    </span>
-                    {(() => {
-                      const matched = allChannels?.find(ch => ch.channelNum === parseInt(enteredDigits, 10));
-                      return matched ? (
-                        <span className="text-[9px] text-emerald-400 font-bold truncate max-w-full text-center mt-0.5 font-sans">
-                          📺 {matched.name}
-                        </span>
-                      ) : (
-                        <span className="text-[9px] text-rose-450 font-bold tracking-wide mt-0.5 font-sans">
-                          চ্যানেল পাওয়া যায়নি
-                        </span>
-                      );
-                    })()}
-                  </div>
-                ) : (
-                  <span className="text-sm font-bold text-slate-600 tracking-widest animate-pulse font-mono py-0.5 selection:bg-transparent">
-                    - - -
-                  </span>
-                )}
-
-                {remoteError && (
-                  <div className="absolute -bottom-2.5 left-0 right-0 text-center z-10 transition-all">
-                    <span className="text-[8px] font-bold text-rose-300 bg-red-955 border border-red-900/40 px-2.5 py-0.5 rounded-full shadow-lg">
-                      {remoteError}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Grid of keys matching remote styling */}
-              <div className="grid grid-cols-3 gap-2.5 pt-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                  <button
-                    type="button"
-                    key={num}
-                    onClick={() => {
-                      if (navigator.vibrate) navigator.vibrate(10);
-                      setEnteredDigits(prev => {
-                        const next = prev + num;
-                        if (next.length > 3) return next.substring(0, 3);
-                        return next;
-                      });
-                      setRemoteError(null);
-                    }}
-                    className="w-full py-2 bg-[#22222b] hover:bg-[#2c2c31] active:bg-[#343446] text-white font-extrabold text-lg rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-90 hover:scale-102 border border-white/5 active:border-white/10 select-none"
-                  >
-                    {num}
-                  </button>
-                ))}
-
-                {/* Clear button (C) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (navigator.vibrate) navigator.vibrate(6);
-                    setEnteredDigits('');
-                    setRemoteError(null);
-                  }}
-                  className="w-full py-2 bg-[#3e1b1b] hover:bg-[#522121] active:bg-[#632424] text-[#f87171] font-black text-lg rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-90 hover:scale-101 border border-red-500/10 hover:border-red-500/20 select-none"
-                >
-                  C
-                </button>
-
-                {/* Zero button (0) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (navigator.vibrate) navigator.vibrate(10);
-                    setEnteredDigits(prev => {
-                      const next = prev + '0';
-                      if (next.length > 3) return next.substring(0, 3);
-                      return next;
-                    });
-                    setRemoteError(null);
-                  }}
-                  className="w-full py-2 bg-[#22222b] hover:bg-[#2c2c31] active:bg-[#343446] text-white font-extrabold text-lg rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-90 hover:scale-102 border border-white/5 select-none"
-                >
-                  0
-                </button>
-
-                {/* OK button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (navigator.vibrate) navigator.vibrate(18);
-                    submitKeyedChannel();
-                  }}
-                  className="w-full py-2 bg-[#054434] hover:bg-[#075944] active:bg-[#046e53] text-[#34d399] font-black text-sm rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-95 hover:scale-101 hover:shadow-[0_4px_12px_rgba(16,185,129,0.2)] border border-emerald-500/10 hover:border-emerald-500/20 select-none"
-                >
-                  OK
-                </button>
-              </div>
-
-              {/* Physical Keyboard Guideline */}
-              <p className="text-[8px] text-slate-500 text-center font-sans leading-normal select-none px-1">
-                ফিজিক্যাল রিমোটের বোতাম (0-9) চেপেও চ্যানেল খুলতে পারবেন।
-              </p>
-            </div>
-          </div>
         )}
 
         {/* Subtle, Gorgeous Telegram watermark on the player */}
@@ -1369,7 +1083,7 @@ export default function CustomPlayer({
             >
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.24-5.54 3.65-.52.36-.99.54-1.41.53-.46-.01-1.34-.26-1.99-.47-.8-.26-1.43-.4-1.38-.85.03-.23.35-.47.96-.73 3.76-1.63 6.27-2.71 7.53-3.23 3.58-1.48 4.32-1.74 4.81-1.75.11 0 .35.03.5.16.13.12.17.29.18.41-.01.07 0 .15-.01.23z"/>
             </svg>
-            <span className="text-[10px] sm:text-[11px] font-black tracking-widest text-slate-200 group-hover:text-white transition-colors uppercase font-mono">
+            <span className="text-[10px] sm:text-[11px] font-black tracking-widest text-[#f1f5f9] group-hover:text-white transition-colors uppercase font-mono">
               t.me/FIFAWorldCupbd1
             </span>
           </a>
@@ -1377,33 +1091,20 @@ export default function CustomPlayer({
 
         {/* Channel empty visual */}
         {!playingChannel && (
-          <div id="channel-empty-screen" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-955 border border-slate-900 p-6 text-center text-slate-405 z-10">
+          <div id="channel-empty-screen" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-955 border border-slate-900 p-6 text-center text-slate-405 z-10 font-sans">
             <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center animate-bounce mb-2.5 border border-slate-800 shadow-xl">
-              <Play className="w-6 h-6 text-sky-400 fill-sky-500 translate-x-0.5" />
+              <Play className="w-6 h-6 text-sky-400 fill-sky-550 translate-x-0.5" />
             </div>
-            <h4 className="text-sm font-bold text-slate-200">কোনো চ্যানেল সিলেক্ট করা নেই</h4>
-            <p className="text-[11px] text-slate-400 mt-1 max-w-[220px]">অনুগ্রহ করে চ্যানেল লিস্ট থেকে যেকোনো একটি ফুটবল বা স্পোর্টস চ্যানেল প্লেব্যাক করার জন্য বেছে নিন।</p>
-          </div>
-        )}
-
-        {/* Loading overlay */}
-        {loading && playingChannel && !error && (
-          <div id="player-loading-overlay" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm z-15 select-none">
-            {/* Spinning element */}
-            <div className="relative w-11 h-11 flex items-center justify-center">
-              <div className="absolute inset-0 border-3 border-transparent border-t-pink-500 rounded-full animate-spin [animation-duration:0.5s]" />
-              <div className="absolute inset-0 border-3 border-transparent border-b-sky-400 rounded-full animate-spin [animation-duration:1s]" />
-              <Play className="w-4 h-4 text-sky-400 animate-pulse translate-x-0.5" />
-            </div>
-            <span className="text-[11px] font-bold text-slate-300 mt-3.5 tracking-wider animate-pulse flex items-center gap-1.5">লোড হচ্ছে...</span>
+            <h4 className="text-sm font-bold text-slate-205">কোনো চ্যানেল সিলেক্ট করা নেই</h4>
+            <p className="text-[11px] text-slate-405 mt-1 max-w-[220px]">অনুগ্রহ করে চ্যানেল লিস্ট থেকে যেকোনো একটি ফুটবল বা স্পোর্টস চ্যানেল প্লেব্যাক করার জন্য বেছে নিন।</p>
           </div>
         )}
 
         {/* Error overlay */}
         {error && playingChannel && (
-          <div id="player-error-overlay" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 px-6 text-center z-10 select-none">
+          <div id="player-error-overlay" className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 px-6 text-center z-10 select-none font-sans">
             <AlertCircle className="w-10 h-10 text-rose-500 mb-2.5" />
-            <h4 className="text-xs font-bold text-slate-200">চ্যানেল প্লেব্যাক ব্যর্থ হয়েছে!</h4>
+            <h4 className="text-xs font-bold text-slate-202">চ্যানেল প্লেব্যাক ব্যর্থ হয়েছে!</h4>
             <p className="text-[11px] text-slate-400 mt-1 font-sans leading-relaxed">{error}</p>
             
             <div className="flex flex-wrap justify-center gap-2.5 mt-3.5">
@@ -1432,125 +1133,169 @@ export default function CustomPlayer({
         )}
       </div>
 
+      {/* Small Button Bar below the player container */}
+      <div className="flex items-center justify-between gap-2.5 px-1 py-1 text-slate-400 select-none">
+        <a
+          href="https://wa.me/8801640227120"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-[10.5px] font-extrabold text-[#34d399] hover:text-emerald-300 transition-all font-sans"
+        >
+          <span className="flex h-1.5 w-1.5 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34d399] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#10b981]"></span>
+          </span>
+          💬 লাইভ সাপোর্ট (অনলাইন)
+        </a>
 
+        {/* Remote Trigger button */}
+        <button
+          onClick={() => {
+            if (navigator.vibrate) navigator.vibrate(10);
+            setShowRemoteKeypad(prev => !prev);
+          }}
+          className={`flex items-center gap-1.5 px-2.2 py-1 rounded-lg border text-[10px] font-extrabold transition-all cursor-pointer select-none font-sans
+            ${showRemoteKeypad ? 'bg-amber-400/10 border-amber-400/30 text-amber-400 animate-pulse' : 'bg-slate-900 border-slate-800/80 hover:bg-slate-850 text-slate-350 hover:text-white'}
+          `}
+        >
+          <Tv className="w-3.5 h-3.5 text-amber-400" /> 📱 টিভি রিমোট
+        </button>
+      </div>
 
-      {/* Render Remote Dialer Keypad directly INLINE below the display! */}
-      {!isRotatedLandscape && playingChannel && !error && showRemoteKeypad && (
-         <div 
-           id="remote-keypad-panel"
-           className="w-full max-w-[280px] mx-auto bg-[#121217] border border-slate-800 rounded-[28px] p-5.5 shadow-[0_16px_50px_rgba(0,0,0,0.8)] text-slate-100 flex flex-col gap-4 animate-slide-up relative mt-2 shrink-0 animate-fade-in"
-           onClick={(e) => e.stopPropagation()}
-         >
-
-           {/* Top status indicator screen mimicking screenshot LCD screen */}
-           <div className="bg-[#050508] border border-slate-850 rounded-2xl p-3 flex flex-col items-center justify-center min-h-[72px] relative shadow-inner select-none">
-                <span className="text-[7.5px] font-black tracking-widest text-slate-500 uppercase font-sans mb-1 selection:bg-transparent">
-                  DIGITAL LAUNCH SCREEN
-                </span>
-                
-                {enteredDigits ? (
-                  <div className="flex flex-col items-center gap-0.5 w-[210px]">
-                    <span className="text-3xl font-black tracking-widest text-[#10b981] font-mono leading-none">
-                      {enteredDigits}
-                    </span>
-                    {(() => {
-                      const matched = allChannels?.find(ch => ch.channelNum === parseInt(enteredDigits, 10));
-                      return matched ? (
-                        <span className="text-[10px] text-emerald-400 font-bold truncate max-w-full text-center mt-1 animate-pulse font-sans">
-                          📺 {matched.name}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-rose-400 font-bold tracking-wide mt-1 font-sans">
-                          চ্যানেল পাওয়া যায়নি
-                        </span>
-                      );
-                    })()}
-                  </div>
-                ) : (
-                  <span className="text-xl font-bold text-slate-700 tracking-widest animate-pulse font-mono py-1 selection:bg-transparent">
-                    - - -
-                  </span>
-                )}
-
-                {remoteError && (
-                  <div className="absolute -bottom-3 left-0 right-0 text-center z-10 transition-all">
-                    <span className="text-[8.5px] font-bold text-rose-300 bg-red-955 border border-red-900 px-3 py-0.5 rounded-full shadow-md">
-                      {remoteError}
-                    </span>
-                  </div>
-                )}
+      {/* Numerical remote keypad area rendered inline BELOW the display, never shown inside the video screen */}
+      {showRemoteKeypad && !error && playingChannel && (
+          <div className="w-full bg-[#0a0a0f]/95 border border-[#1e1e2d] rounded-2xl shadow-2xl p-4.5 flex flex-col gap-3 mt-1.5 relative select-none animate-fade-in text-left font-sans">
+            <div className="flex items-center justify-between border-b border-[#1e1e2d] pb-2">
+              <div className="flex items-center gap-2">
+                <Tv className="w-4 h-4 text-amber-400" />
+                <h5 className="text-[12px] font-extrabold text-[#f1f5f9] font-sans">
+                  ডিজিটাল টিভি রিমোট কন্ট্রোল
+                </h5>
               </div>
+              <button
+                onClick={() => setShowRemoteKeypad(false)}
+                className="text-[9px] text-slate-400 hover:text-white bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800 font-bold active:scale-95 transition-all cursor-pointer font-sans"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
 
-              {/* Grid of keys matching remote styling */}
-              <div className="grid grid-cols-3 gap-3 pt-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                  <button
-                    type="button"
-                    key={num}
-                    onClick={() => {
-                      if (navigator.vibrate) navigator.vibrate(10);
-                      setEnteredDigits(prev => {
-                        const next = prev + num;
-                        if (next.length > 3) return next.substring(0, 3);
-                        return next;
-                      });
-                      setRemoteError(null);
-                    }}
-                    className="w-full aspect-square bg-[#22222b] hover:bg-[#2c2c3a] active:bg-[#343446] text-white font-extrabold text-2xl rounded-2xl flex items-center justify-center cursor-pointer transition-all active:scale-90 hover:scale-102 border border-white/5 active:border-white/10 select-none"
-                  >
-                    {num}
-                  </button>
-                ))}
+            <div className="flex flex-col items-center justify-center py-2 bg-[#050508] border border-[#141420] rounded-xl relative overflow-hidden font-sans">
+              <span className="text-[9px] text-[#475569] font-bold tracking-wider select-none uppercase font-sans mb-1 block">
+                চ্যানেল নম্বর চাপুন (০-৯৯৯)
+              </span>
+              
+              {enteredDigits ? (
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl font-black text-amber-400 tracking-widest font-mono py-0.5 select-none text-center">
+                    {enteredDigits}
+                  </span>
+                  
+                  {(() => {
+                    const channelNum = parseInt(enteredDigits, 10);
+                    const channelsToSearch = allChannels || [];
+                    let matched = channelsToSearch.find(c => c.id === enteredDigits || c.id === `${channelNum}`);
+                    if (!matched) {
+                      const idx = channelNum - 1;
+                      if (idx >= 0 && idx < channelsToSearch.length) {
+                        matched = channelsToSearch[idx];
+                      }
+                    }
+                    return matched ? (
+                      <span className="text-[10px] text-emerald-400 font-bold tracking-wide mt-0.5 animate-pulse font-sans">
+                        📺 {matched.name}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-rose-400 font-bold tracking-wide mt-0.5 font-sans">
+                        চ্যানেল পাওয়া যায়নি
+                      </span>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <span className="text-lg font-bold text-slate-700 tracking-widest animate-pulse font-mono py-1 selection:bg-transparent">
+                  - - -
+                </span>
+              )}
 
-                {/* Clear button (C) */}
+              {remoteError && (
+                <div className="absolute bottom-1 left-0 right-0 text-center z-10 transition-all font-sans animate-bounce">
+                  <span className="text-[8.5px] font-bold text-rose-300 bg-rose-950/90 border border-rose-900 px-3 py-0.5 rounded-full shadow-md font-sans">
+                    {remoteError}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Grid of keys matching remote styling */}
+            <div className="grid grid-cols-3 gap-2.5 max-w-[240px] mx-auto w-full pt-1 font-sans">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                 <button
                   type="button"
-                  onClick={() => {
-                    if (navigator.vibrate) navigator.vibrate(6);
-                    setEnteredDigits('');
-                    setRemoteError(null);
-                  }}
-                  className="w-full aspect-square bg-[#3e1b1b] hover:bg-[#522121] active:bg-[#632424] text-[#f87171] font-black text-2xl rounded-2xl flex items-center justify-center cursor-pointer transition-all active:scale-90 hover:scale-101 border border-red-500/10 hover:border-red-500/20 select-none"
-                >
-                  C
-                </button>
-
-                {/* Zero button (0) */}
-                <button
-                  type="button"
+                  key={num}
                   onClick={() => {
                     if (navigator.vibrate) navigator.vibrate(10);
                     setEnteredDigits(prev => {
-                      const next = prev + '0';
+                      const next = prev + num;
                       if (next.length > 3) return next.substring(0, 3);
                       return next;
                     });
                     setRemoteError(null);
                   }}
-                  className="w-full aspect-square bg-[#22222b] hover:bg-[#2c2c3a] active:bg-[#343446] text-white font-extrabold text-2xl rounded-2xl flex items-center justify-center cursor-pointer transition-all active:scale-90 hover:scale-102 border border-white/5 select-none"
+                  className="w-full aspect-square bg-[#141420] hover:bg-[#1a1a29] active:bg-[#222235] text-white font-extrabold text-lg rounded-2xl flex items-center justify-center cursor-pointer transition-all active:scale-90 hover:scale-102 border border-white/5 active:border-white/10 select-none shadow-md font-sans"
                 >
-                  0
+                  {num}
                 </button>
+              ))}
 
-                {/* OK button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (navigator.vibrate) navigator.vibrate(18);
-                    submitKeyedChannel();
-                  }}
-                  className="w-full aspect-square bg-[#054434] hover:bg-[#075944] active:bg-[#046e53] text-[#34d399] font-black text-lg rounded-2xl flex items-center justify-center cursor-pointer transition-all active:scale-95 hover:scale-101 hover:shadow-[0_4px_12px_rgba(16,185,129,0.2)] border border-emerald-500/10 hover:border-emerald-500/20 select-none"
-                >
-                  OK
-                </button>
-              </div>
+              {/* Clear button (C) */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigator.vibrate) navigator.vibrate(6);
+                  setEnteredDigits('');
+                  setRemoteError(null);
+                }}
+                className="w-full aspect-square bg-rose-950/45 hover:bg-rose-900/60 active:bg-rose-900 border border-slate-800 text-[#f87171] font-black text-lg rounded-2xl flex items-center justify-center cursor-pointer transition-all active:scale-90 select-none shadow-md font-sans"
+              >
+                C
+              </button>
 
-              {/* Physical Keyboard Guideline */}
-              <p className="text-[9px] text-slate-500 text-center font-sans leading-normal select-none px-1">
-                কম্পিউটার বা টিভির ফিজিক্যাল রিমোটের সংখ্যা বোতাম (0-9) চেপেও সরাসরি যেকোনো চ্যানেল নম্বর খুলতে পারবেন।
-              </p>
+              {/* Zero button (0) */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigator.vibrate) navigator.vibrate(10);
+                  setEnteredDigits(prev => {
+                    const next = prev + '0';
+                    if (next.length > 3) return next.substring(0, 3);
+                    return next;
+                  });
+                  setRemoteError(null);
+                }}
+                className="w-full aspect-square bg-[#141420] hover:bg-[#1a1a29] text-white font-extrabold text-lg rounded-2xl flex items-center justify-center cursor-pointer transition-all active:scale-90 border border-white/5 select-none shadow-md font-sans"
+              >
+                0
+              </button>
+
+              {/* OK button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigator.vibrate) navigator.vibrate(18);
+                  submitKeyedChannel();
+                }}
+                className="w-full aspect-square bg-emerald-950/45 hover:bg-emerald-900/60 active:bg-[#046e53] text-[#34d399] font-black text-xs rounded-2xl flex items-center justify-center cursor-pointer transition-all active:scale-95 border border-slate-850 select-none shadow-md font-sans"
+              >
+                OK
+              </button>
             </div>
-          )}
+
+            <p className="text-[9px] text-[#475569] text-center font-sans leading-normal select-none px-1 font-sans">
+              কম্পিউটার বা টিভির ফিজিক্যাল রিমোটের সংখ্যা বোতাম (0-9) চেপেও সরাসরি যেকোনো চ্যানেল নম্বর খুলতে পারবেন।
+            </p>
+          </div>
+      )}
     </div>
   );
 }

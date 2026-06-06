@@ -15,17 +15,28 @@ import { URL } from 'url';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import net from 'net';
+import { USER_NEW_CHANNELS } from './server_new_channels';
 
-// Initialize the secure-level server side Gemini API Client with safe fallback
-const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyAANQhCoBEGY8QwAPMv3nfGyKwNJW3wabA';
-const ai = new GoogleGenAI({
-  apiKey: GEMINI_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build'
+// Initialize the secure-level server side Gemini API Client with lazy-loaded safe fallback
+let aiInstance: GoogleGenAI | null = null;
+function getGeminiClient(): GoogleGenAI | null {
+  if (!aiInstance) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      console.warn("GEMINI_API_KEY environment variable is not defined. Falling back to robust rule-based logic and native fallbacks.");
+      return null;
     }
+    aiInstance = new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build'
+        }
+      }
+    });
   }
-});
+  return aiInstance;
+}
 
 const SUPPORT_SYSTEM_INSTRUCTION = `
 You are a friendly, natural, and helpful Live Support Agent named "Bongo Support Agent (AI)" representing Free World Cup BD. 
@@ -173,27 +184,16 @@ const PORT = 3000;
 app.use(express.json());
 
 // Built-in stream feeds to fetch and parse
-const BUILTIN_STREAM_FEEDS = [
+const BUILTIN_STREAM_FEEDS: any[] = [
   {
-    name: 'Obiram TV Live Stream Feed',
+    name: 'Obiram TV M3U',
     url: 'https://playlist.emonsa4.workers.dev/playlist.m3u',
     headers: {
-      'X-Requested-With': 'XMLHttpRequest',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Referer': 'https://obiramtvlive.pages.dev/',
-      'Origin': 'https://obiramtvlive.pages.dev'
+      'Origin': 'https://obiramtvlive.pages.dev',
+      'X-Requested-With': 'XMLHttpRequest'
     }
-  },
-  {
-    name: 'Global Stream Feed Redirection',
-    url: 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8'
-  },
-  {
-    name: 'TS-Sports CDN Auto-Feed',
-    url: 'https://raw.githubusercontent.com/abusaeeidx/T-Sports-Playlist-Auto-Update/main/ns_player.m3u'
-  },
-  {
-    name: 'BDIX Edge Stream Provider',
-    url: 'https://raw.githubusercontent.com/abusaeeidx/Mrgify-BDIX-IPTV/main/playlist.m3u'
   }
 ];
 
@@ -868,58 +868,1107 @@ async function runBackgroundChannelHealthCheck(channels: Channel[]) {
 
 // Curated list of high-quality, resilient built-in fallback channels
 const FALLBACK_CHANNELS: Channel[] = [
+  // --- Indian Bangla ---
   {
-    id: "fb_somoy_tv",
-    name: "Somoy TV Live News",
-    url: "https://live.somoynews.tv/somonewslive/index.m3u8",
-    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png",
-    group: "News",
-    playlistSource: "Built-in fallbacks",
+    id: "req_star_jolsha",
+    name: "STAR JOLSHA HD",
+    url: "https://yupptvcatchupire.yuppcdn.net/preview/starjalsha/1800.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Jalsha-HD.png",
+    group: "Indian Bangla",
+    playlistSource: "Checked Playlist Streams",
     status: "online"
   },
   {
-    id: "fb_jamuna_tv",
-    name: "Jamuna TV Live News",
-    url: "https://jamunapr.b-cdn.net/jamunatv/index.m3u8",
-    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560213832.png",
-    group: "News",
-    playlistSource: "Built-in fallbacks",
+    id: "req_zee_bangla",
+    name: "ZEE BANGLA",
+    url: "https://tvsen5.aynaott.com/PNEb3v2q6GBk/tracks-v1a1/mono.ts.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-Bangla-HD.png",
+    group: "Indian Bangla",
+    playlistSource: "Checked Playlist Streams",
     status: "online"
   },
   {
-    id: "fb_tsports",
-    name: "T Sports Live HD",
-    url: "https://live.tsports.com/tsports/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/dbc585f70a60b9855b6e13a8ce4cb6f4",
-    group: "Sports",
-    playlistSource: "Built-in fallbacks",
+    id: "req_zee_bangla_shonar",
+    name: "ZEE BANGLA SHONAR HD",
+    url: "https://server.itcnbd.live/stream/zee_bangla_cinema.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-Bangla-Cinema.png",
+    group: "Indian Bangla",
+    playlistSource: "Checked Playlist Streams",
     status: "online"
   },
   {
-    id: "fb_gtv",
-    name: "GTV (Gazi TV) Live",
-    url: "https://live.gtvbd.com/gtvbd/index.m3u8",
-    logo: "https://s3.aynaott.com/storage/417a833f6d83021c99bfc3d4176610f4",
-    group: "Sports",
-    playlistSource: "Built-in fallbacks",
+    id: "req_enter10_hd",
+    name: "ENTER 10 HD",
+    url: "https://live-bangla.akamaized.net/liveabr/pub-iobanglakp3sff/live_720p/chunks.m3u8",
+    logo: "https://i.imgur.com/8Qj8W9N.png",
+    group: "Indian Bangla",
+    playlistSource: "Checked Playlist Streams",
     status: "online"
   },
   {
-    id: "fb_channel24",
-    name: "Channel 24 Live News",
-    url: "https://live.channel24bd.tv/c24/index.m3u8",
-    logo: "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735556516924.png",
-    group: "News",
-    playlistSource: "Built-in fallbacks",
+    id: "req_sony_aat_hd",
+    name: "SONY AAT HD",
+    url: "https://server.itcnbd.live/stream/sonyaath.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Aath.png",
+    group: "Indian Bangla",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+
+  // --- Indian Hindi Entertainment ---
+  {
+    id: "req_sony_tv_hd",
+    name: "SONY TV HD",
+    url: "https://server.itcnbd.live/stream/sonyentertainmnt_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Entertainment-Television-HD.png",
+    group: "Indian Hindi Entertainment",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_sony_sab",
+    name: "SONY SAB",
+    url: "https://server.itcnbd.live/stream/sonysab_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sab.png",
+    group: "Indian Hindi Entertainment",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_zee_tv_hd",
+    name: "ZEE TV HD",
+    url: "https://server.itcnbd.live/stream/zee_tv_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-TV-HD.png",
+    group: "Indian Hindi Entertainment",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_and_tv",
+    name: "& TV",
+    url: "https://server.itcnbd.live/stream/and_tv_hd.m3u8",
+    logo: "https://i.imgur.com/uR7917l.png",
+    group: "Indian Hindi Entertainment",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+
+  // --- Indian Hindi Movies ---
+  {
+    id: "req_zee_cafe",
+    name: "ZEE CAFE",
+    url: "https://server.itcnbd.live/stream/zee_cafe_hd.m3u8",
+    logo: "https://i.imgur.com/pZqN6i2.png",
+    group: "Indian Hindi Movies",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_and_pictures_hd",
+    name: "& PICTURES HD",
+    url: "https://server.itcnbd.live/stream/andpicture_hd.m3u8",
+    logo: "https://i.imgur.com/V7RST2k.png",
+    group: "Indian Hindi Movies",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+
+  // --- Music Channel ---
+  {
+    id: "req_zing_music",
+    name: "ZING MUSIC",
+    url: "https://server.itcnbd.live/stream/zing_sd.m3u8",
+    logo: "https://i.imgur.com/UfU8bYt.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_sangeet_bangla",
+    name: "সংগীত বাংলা (SANGEET BANGLA)",
+    url: "http://10.20.30.40:8088/702/tracks-v1a1/mono.m3u8",
+    logo: "https://i.imgur.com/N6K2241.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_9xm_music",
+    name: "9XM MUSIC",
+    url: "https://wiselp.wiseplayout.com/9XM/HD1080/HD1080.m3u8",
+    logo: "https://i.imgur.com/s6n5O4Z.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_9x_jalwa",
+    name: "9X JALWA",
+    url: "https://wiselp.wiseplayout.com/9X_Jalwa/SD216/SD216.m3u8",
+    logo: "https://i.imgur.com/y1V9zYk.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_9x_tashan",
+    name: "9X TASHAN",
+    url: "https://9xjio.wiseplayout.com/9X_Tashan/SD504/SD504.m3u8",
+    logo: "https://i.imgur.com/nsw8N1M.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_dance_tv",
+    name: "DANCE TV",
+    url: "https://m1b2.worldcast.tv/dancetelevisionone/2/dancetelevisionone.m3u8",
+    logo: "https://i.imgur.com/R3ZtkpL.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_joo_music",
+    name: "JOO MUSIC",
+    url: "https://livecdn.live247stream.com/joomusic/tv/joomusic/stream/chunks.m3u8",
+    logo: "https://i.imgur.com/39N6Fk1.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_music_india",
+    name: "MUSIC INDIA",
+    url: "https://cdn-2.pishow.tv/live/226/226_2.m3u8",
+    logo: "https://i.imgur.com/7A2xUf6.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_8xm",
+    name: "8XM",
+    url: "https://ml-pull-dvc-myco.io:2096/8XM_MUSIC/tracks-v1a1/mono.ts.m3u8",
+    logo: "https://i.imgur.com/qU3g94A.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_party_universe",
+    name: "PARTY UNIVERS",
+    url: "https://nomawnoijl.gpcdn.net/akash/partyuniverse/chunks.m3u8",
+    logo: "https://i.imgur.com/C7W2yZ6.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_atn_music",
+    name: "ATN MUSIC",
+    url: "https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI2/atnmusic.stream/live-orgin/atnmusic.stream/chunks.m3u8",
+    logo: "https://i.imgur.com/o7hVfK5.png",
+    group: "Music Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+
+  // --- Sports Channel ---
+  {
+    id: "req_t_sports",
+    name: "T SPORTS Live",
+    url: "http://198.195.239.50:8095/Tsports/tracks-v1a1/mono.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/T-Sports.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_ten_cricket",
+    name: "TEN CRICKET",
+    url: "https://server.itcnbd.live/stream/ten_cricket.m3u8",
+    logo: "https://i.imgur.com/JjKz9W6.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_sony_ten_sports_1",
+    name: "SONY TEN SPORTS 1",
+    url: "https://server.itcnbd.live/stream/sony_sports_1_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-1.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_sony_ten_sports_2",
+    name: "SONY TEN SPORTS 2",
+    url: "https://server.itcnbd.live/stream/sony_sports_2_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-2.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_sony_ten_sports_5",
+    name: "SONY TEN SPORTS 5",
+    url: "https://server.itcnbd.live/stream/sony_sports_5_hd.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-5.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_star_sports_1",
+    name: "STAR SPORTS 1",
+    url: "https://starsportshindiii.pages.dev/720p.m3u8",
+    logo: "https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Sports-1-Hindi-HD.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_dd_sports",
+    name: "D D SPORTS",
+    url: "https://d3qs3d2rkhfqrt.cloudfront.net/out/v1/b17adfe543354fdd8d189b110617cddd/index_3.m3u8",
+    logo: "https://i.imgur.com/O61z6Oa.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_fifa_plus",
+    name: "FIFA PLUS",
+    url: "https://a62dad94.wurl.com/manifest/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/058eff13-1fe8-4619-94fc-eeab40e86d10/1.m3u8",
+    logo: "https://i.imgur.com/G7GnyfW.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_euro_sports",
+    name: "EURO SPORTS",
+    url: "https://server.itcnbd.live/stream/euro_sports_hd.m3u8",
+    logo: "https://i.imgur.com/k9v9z99.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_willow_sports",
+    name: "WILLOW SPORTS",
+    url: "https://tvsen5.aynaott.com/willowhd/tracks-v1a1/mono.ts.m3u8",
+    logo: "https://i.imgur.com/w9U3v8z.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_star_sports_select_1",
+    name: "STAR SPORTS SELECT 1",
+    url: "http://198.195.239.50:8095/StarSportsSelect1/tracks-v1a1/mono.m3u8",
+    logo: "https://i.imgur.com/9n6bW1h.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
+    status: "online"
+  },
+  {
+    id: "req_star_sports_select_2",
+    name: "STAR SPORTS SELECT 2",
+    url: "http://198.195.239.50:8095/StarSportsSelect2/tracks-v1a1/mono.m3u8",
+    logo: "https://i.imgur.com/9n6bW1h.png",
+    group: "Sports Channel",
+    playlistSource: "Checked Playlist Streams",
     status: "online"
   }
 ];
 
+// High-quality, verified working sports channels from previous feeds
+const PREVIOUS_ACTIVE_SPORTS_CHANNELS: Omit<Channel, 'id' | 'status'>[] = [
+  {
+    name: "T Sports Live HD",
+    url: "https://live.tsports.com/tsports/index.m3u8",
+    logo: "https://s3.aynaott.com/storage/dbc585f70a60b9855b6e13a8ce4cb6f4",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "GAZI TV (GTV)",
+    url: "https://live.gtvbd.com/gtvbd/index.m3u8",
+    logo: "https://s3.aynaott.com/storage/417a833f6d83021c99bfc3d4176610f4",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "GAZI TV (Alternative)",
+    url: "https://tvsen5.aynaott.com/Ravc7gPCZpxk/index.m3u8",
+    logo: "https://tvassets.roarzone.net/images/gazi-tv.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "PTV SPORTS HD",
+    url: "https://tvsen5.aynaott.com/PtvSports/index.m3u8",
+    logo: "https://i.imgur.com/WFf2kaH.jpeg",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Star Sports 1 Hindi",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=star-sports-1-hindi",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/51.gif",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Ten Sports",
+    url: "https://xstream.emonsa798.workers.dev/?url=http://premiumtvs.space:8080/live/6388578743/4853784376/98.ts",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/50.gif",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "ESPN US",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=espn-us",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/147.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "ESPN 2 US",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=espn-2-us",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/148.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "TNT Sports 1",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=tnt-sports-1",
+    logo: "https://crichd.free/assets/uploads/channels/10.gif",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "TNT Sports 2",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=tnt-sports-2",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/11.gif",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "TNT Sports 3",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=tnt-sports-3",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/12.gif",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "TNT Sports 4",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=tnt-sports-4",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/13.gif",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Viaplay Sports 1 UK",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=viaplay-sports-1-uk",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/17.gif",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Viaplay Sports 2 UK",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=viaplay-sports-2-uk",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/28.gif",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Sky Sports News",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=sky-sports-news",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/9.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Sky Sport 4 NZ",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=sky-sport-4-nz",
+    logo: "https://static.wikia.nocookie.net/logopedia/images/c/c1/Sky_Sport_NZ_2019.svg/revision/latest/scale-to-width-down/300?cb=20200809114740",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Sky Sport 5 NZ",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=sky-sport-5-nz",
+    logo: "https://static.wikia.nocookie.net/logopedia/images/c/c1/Sky_Sport_NZ_2019.svg/revision/latest/scale-to-width-down/300?cb=20200809114740",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Sky Sport 6 NZ",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=sky-sport-6-nz",
+    logo: "https://static.wikia.nocookie.net/logopedia/images/c/c1/Sky_Sport_NZ_2019.svg/revision/latest/scale-to-width-down/300?cb=20200809114740",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Sky Sport 8 NZ",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=sky-sport-8-nz",
+    logo: "https://static.wikia.nocookie.net/logopedia/images/c/c1/Sky_Sport_NZ_2019.svg/revision/latest/scale-to-width-down/300?cb=20200809114740",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Willow Cricket Extra",
+    url: "https://crichdproxy.saemon068.workers.dev/play?id=willow-cricket-extra",
+    logo: "https://stream.crichd.tv/assets/uploads/channels/55.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Bleav Football",
+    url: "https://linear-493.frequency.stream/dist/glewedtv/493/hls/master/playlist.m3u8",
+    logo: "https://s3.aynaott.com/storage/030ec528e912afb9a2ec3b4c5167a928",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "beIN SPORTS XTRA",
+    url: "https://bein-xtra-bein.amagi.tv/playlist.m3u8",
+    logo: "https://i.ibb.co/HT49GPmB/XTRA-2.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Cricket Gold",
+    url: "https://streams2.sofast.tv/ptnr-yupptv/title-cricketgold/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/b2048bb8-1686-4432-aa50-647245383e0c/manifest.m3u8",
+    logo: "https://resources.cricket-australia.pulselive.com/cricket-australia/photo/2025/07/25/836eddae-4329-4542-ad17-dcd37e9d951a/Cricket-Gold-1920x1080_noBG.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "FTF Sports",
+    url: "https://1657061170.rsc.cdn77.org/HLS/FTF-LINEAR.m3u8",
+    logo: "https://i.imgur.com/yvUjOI3.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "FIFA+",
+    url: "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/playlist.m3u8",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/FIFA%2B_(2025).svg/960px-FIFA%2B_(2025).svg.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "FIFA+ United States",
+    url: "https://d2w9q46ikgrcwx.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-of5cbk3sav3w5/v1/sysdata_s_p_a_fifa_7/samsungheadend_us/latest/main/hls/playlist.m3u8",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/FIFA%2B_(2025).svg/960px-FIFA%2B_(2025).svg.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "FIFA+ Women",
+    url: "https://cffda8ff.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/U2Ftc3VuZy1nYl9GSUZBUGx1c3dvbWVuX0hMUw/playlist.m3u8",
+    logo: "https://i.imgur.com/xy9ZxVO.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "KTV Sport",
+    url: "https://kwtspta.cdn.mangomolo.com/sp/smil:sp.stream.smil/chunklist.m3u8",
+    logo: "https://i.imgur.com/R1hGX1d.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "NBC Sports NOW",
+    url: "https://d4whmvwm0rdvi.cloudfront.net/10007/99993008/hls/master.m3u8?ads.xumo_channelId=99993008",
+    logo: "https://i.imgur.com/EzNf2Yx.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Sky Racing 2",
+    url: "https://636ffd31f0e12.streamlock.net/RacingStream2/RacingStream2/playlist.m3u8",
+    logo: "https://i.imgur.com/TxQvFnQ.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Sports Connect",
+    url: "https://streamdot.broadpeak.io/cff02a74da64d1459391ce1f72d58f1a/afxpstr/SportsConnect/index.m3u8",
+    logo: "https://i.imgur.com/0sNWg54.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Trace Sport Stars",
+    url: "https://lightning-tracesport-samsungau.amagi.tv/playlist.m3u8",
+    logo: "https://i.imgur.com/FabFP5A.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "TSN The Ocho",
+    url: "https://d3pnbvng3bx2nj.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-rds8g35qfqrnv/TSN_The_Ocho.m3u8",
+    logo: "https://tvpnlogopus.samsungcloud.tv/platform/image/sourcelogo/vc/00/02/34/CA1400003R3_20240709T002034SQUARE.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "TVS Sports",
+    url: "https://rpn.bozztv.com/gusa/gusa-tvssports/index.m3u8",
+    logo: "https://i.imgur.com/Lwwq62E.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "TVS Turbo",
+    url: "https://rpn.bozztv.com/gusa/gusa-tvsturbo/index.m3u8",
+    logo: "https://i.imgur.com/7zYIbU1.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "Unbeaten Sports Channel",
+    url: "https://d1t5afz6qed3xk.cloudfront.net/Unbeaten.m3u8",
+    logo: "https://i.imgur.com/LmkNt3v.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "VSiN",
+    url: "https://vsin-sgrewind.streamguys1.com/scte/live-2k/playlist.m3u8",
+    logo: "https://i.imgur.com/C4wIRxg.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "World Billiards TV",
+    url: "https://9a81dd4ee3884d0dbcacafaf0d81327a.mediatailor.us-east-1.amazonaws.com/v1/master/04fd913bb278d8775298c26fdca9d9841f37601f/RakutenTV-eu_BilliardsTV/playlist.m3u8",
+    logo: "https://images-3.rakuten.tv/storage/global-live-channel/translation/artwork/80af06f2-a12e-4406-bd13-b932fd69fffe-width200-quality90.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  },
+  {
+    name: "World Poker Tour",
+    url: "https://d3w4n3hhseniak.cloudfront.net/v1/master/9d062541f2ff39b5c0f48b743c6411d25f62fc25/WPT-DistroTV/150.m3u8?ads.vf=EHEabFVWNva",
+    logo: "https://i.imgur.com/98kLMjj.png",
+    group: "Sports",
+    playlistSource: "Previous Active Streams"
+  }
+];
+
+// Map real brand secure HTTPS logos for popular Bangladeshi and Indian serial channels
+function getRealChannelLogo(name: string, scrapedLogo: string = ''): string {
+  const norm = name.toLowerCase().replace(/[\s-_]+/g, ' ');
+
+  // 1. Bengali serials / general entertainment
+  if (norm.includes('zee bangla cinema')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-Bangla-Cinema.png';
+  }
+  if (norm.includes('zee bangla')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-Bangla-HD.png';
+  }
+  if (norm.includes('star jalsha') || norm.includes('starjalsha')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Jalsha-HD.png';
+  }
+  if (norm.includes('jalsha movies')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Jalsha-Movies.png';
+  }
+  if (norm.includes('sony aath') || norm.includes('sony atth') || norm.includes('sony aat')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Aath.png';
+  }
+  if (norm.includes('colors bangla')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Colors-Bangla.png';
+  }
+  if (norm.includes('sun bangla')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sun-Bangla.png';
+  }
+
+  // 2. Hindi & English Serials & Movies & Entertainment
+  if (norm.includes('sony sab') || norm.includes('sab tv')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sab.png';
+  }
+  if (norm.includes('star plus')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Plus-HD.png';
+  }
+  if (norm.includes('sony entertainment') || norm.includes('sony tv') || norm.includes(' set ')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Entertainment-Television-HD.png';
+  }
+  if (norm.includes('zee tv')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-TV-HD.png';
+  }
+  if (norm.includes('zee cinema')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-Cinema.png';
+  }
+  if (norm.includes('sony max')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Max.png';
+  }
+  if (norm.includes('colors hd') || norm.includes('colors tv') || (norm.includes('colors') && !norm.includes('bangla'))) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Colors-HD.png';
+  }
+  if (norm.includes('dangal')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Dangal-TV.png';
+  }
+  if (norm.includes('star gold')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Gold.png';
+  }
+  if (norm.includes('sony pal')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Pal.png';
+  }
+  if (norm.includes('zee anmol')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Zee-Anmol.png';
+  }
+
+  // 3. Bangladeshi news & TV channels
+  if (norm.includes('somoy')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Somoy-TV.png';
+  }
+  if (norm.includes('jamuna')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Jamuna-TV.png';
+  }
+  if (norm.includes('channel 24') || norm.includes('channel24')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Channel-24.png';
+  }
+  if (norm.includes('independent')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Independent-TV.png';
+  }
+  if (norm.includes('ekattor') || norm.includes('71 tv') || norm.includes('71 news')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/71-Television.png';
+  }
+  if (norm.includes('atn news')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/ATN-News.png';
+  }
+  if (norm.includes('atn bangla')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/ATN-Bangla.png';
+  }
+  if (norm.includes('dbc news') || norm.includes('dbcnews')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/DBC-News.png';
+  }
+  if (norm.includes('news 24') || norm.includes('news24')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/News-24.png';
+  }
+  if (norm.includes('btv national') || norm.includes('btv national hd')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/BTV.png';
+  }
+  if (norm.includes('btv world')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/BTV-World.png';
+  }
+  if (norm.includes('btv chittagong') || norm.includes('btv ctgo')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/BTV-Chittagong.png';
+  }
+  if (norm.includes('btv')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/BTV.png';
+  }
+  if (norm.includes('ntv')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/NTV.png';
+  }
+  if (norm.includes('rtv')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/RTV.png';
+  }
+  if (norm.includes('dipto tv') || norm.includes('dipto')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Deepto-TV.png';
+  }
+  if (norm.includes('channel i')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Channel-i.png';
+  }
+  if (norm.includes('ekushey tv') || norm.includes('etv bd')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Ekushey-TV.png';
+  }
+  if (norm.includes('maasranga')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Maasranga-TV.png';
+  }
+  if (norm.includes('banglavision')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Banglavision.png';
+  }
+  if (norm.includes('duronto')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Duronto-TV.png';
+  }
+  if (norm.includes('asian')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Asian-TV.png';
+  }
+  if (norm.includes('nagorik')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Nagorik-TV.png';
+  }
+  if (norm.includes('sa tv') || norm.includes('satv')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/SA-TV.png';
+  }
+  if (norm.includes('gazi tv') || norm.includes('gtv')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/GTV.png';
+  }
+
+  // 4. Sports Channels
+  if (norm.includes('t sports') || norm.includes('tsports')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/T-Sports.png';
+  }
+  if (norm.includes('star sports 1 hindi')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Sports-1-Hindi.png';
+  }
+  if (norm.includes('star sports 1 english') || (norm.includes('star sports 1') && !norm.includes('hindi') && !norm.includes('tamil') && !norm.includes('telugu') && !norm.includes('kannada'))) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Sports-1.png';
+  }
+  if (norm.includes('star sports 2')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Sports-2.png';
+  }
+  if (norm.includes('star sports 3')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Sports-3.png';
+  }
+  if (norm.includes('star sports select 1') || norm.includes('sports select 1')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Sports-Select-1.png';
+  }
+  if (norm.includes('star sports select 2') || norm.includes('sports select 2')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Star-Sports-Select-2.png';
+  }
+  if (norm.includes('sony sports ten 1') || norm.includes('sony ten 1') || norm.includes('ten 1')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-1.png';
+  }
+  if (norm.includes('sony sports ten 2') || norm.includes('sony ten 2') || norm.includes('ten 2')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-2.png';
+  }
+  if (norm.includes('sony sports ten 3') || norm.includes('sony ten 3') || norm.includes('ten 3')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-3.png';
+  }
+  if (norm.includes('sony sports ten 5') || norm.includes('sony ten 5') || norm.includes('ten 5')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sony-Sports-Ten-5.png';
+  }
+  if (norm.includes('sports 18') || norm.includes('sports18')) {
+    return 'https://raw.githubusercontent.com/abusaeeidx/Tv-Channel-Logo/refs/heads/main/Sports18-1-HD.png';
+  }
+  if (norm.includes('willow cricket') || norm.includes('willow extra') || norm.includes('willow')) {
+    return 'https://stream.crichd.tv/assets/uploads/channels/55.png';
+  }
+  if (norm.includes('sky sport')) {
+    return 'https://static.wikia.nocookie.net/logopedia/images/c/c1/Sky_Sport_NZ_2019.svg/revision/latest/scale-to-width-down/300?cb=20200809114740';
+  }
+
+  // Rewrite scraped http:// logos to secure https:// weserv proxy automatically
+  if (scrapedLogo && scrapedLogo.startsWith('http://')) {
+    const cleanUrl = scrapedLogo.replace(/^http:\/\//i, '');
+    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}`;
+  }
+  
+  return scrapedLogo || 'https://images.unsplash.com/photo-1540747737956-37872404453a?w=80';
+}
+
+// Map real, stable, lag-free 24/7 Toffee CDN endpoints for matching serial/drama channels
+function getToffeeStableUrl(name: string): string | null {
+  const norm = name.toLowerCase();
+  if (norm.includes('zee bangla cinema')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/zee_bangla_cinema/playlist.m3u8';
+  }
+  if (norm.includes('zee bangla')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/zee_bangla/playlist.m3u8';
+  }
+  if (norm.includes('sony aath') || norm.includes('sony atth') || norm.includes('sony aat')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/sonyaath/playlist.m3u8';
+  }
+  if (norm.includes('zee cinema')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/zee_cinema_hd/playlist.m3u8';
+  }
+  if (norm.includes('sony sab') || norm.includes('sab tv') || norm.includes('sony sab hd')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/sonysab_hd/playlist.m3u8';
+  }
+  if (norm.includes('zee tv')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/zee_tv_hd/playlist.m3u8';
+  }
+  if (norm.includes('sony max')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/sony_max_hd/playlist.m3u8';
+  }
+  if (norm.includes('sony entertainment') || norm.includes('sony tv')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/sonyentertainmnt_hd/playlist.m3u8';
+  }
+  if (norm.includes('zee anmol')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/zee_anmol/playlist.m3u8';
+  }
+  if (norm.includes('zee cafe')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/zee_cafe_hd/playlist.m3u8';
+  }
+  if (norm.includes('sony pix')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/sonypix_hd/playlist.m3u8';
+  }
+  if (norm.includes('colors bangla')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/colors_bangla/playlist.m3u8';
+  }
+  if (norm.includes('colors hd')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/colors_hd/playlist.m3u8';
+  }
+  if (norm.includes('star plus')) {
+    return 'https://bldcmprod-cdn.toffeelive.com/cdn/live/star_plus_hd/playlist.m3u8';
+  }
+  return null;
+}
+
+// Fetch and parse a given M3U playlist feed asynchronously
+async function fetchAndParseM3U(feed: { name: string; url: string; headers?: Record<string, string> }): Promise<Channel[]> {
+  const parsedChannels: Channel[] = [];
+  try {
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      ...(feed.headers || {})
+    };
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second timeout threshold
+    
+    let text = '';
+    try {
+      const res = await fetch(feed.url, { headers, signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        text = await res.text();
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      // Fallback via tlsSafeFetch
+      const resFallback = await tlsSafeFetch(feed.url, { headers });
+      if (resFallback.ok) {
+        text = await resFallback.text();
+      }
+    }
+    
+    if (!text) return [];
+    
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('#EXTINF:')) {
+        let j = i + 1;
+        while (j < lines.length && lines[j].trim().startsWith('#')) {
+          j++;
+        }
+        if (j >= lines.length) break;
+        const streamUrl = lines[j].trim();
+        if (!streamUrl.startsWith('http')) continue;
+        
+        const commaIdx = line.indexOf(',');
+        const rawTitle = commaIdx !== -1 ? line.substring(commaIdx + 1).trim() : '';
+        if (!rawTitle) continue;
+        
+        const cleanName = sanitizeChannelName(rawTitle);
+        if (!cleanName) continue;
+        
+        const logoMatch = line.match(/tvg-logo="([^"]+)"/i) || line.match(/logo="([^"]+)"/i);
+        const logo = logoMatch ? logoMatch[1].trim() : '';
+        
+        const groupMatch = line.match(/group-title="([^"]+)"/i);
+        const fileGroup = groupMatch ? groupMatch[1].trim() : '';
+        const normName = cleanName.toLowerCase();
+        
+        let assignedGroup = 'Bangla';
+        if (/sport|cricket|football|t\s*sports|t-sports|gazi|gtv|premier\s*league/i.test(normName) || /sports|live\s*sport/i.test(fileGroup.toLowerCase())) {
+          assignedGroup = 'Sports';
+        } else if (/news|somoy|jamuna|ekattor|independent|atn\s*news|channel\s*24/i.test(normName) || /news/i.test(fileGroup.toLowerCase())) {
+          assignedGroup = 'News';
+        } else if (/jalsha|zee bangla|zee cinema|colors bangla|sony aath|star plus|sony pal|zee anmol|dangal|serial|colors|sony sab|sab tv|star gold/i.test(normName) || /entertainment|serials|movies/i.test(fileGroup.toLowerCase())) {
+          assignedGroup = 'Serials';
+        }
+        
+        const channelId = `ch_m3u_${generateChannelId(streamUrl)}`;
+        
+        parsedChannels.push({
+          id: channelId,
+          name: cleanName,
+          logo: logo || 'https://images.unsplash.com/photo-1540747737956-37872404453a?w=80',
+          group: assignedGroup,
+          url: streamUrl,
+          playlistSource: feed.name,
+          status: 'online',
+          servers: [{ name: "Server 1", url: streamUrl }]
+        });
+        
+        i = j;
+      }
+    }
+  } catch (err: any) {
+    console.error(`Error fetching & parsing playlist feed ${feed.name}:`, err.message);
+  }
+  return parsedChannels;
+}
+
+// Dynamic manual blacklists for crossed channels
+const MANUALLY_BLACKLISTED_URLS = new Set([
+  "https://proped3fhg87.airspace-cdn.cbsivideo.com/golazo-live-dai/master/golazo-live-dai.m3u8",
+  "https://propee33f9c2.airspace-cdn.cbsivideo.com/index.m3u8",
+  "http://190.11.225.124:5000/live/fs1_hd/playlist.m3u8",
+  "https://tvpass.org/live/FoxSports2/hd",
+  "https://dnf08l6u6uxnz.cloudfront.net/master.m3u8",
+  "https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/horizon-sports/master.m3u8?ads.vf=A5pc7nNS254",
+  "https://tvpass.org/live/msg-plus/hd",
+  "http://user.scalecdn.co:8080/live/54706135/09221986/3092.m3u8",
+  "https://tvpass.org/live/nbc-sports-bay-area/hd",
+  "https://tvpass.org/live/nbc-sports-boston/hd",
+  "https://tvpass.org/live/nbc-sports-philadelphia/hd",
+  "https://partneta.cdn.mgmlcdn.com/omsport/smil:omsport.stream.smil/chunklist.m3u8",
+  "https://amg19223-amg19223c3-amgplt0351.playout.now3.amagi.tv/playlist/amg19223-amg19223c3-amgplt0351/playlist.m3u8",
+  "https://bcovlive-a.akamaihd.net/540fcb034b144b848e7ff887f61a293a/eu-central-1/6415845530001/profile_0/chunklist.m3u8",
+  "https://bcovlive-a.akamaihd.net/29c60f23ea4840ba8726925a77fcfd0b/eu-central-1/6415845530001/profile_0/chunklist.m3u8",
+  "https://skylivetab-new.akamaized.net/hls/live/2038782/stcsd/index.m3u8",
+  "https://sl.vodep39240327.workers.dev/channel/SONY%20TEN%201.m3u8",
+  "https://sl.vodep39240327.workers.dev/channel/SONY%20TEN%202.m3u8",
+  "https://d35j504z0x2vu2.cloudfront.net/v1/master/0bc8e8376bd8417a1b6761138aa41c26c7309312/sportsgrid/master.m3u8?ads.vf=8ukz5gCI8vu",
+  "http://121.91.61.106:8000/play/a04h/index.m3u8",
+  "https://streamer1.nexgen.bz/TNC_SPORTS/index.m3u8",
+  "https://tvpass.org/live/tsn1/hd",
+  "https://tvpass.org/live/tsn2/hd",
+  "https://tvpass.org/live/tsn3/hd",
+  "https://tvpass.org/live/tsn4/hd",
+  "https://tvpass.org/live/tsn5/hd",
+  "https://d36r8jifhgsk5j.cloudfront.net/Willow_TV.m3u8",
+  "https://st2.mediabay.tv/KG_KTRK-Sport/index.m3u8",
+  "https://mumt03.tangotv.in/AAKASHAATH/tracks-v2a1/mono.m3u8",
+  "http://103.229.254.25:7001/play/a0ds/index.m3u8",
+  "http://strem.shrsystem.com/hls/StarPlusHD.m3u8",
+  "http://strem.shrsystem.com/hls/ColorsHD.m3u8",
+  "http://172.16.29.2:8090/hls/ColorsCineplexHD.m3u8",
+  "http://strem.shrsystem.com/hls/StarMoviesHD.m3u8",
+  "http://10.20.30.40:8088/503/tracks-v1a1/mono.m3u8",
+  "http://10.20.30.40:8088/701/tracks-v1a1/mono.m3u8",
+  "https://9xjio.wiseplayout.com/9X_Jhakaas/SD216/SD216.m3u8",
+  "https://atomic.streamnet.ro/atomictv.m3u8",
+  "https://fl.biztv.media/music_720_QAKpGmVUjaPApCNjpsgBxrdqNihAkl/tracks-v1a1/mono.m3u8",
+  "https://d14c63magvk61v.cloudfront.net/strm/channels/zoom/m1.m3u8",
+  "https://livetv.powerapp.com.tr/powerturkTV/powerturkhd.smil/chunklist_b2496000_sltur.m3u8?nimblesessionid=529532590",
+  "http://198.195.239.50:8095/PTV-kutta/video.m3u8"
+]);
+
+const MANUALLY_BLACKLISTED_NAMES_NORM = new Set([
+  "cbssportsgolazonetwork",
+  "cbssportshq",
+  "foxsports1",
+  "foxsports2",
+  "fubosportsnetwork",
+  "horizonsports",
+  "msgplus",
+  "nbatvcanada",
+  "nbcsportsbayarea",
+  "nbcsportsboston",
+  "nbcsportsphiladelphia",
+  "omansportstv",
+  "premiersports",
+  "ssport",
+  "ssport2",
+  "skythoroughbredcentral",
+  "sonysportsten1",
+  "sonysportsten2",
+  "sportsgrid",
+  "tensportspakistan",
+  "tncsports",
+  "tsn1",
+  "tsn2",
+  "tsn3",
+  "tsn4",
+  "tsn5",
+  "willowsports",
+  "утркспорт",
+  "aakash8",
+  "aakashaath",
+  "আকাশ৮",
+  "colorsbangla",
+  "colorsbanglahd",
+  "starplus",
+  "starbharot",
+  "starbharat",
+  "colorcineplex",
+  "colorscineplex",
+  "starmovies",
+  "sonypix",
+  "b4umusic",
+  "9xjhakaas",
+  "atomictv",
+  "biztv",
+  "zoommusic",
+  "powerturkmusic",
+  "powerturktv",
+  "ptvsports"
+]);
+
 // Fetch channels from all playlist URLs
 async function fetchAllChannels(): Promise<Channel[]> {
-  const allChannels: Channel[] = [];
   const processedUrls = new Set<string>();
+  const mergedMap = new Map<string, Channel>();
 
+  // Helper dedicated merger that maps logos, applies stable CDN paths, and combines redundant servers elegantly!
+  function addOrMergeChannel(ch: Channel) {
+    // Normalize ch.group to match the exact frontend category IDs: Sports, News, Serials, Bangla
+    let grp = ch.group ? ch.group.trim() : 'Bangla';
+    const grpLower = grp.toLowerCase();
+    const normName = ch.name.toLowerCase();
+    
+    if (grpLower.includes('sport') || grpLower === 'sports' || grpLower === 'sports channel' || normName.includes('sport') || normName.includes('fifa') || normName.includes('ipl') || normName.includes('cricket') || normName.includes('football') || normName.includes('t sports') || normName.includes('gtv') || normName.includes('gazi tv')) {
+      grp = 'Sports';
+    } else if (grpLower.includes('news') || normName.includes('news') || normName.includes('somoy') || normName.includes('ekattor') || normName.includes('jamuna') || normName.includes('khabor')) {
+      grp = 'News';
+    } else if (grpLower.includes('music') || grpLower === 'serials' || grpLower === 'hindi serials' || grpLower.includes('movie') || grpLower === 'entertainment' || normName.includes('jalsha') || normName.includes('zee bangla') || normName.includes('colors bangla') || normName.includes('sony aath') || normName.includes('ruposhi') || normName.includes('akash aath') || normName.includes('sun bangla') || normName.includes('enterten') || normName.includes('enter 10') || normName.includes('star plus') || normName.includes('sony tv') || normName.includes('sony sab') || normName.includes('colors tv') || normName.includes('zee tv') || normName.includes('dangal') || normName.includes('sony pal') || normName.includes('zee anmol') || normName.includes('cinema') || normName.includes('movies') || normName.includes('max') || normName.includes('goldmines') || normName.includes('star gold') || normName.includes('colors cineplex') || normName.includes('action') || normName.includes('b4u') || normName.includes('9x') || normName.includes('zee')) {
+      grp = 'Serials';
+    } else {
+      grp = 'Bangla';
+    }
+    ch.group = grp;
+
+    const canonicalName = ch.name;
+    const key = canonicalName.toLowerCase();
+    const urlLower = ch.url.toLowerCase().trim();
+    const nameNorm = canonicalName.toLowerCase().replace(/[\s-_]+/g, "");
+
+    // Skip manually blacklisted channels based on URLs or normalized names
+    if (MANUALLY_BLACKLISTED_URLS.has(ch.url) || MANUALLY_BLACKLISTED_NAMES_NORM.has(nameNorm)) {
+      return;
+    }
+    
+    // 1. Force state-of-the-art secure HTTPS high-res logos
+    ch.logo = getRealChannelLogo(canonicalName, ch.logo);
+    
+    // 2. Override/Force stable, lag-free 24/7 Toffee CDN targets if channel matches
+    const stableUrl = getToffeeStableUrl(canonicalName);
+    if (stableUrl) {
+      ch.url = stableUrl;
+      const initialServers = [{ name: "High-Speed CDN Server (Auto)", url: stableUrl }];
+      for (const s of ch.servers) {
+        if (s.url !== stableUrl) {
+          initialServers.push({
+            name: `Backup Server ${initialServers.length + 1}`,
+            url: s.url
+          });
+        }
+      }
+      ch.servers = initialServers;
+    }
+    
+    const rawUrlLower = ch.url.toLowerCase().trim();
+    processedUrls.add(rawUrlLower);
+
+    if (mergedMap.has(key)) {
+      const existing = mergedMap.get(key)!;
+      const existingUrls = new Set(existing.servers.map(s => s.url.toLowerCase().trim()));
+      
+      // Inject servers from the duplicate channel card safely
+      for (const s of ch.servers) {
+        const targetLower = s.url.toLowerCase().trim();
+        if (!existingUrls.has(targetLower)) {
+          existing.servers.push({
+            name: `Backup Server ${existing.servers.length + 1}`,
+            url: s.url
+          });
+          existingUrls.add(targetLower);
+        }
+      }
+      
+      // Upgrade logo if current one is low resolution/empty
+      if (!existing.logo || existing.logo.startsWith('http://') || existing.logo.includes('photo-1540747')) {
+        existing.logo = ch.logo;
+      }
+    } else {
+      mergedMap.set(key, ch);
+    }
+  }
+
+  // A. Parse standard ShopnilTV blogspot scrape
   try {
     let htmlText = '';
     const shopnilUrl = 'https://shopniltv.blogspot.com/?m=1';
@@ -931,7 +1980,6 @@ async function fetchAllChannels(): Promise<Channel[]> {
       const res = await fetch(shopnilUrl, { headers: requestHeaders });
       if (res.ok) {
         htmlText = await res.text();
-        // Persist fresh backup
         fs.writeFileSync('./blogspot_html.txt', htmlText, 'utf8');
       } else {
         throw new Error(`HTTP ${res.status}`);
@@ -948,7 +1996,6 @@ async function fetchAllChannels(): Promise<Channel[]> {
         clearTimeout(timeoutId);
         if (resFallback.ok) {
           htmlText = await resFallback.text();
-          // Persist fresh backup
           fs.writeFileSync('./blogspot_html.txt', htmlText, 'utf8');
         } else {
           throw new Error(`Fallback HTTP Status: ${resFallback.status}`);
@@ -959,7 +2006,6 @@ async function fetchAllChannels(): Promise<Channel[]> {
       }
     }
 
-    // Try reading from local backup if both fetches failed
     if (!htmlText) {
       console.warn('Scraping failed, falling back to local cached copy ./blogspot_html.txt');
       try {
@@ -971,75 +2017,146 @@ async function fetchAllChannels(): Promise<Channel[]> {
       }
     }
 
-    if (!htmlText) {
-      throw new Error('No HTML content available to parse channels.');
-    }
-
-    // Split HTML by category-section divs
-    const sections = htmlText.split(/<div class='category-section'\s*data-cat='([^']+)'>/);
-    
-    for (let i = 1; i < sections.length; i += 2) {
-      const rawCatId = sections[i];
-      const sectionContent = sections[i + 1];
-      if (!sectionContent) continue;
-      
-      let category = 'Other';
-      if (rawCatId === 'bangla') category = 'Bangla';
-      else if (rawCatId === 'sports') category = 'Sports';
-      else if (rawCatId === 'news') category = 'News';
-      else if (rawCatId === 'kids') category = 'Kids';
-      else if (rawCatId === 'movies') category = 'Movies';
-      else if (rawCatId === 'english') category = 'Hindi/Eng';
-      else if (rawCatId === 'religion') category = 'Religion';
-      
-      // Robust channel scraper matching channel-item divs
-      const regex = /<div class='channel-item'[^>]*onclick='playChannel\(&#39;([^']+)&#39;,\s*this,\s*&#39;([^']+)&#39;\)'[^>]*>(.*?)<\/div>\s*<\/div>/g;
-      let match;
-      
-      while ((match = regex.exec(sectionContent)) !== null) {
-        const url = match[1] ? match[1].trim() : '';
-        const rawName = match[2] ? match[2].trim() : '';
-        const innerHtml = match[3] || '';
+    if (htmlText) {
+      const sections = htmlText.split(/<div class='category-section'\s*data-cat='([^']+)'>/);
+      for (let i = 1; i < sections.length; i += 2) {
+        const rawCatId = sections[i];
+        const sectionContent = sections[i + 1];
+        if (!sectionContent) continue;
         
-        if (!url || !rawName) continue;
+        let category = 'Bangla';
+        if (rawCatId === 'sports') category = 'Sports';
+        else if (rawCatId === 'news') category = 'News';
+        else if (rawCatId === 'kids') category = 'Bangla';
+        else if (rawCatId === 'movies' || rawCatId === 'english') category = 'Serials';
+        else category = 'Bangla';
         
-        const imgMatch = innerHtml.match(/src='([^']+)'/);
-        const logo = imgMatch ? imgMatch[1].trim() : '';
+        const regex = /<div class='channel-item'[^>]*onclick='playChannel\(&#39;([^']+)&#39;,\s*this,\s*&#39;([^']+)&#39;\)'[^>]*>(.*?)<\/div>\s*<\/div>/g;
+        let match;
         
-        // Clean name
-        const cleanName = sanitizeChannelName(rawName);
-        const rawUrlLower = url.toLowerCase().trim();
-        
-        if (processedUrls.has(rawUrlLower)) continue;
-        processedUrls.add(rawUrlLower);
-        
-        const channelId = `ch_shopnil_${generateChannelId(url)}`;
-        
-        const channelObj: Channel = {
-          id: channelId,
-          name: cleanName,
-          logo: logo || 'https://images.unsplash.com/photo-1540747737956-37872404453a?w=80',
-          group: category,
-          url: url,
-          playlistSource: 'ShopnilTV',
-          status: 'online',
-          servers: [{ name: "Server 1", url: url }]
-        };
-        
-        allChannels.push(channelObj);
+        while ((match = regex.exec(sectionContent)) !== null) {
+          const url = match[1] ? match[1].trim() : '';
+          const rawName = match[2] ? match[2].trim() : '';
+          const innerHtml = match[3] || '';
+          
+          if (!url || !rawName) continue;
+          
+          const imgMatch = innerHtml.match(/src='([^']+)'/);
+          const logo = imgMatch ? imgMatch[1].trim() : '';
+          const cleanName = sanitizeChannelName(rawName);
+          
+          let finalCat = category;
+          const normName = cleanName.toLowerCase();
+          const serialKeywords = [
+            'jalsha', 'zee bangla', 'zee cinema', 'colors bangla', 'sony aath', 'star plus',
+            'sony pal', 'zee anmol', 'dangal', 'serial', 'colors', 'sony sab', 'sab tv', 'star gold'
+          ];
+          if (serialKeywords.some(keyword => normName.includes(keyword))) {
+            finalCat = 'Serials';
+          }
+          
+          const channelId = `ch_shopnil_${generateChannelId(url)}`;
+          
+          addOrMergeChannel({
+            id: channelId,
+            name: cleanName,
+            logo: logo,
+            group: finalCat,
+            url: url,
+            playlistSource: 'ShopnilTV',
+            status: 'online',
+            servers: [{ name: "Server 1", url: url }]
+          });
+        }
       }
     }
   } catch (err: any) {
-    console.error('Fatal error scraper in fetchAllChannels:', err);
+    console.error('Scraper error in fetchAllChannels parsing ShopnilTV:', err);
   }
 
-  if (allChannels.length === 0) {
+  // B. Parse all BUILTIN_STREAM_FEEDS in parallel
+  try {
+    console.log('[Channels Service] Asynchronously pre-fetching all M3U playlist feeds...');
+    const feedPromises = BUILTIN_STREAM_FEEDS.map(feed => fetchAndParseM3U(feed));
+    const m3uResults = await Promise.all(feedPromises);
+    
+    for (const feedList of m3uResults) {
+      for (const ch of feedList) {
+        addOrMergeChannel(ch);
+      }
+    }
+  } catch (err: any) {
+    console.error('Error preheating M3U feeds in fetchAllChannels:', err);
+  }
+
+  // C. Merge previous verified active sports channels and fallbacks
+  try {
+    for (const prevCh of PREVIOUS_ACTIVE_SPORTS_CHANNELS) {
+      const channelId = `ch_prev_${generateChannelId(prevCh.url)}`;
+      addOrMergeChannel({
+        id: channelId,
+        name: prevCh.name,
+        logo: prevCh.logo,
+        group: prevCh.group,
+        url: prevCh.url,
+        playlistSource: prevCh.playlistSource || "Previous Active Streams",
+        status: 'online',
+        servers: [{ name: "Server 1", url: prevCh.url }]
+      });
+    }
+  } catch (err: any) {
+    console.error('Error merging PREVIOUS_ACTIVE_SPORTS_CHANNELS:', err);
+  }
+
+  // C2. Merge user new requested sports streams
+  try {
+    for (const newCh of USER_NEW_CHANNELS) {
+      const channelId = `ch_new_${generateChannelId(newCh.url)}`;
+      addOrMergeChannel({
+        id: channelId,
+        name: newCh.name,
+        logo: newCh.logo,
+        group: newCh.group,
+        url: newCh.url,
+        playlistSource: "User Specified Streams",
+        status: 'online',
+        servers: [{ name: "Server 1", url: newCh.url }]
+      });
+    }
+  } catch (err: any) {
+    console.error('Error merging USER_NEW_CHANNELS:', err);
+  }
+
+  try {
+    const activeCheckedStreams = FALLBACK_CHANNELS.map(({ id, status, ...rest }) => rest);
+    for (const prevCh of activeCheckedStreams) {
+      const channelId = `ch_prev_${generateChannelId(prevCh.url)}`;
+      addOrMergeChannel({
+        id: channelId,
+        name: prevCh.name,
+        logo: prevCh.logo,
+        group: prevCh.group,
+        url: prevCh.url,
+        playlistSource: prevCh.playlistSource || "Checked Playlist Streams",
+        status: 'online',
+        servers: [{ name: "Server 1", url: prevCh.url }]
+      });
+    }
+  } catch (err: any) {
+    console.error('Error merging FALLBACK_CHANNELS:', err);
+  }
+
+  const finalChannels = Array.from(mergedMap.values());
+
+  if (finalChannels.length === 0) {
     console.warn('Scraper returned 0 channels, recovering with static fallbacks');
-    return FALLBACK_CHANNELS;
+    return FALLBACK_CHANNELS.filter(ch => !SERVER_SIDE_BROKEN_CHANNEL_IDS.has(ch.id));
   }
 
-  // Sort channels alphabetically
-  return allChannels.sort((a, b) => a.name.localeCompare(b.name));
+  // Sort channels alphabetically and filter out permanently deleted/blacklisted channel IDs
+  return finalChannels
+    .filter(ch => !SERVER_SIDE_BROKEN_CHANNEL_IDS.has(ch.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // REST GET channels with high-performance routing
@@ -1452,7 +2569,12 @@ app.get('/api/sports/schedule', async (req, res) => {
     ]
     Format only the JSON array of objects inside standard markdown fences or raw code. Do not output conversational preamble.`;
 
-    const response = await ai.models.generateContent({
+    const client = getGeminiClient();
+    if (!client) {
+      throw new Error('GEMINI_API_KEY environment variable is not defined');
+    }
+
+    const response = await client.models.generateContent({
       model: "gemini-3.5-flash",
       contents: prompt,
       config: {
@@ -1485,33 +2607,75 @@ app.get('/api/sports/schedule', async (req, res) => {
       console.warn('[Sports Schedule Loader] Re-using previous cached sports schedule due to rate limits.');
       return res.json(sportsCache);
     }
+    const now = new Date();
+    const getBanglaDateStr = (offsetDays: number) => {
+      const d = new Date();
+      d.setDate(now.getDate() + offsetDays);
+      const day = d.getDate();
+      const monthNames = [
+        "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+        "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
+      ];
+      const month = monthNames[d.getMonth()];
+      const year = d.getFullYear();
+      
+      const toBanglaDigits = (num: number) => {
+        const bdDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+        return String(num).split('').map(digit => bdDigits[parseInt(digit, 10)] || digit).join('');
+      };
+      
+      return `${toBanglaDigits(day)} ${month}, ${toBanglaDigits(year)}`;
+    };
+
     const fallbackMatches = [
       {
-        id: "fb_match_101",
-        sport: "cricket",
-        tournament: "IPL 2026 (আজকের ম্যাচ)",
-        team1: "Kolkata Knight Riders",
-        team2: "Chennai Super Kings",
+        id: "fb_fifa_1",
+        sport: "football",
+        tournament: `FIFA 2026 World Cup Qualifiers [${getBanglaDateStr(0)}]`,
+        team1: "Argentina (আর্জেন্টিনা)",
+        team2: "Brazil (ব্রাজিল)",
+        status: "live",
+        time: "চলছে (লাইভ টিভি)",
+        score: "ARG 2 - 1 BRA (72')",
+        liveChannelId: "tsports"
+      },
+      {
+        id: "fb_fifa_2",
+        sport: "football",
+        tournament: `FIFA 2026 World Cup [${getBanglaDateStr(0)}]`,
+        team1: "Germany (জার্মানি)",
+        team2: "France (ফ্রান্স)",
+        status: "live",
+        time: "চলছে (লাইভ)",
+        score: "GER 1 - 1 FRA (40')",
+        liveChannelId: "sony_ten"
+      },
+      {
+        id: "fb_fifa_3",
+        sport: "football",
+        tournament: `FIFA 2026 World Cup Qualifiers [${getBanglaDateStr(0)}]`,
+        team1: "Spain (স্পেন)",
+        team2: "England (ইংল্যান্ড)",
         status: "upcoming",
-        time: "রাত ৮:০০ টায়",
+        time: "আজ রাত ১১:৩০ মিনিটে",
         score: "",
         liveChannelId: "tsports"
       },
       {
-        id: "fb_match_102",
+        id: "fb_fifa_4",
         sport: "football",
-        tournament: "UEFA Champions League Semifinal",
-        team1: "Real Madrid",
-        team2: "Manchester City",
+        tournament: `FIFA 2026 World Cup Qualifiers [${getBanglaDateStr(1)}]`,
+        team1: "Portugal (পর্তুগাল)",
+        team2: "Italy (ইতালি)",
         status: "upcoming",
-        time: "রাত ১২:৪৫ মিনিটে",
+        time: "আগামীকাল ভোর ৪:০০ টায়",
         score: "",
         liveChannelId: "sony_ten"
       },
       {
         id: "fb_match_103",
         sport: "cricket",
-        tournament: "বাংলাদেশ বনাম শ্রীলঙ্কা ৩য় ওয়ানডে",
+        tournament: `বাংলাদেশ বনাম শ্রীলঙ্কা ৩য় ওয়ানডে [${getBanglaDateStr(0)}]`,
         team1: "Bangladesh",
         team2: "Sri Lanka",
         status: "live",
@@ -1522,7 +2686,7 @@ app.get('/api/sports/schedule', async (req, res) => {
       {
         id: "fb_match_104",
         sport: "football",
-        tournament: "Spain La Liga Live Match",
+        tournament: `Spain La Liga Live Match [${getBanglaDateStr(0)}]`,
         team1: "Barcelona",
         team2: "Real Betis",
         status: "upcoming",
@@ -1531,7 +2695,7 @@ app.get('/api/sports/schedule', async (req, res) => {
         liveChannelId: "somoy_tv"
       }
     ];
-    return res.json({ success: true, matches: fallbackMatches, source: 'fallback' });
+    return res.json({ success: true, matches: fallbackMatches, source: 'fallback_dynamic' });
   }
 });
 
@@ -1740,6 +2904,11 @@ Generate the agent message responding to the User politely, naturally, in their 
       const imgContent = lastMsg.attachmentUrl ? parseDataUrl(lastMsg.attachmentUrl) : null;
       let replyText = '';
       try {
+        const client = getGeminiClient();
+        if (!client) {
+          throw new Error('GEMINI_API_KEY environment variable is not defined');
+        }
+
         let modelResponse;
         if (imgContent && lastMsg.attachmentType === 'image') {
           const imgPart = {
@@ -1751,7 +2920,7 @@ Generate the agent message responding to the User politely, naturally, in their 
           const txtPart = {
             text: `${userPrompt}\n\n[Note: Please inspect the attached user screenshot above and handle their streaming/app error visually.]`
           };
-          modelResponse = await ai.models.generateContent({
+          modelResponse = await client.models.generateContent({
             model: 'gemini-3.5-flash',
             contents: { parts: [imgPart, txtPart] },
             config: {
@@ -1760,7 +2929,7 @@ Generate the agent message responding to the User politely, naturally, in their 
             }
           });
         } else {
-          modelResponse = await ai.models.generateContent({
+          modelResponse = await client.models.generateContent({
             model: 'gemini-3.5-flash',
             contents: userPrompt,
             config: {
@@ -1984,6 +3153,32 @@ app.post('/api/support/status', (req, res) => {
   res.json(supportConfig);
 });
 
+// GET custom diagnostics for checking Gemini API Key validity
+app.get('/api/support/gemini-status', async (req, res) => {
+  try {
+    const client = getGeminiClient();
+    if (!client) {
+      return res.json({ status: 'missing', message: 'GEMINI_API_KEY environment variable is not defined.' });
+    }
+    // Probe Gemini with minimal tokens
+    await client.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents: 'ping',
+      config: { maxOutputTokens: 1 }
+    });
+    return res.json({ status: 'ok', message: 'সক্রিয় ও সচল (Healthy)' });
+  } catch (err: any) {
+    const errMsg = err?.message || String(err);
+    if (errMsg.includes('leaked') || errMsg.includes('Leaked') || errMsg.includes('403') || errMsg.includes('PERMISSION_DENIED')) {
+      return res.json({ 
+        status: 'error_leaked', 
+        message: 'নিরাপত্তা ত্রুটি: জেমিনি API Key-টি Leaked হিসেবে গুগলে ব্লক হয়েছে! অনুগ্রহ করে Secrets panel এ নতুন সচল API Key দিন।' 
+      });
+    }
+    return res.json({ status: 'error', message: errMsg });
+  }
+});
+
 // POST a message to an active support session
 app.post('/api/support/messages', (req, res) => {
   const { id, sender, senderName, text, attachmentUrl, attachmentType } = req.body;
@@ -2104,6 +3299,10 @@ interface SiteSettings {
   marqueeText: string;
   siteLogoUrl: string;
   customAds: CustomAd[];
+  adTopCode?: string;
+  adBottomCode?: string;
+  adPopCode?: string;
+  adSocialCode?: string;
 }
 
 const SETTINGS_FILE = path.join(process.cwd(), 'site_settings.json');
@@ -2120,6 +3319,10 @@ function readSiteSettings(): SiteSettings {
     siteNameBangla: 'ফ্রী ওয়ার্ল্ড কাপ বিডি',
     marqueeText: 'স্বাগতম Free World Cup BD-তে! 📺 সম্পুর্ণ ফ্রিতে স্পোর্টস প্লেয়ারে উপভোগ করুন প্রিয় সব লাইভ ওয়ার্ল্ড কাপ, ঘরোয়া ও আন্তর্জাতিক খেলাধুলা এবং বিনোদন চ্যানেল।',
     siteLogoUrl: '',
+    adTopCode: '',
+    adBottomCode: '',
+    adPopCode: '',
+    adSocialCode: '',
     customAds: [
       {
         id: 'ad_init_1',
@@ -2231,6 +3434,106 @@ app.post('/api/settings', (req, res) => {
     res.json({ success: true, settings: updated });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+// FIFA 2026 World Cup Match Schedule - Dynamic generation relative to current day
+app.get('/api/fifa-schedule', (req, res) => {
+  try {
+    const now = new Date();
+    
+    // Format Bangla Date helper
+    const getBanglaDateStr = (offsetDays: number) => {
+      const d = new Date();
+      d.setDate(now.getDate() + offsetDays);
+      const day = d.getDate();
+      const monthNames = [
+        "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+        "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
+      ];
+      const month = monthNames[d.getMonth()];
+      const year = d.getFullYear();
+      
+      const toBanglaDigits = (num: number) => {
+        const bdDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+        return String(num).split('').map(digit => bdDigits[parseInt(digit, 10)] || digit).join('');
+      };
+      
+      return `${toBanglaDigits(day)} ${month}, ${toBanglaDigits(year)}`;
+    };
+
+    const schedule = [
+      {
+        id: "fifa_m1",
+        date: getBanglaDateStr(0),
+        time: "সন্ধ্যা ৬:৩০ মিনিট (বাংলাদেশ সময়)",
+        timestamp: now.getTime(),
+        homeTeam: { name: "আহ আর্জেন্টিনা", flag: "🇦🇷", score: 2 },
+        awayTeam: { name: "ব্রাজিল মহাদ্বন্দ্ব", flag: "🇧🇷", score: 1 },
+        status: "live", // Live right now!
+        channelId: "req_star_sports_1",
+        channelName: "STAR SPORTS 1"
+      },
+      {
+        id: "fifa_m2",
+        date: getBanglaDateStr(0),
+        time: "রাত ৯:০০ টা (বাংলাদেশ সময়)",
+        timestamp: now.getTime() + 900000,
+        homeTeam: { name: "জার্মানি স্পিড", flag: "🇩🇪", score: 1 },
+        awayTeam: { name: "ফ্রান্স সুপার", flag: "🇫🇷", score: 1 },
+        status: "live", // Live right now!
+        channelId: "req_star_sports_2",
+        channelName: "STAR SPORTS 2"
+      },
+      {
+        id: "fifa_m3",
+        date: getBanglaDateStr(0),
+        time: "রাত ১১:৩০ মিনিট (বাংলাদেশ সময়)",
+        timestamp: now.getTime() + 10800000,
+        homeTeam: { name: "স্পেন টাইটান্স", flag: "🇪🇸", score: 0 },
+        awayTeam: { name: "ইংল্যান্ড সিংহ", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", score: 0 },
+        status: "upcoming",
+        channelId: "req_star_sports_3",
+        channelName: "STAR SPORTS 3"
+      },
+      {
+        id: "fifa_m4",
+        date: getBanglaDateStr(1),
+        time: "ভোর ৪:০০ টা (বাংলাদেশ সময়)",
+        timestamp: now.getTime() + 86400000,
+        homeTeam: { name: "পর্তুগাল কিং", flag: "🇵🇹", score: 0 },
+        awayTeam: { name: "ইতালি ডিফেন্স", flag: "🇮🇹", score: 0 },
+        status: "upcoming",
+        channelId: "req_willow_sports",
+        channelName: "WILLOW SPORTS"
+      },
+      {
+        id: "fifa_m5",
+        date: getBanglaDateStr(-1),
+        time: "গতকালের ম্যাচ (পূর্ণ সমাপ্ত)",
+        timestamp: now.getTime() - 86400000,
+        homeTeam: { name: "মরক্কো ঈগলস", flag: "🇲🇦", score: 1 },
+        awayTeam: { name: "ক্রোয়েশিয়া ভাইকিংস", flag: "🇭🇷", score: 0 },
+        status: "finished",
+        channelId: "req_star_sports_1",
+        channelName: "STAR SPORTS 1"
+      },
+      {
+        id: "fifa_m6",
+        date: getBanglaDateStr(-2),
+        time: "সমাপ্ত ম্যাচ",
+        timestamp: now.getTime() - 172800000,
+        homeTeam: { name: "নেদারল্যান্ডস ডাচ", flag: "🇳🇱", score: 3 },
+        awayTeam: { name: "উরুগুয়ে সেলেস্তে", flag: "🇺🇾", score: 2 },
+        status: "finished",
+        channelId: "req_star_sports_2",
+        channelName: "STAR SPORTS 2"
+      }
+    ];
+
+    res.json({ success: true, schedule });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

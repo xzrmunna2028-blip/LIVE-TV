@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "SiteSettings": {
+      "title": "Site Settings",
+      "description": "Global custom configurations, notices, branding and advertisements",
+      "type": "object",
+      "properties": {
+        "maintenanceMode": { "type": "boolean", "description": "Status of lock down mode" },
+        "maintenanceMessage": { "type": "string", "description": "Custom text for maintenance message" },
+        "telegramUrl": { "type": "string", "description": "Telegram channel url" },
+        "siteNameEnglish": { "type": "string", "description": "Branding site name in English" },
+        "siteNameBangla": { "type": "string", "description": "Branding site name in Bangla" },
+        "marqueeText": { "type": "string", "description": "Moving marquee notice banner text" },
+        "siteLogoUrl": { "type": "string", "description": "Standard high-resolution SVG or PNG logo URL" },
+        "adTopCode": { "type": "string" },
+        "adBottomCode": { "type": "string" },
+        "adPopCode": { "type": "string" },
+        "adSocialCode": { "type": "string" },
+        "customAds": { "type": "array" }
+      }
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Live channel chat room messages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "username": { "type": "string" },
+        "avatar": { "type": "string" },
+        "flag": { "type": "string" },
+        "text": { "type": "string" },
+        "time": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "username", "text", "time"]
+    },
+    "SupportSession": {
+      "title": "Support Session",
+      "description": "User customer service ticket session with active status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "name": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "messages": { "type": "array" }
+      }
+    },
+    "ModerationLists": {
+      "title": "Moderation Lists",
+      "description": "Banned, muted, and verified users custom database rosters",
+      "type": "object",
+      "properties": {
+        "verifiedUsers": { "type": "array" },
+        "bannedUsers": { "type": "array" },
+        "mutedUsers": { "type": "array" }
+      }
+    }
+  },
+  "firestore": {
+    "/settings/site": {
+      "schema": "SiteSettings",
+      "description": "Singular site core dynamic configurations settings document"
+    },
+    "/chats/{channelId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Sub-collection indexing live real-time stadium chat"
+    },
+    "/support/{sessionId}": {
+      "schema": "SupportSession",
+      "description": "Support chat ticket session tracking list"
+    },
+    "/support/{sessionId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Real-time communication lines in support ticket room"
+    },
+    "/moderation/global": {
+      "schema": "ModerationLists",
+      "description": "Global rosters of user statuses"
+    }
+  }
+}

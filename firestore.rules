@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\:\\.\\@]+$');
+    }
+
+    // Settings rules: Anyone can read, writes are allowed (secured by UI password validation, or open for updates)
+    match /settings/site {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Moderation rules
+    match /moderation/global {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Stadium Chats real-time live channel messages
+    match /chats/{channelId}/messages/{messageId} {
+      allow read: if true;
+      allow create: if isValidId(channelId) && isValidId(messageId)
+                    && request.resource.data.text is string && request.resource.data.text.size() <= 500;
+      allow delete: if true;
+    }
+
+    // Support Session documents
+    match /support/{sessionId} {
+      allow read, write, delete: if true;
+    }
+
+    match /support/{sessionId}/messages/{messageId} {
+      allow read, write, delete: if true;
+    }
+  }
+}

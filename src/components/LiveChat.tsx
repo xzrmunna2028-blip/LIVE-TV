@@ -22,6 +22,8 @@ import {
   Share2,
   Activity
 } from 'lucide-react';
+import { collection, query, orderBy, limit, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 interface ChatMessage {
   id: string;
@@ -114,16 +116,45 @@ export default function LiveChat({ channelId, currentUser, isOpen, onClose }: Li
   // Helpers for channel-specific storage/broadcasting
   const storageKey = `bongo_live_chat_messages_db_${channelId}`;
 
-  // Poll real-time messages from server API (multi-device active sync)
+  // Real-time Firestore subscriptions for live channel chat (with server API double sync)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !channelId) return;
+
+    const q = query(
+      collection(db, "chats", channelId, "messages"),
+      orderBy("createdAt", "asc"),
+      limit(80)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fbMessages: ChatMessage[] = [];
+      snapshot.forEach((snapDoc) => {
+        const d = snapDoc.data();
+        fbMessages.push({
+          id: snapDoc.id,
+          name: d.name || d.username || "Anonymous",
+          username: d.username || "anonymous",
+          avatar: d.avatar || "",
+          flag: d.flag || "🇧🇩",
+          text: d.text || "",
+          time: d.time || "",
+          isAdmin: !!d.isAdmin,
+          replyTo: d.replyTo || undefined
+        });
+      });
+      if (fbMessages.length > 0) {
+        setMessages(fbMessages);
+      }
+    }, (error) => {
+      console.warn("Firestore live chat subscription failed, falling back to REST/localStorage", error);
+    });
 
     const fetchMessages = () => {
       fetch(`/api/stadium-chat/${channelId}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
-            setMessages(data);
+            setMessages(prev => (prev.length === 0 ? data : prev));
           }
         })
         .catch(err => console.error("Failed to poll server chat messages", err));
@@ -132,14 +163,15 @@ export default function LiveChat({ channelId, currentUser, isOpen, onClose }: Li
     // Initial fetch
     fetchMessages();
 
-    // Constant active poll every 4.5 seconds for lag-free performance
-    const interval = setInterval(fetchMessages, 4500);
+    // Secondary backing poll interval for security
+    const interval = setInterval(fetchMessages, 10000);
 
     // Track active chat count
     const counts = Number(localStorage.getItem('bongo_chat_open_counts') || '0');
     localStorage.setItem('bongo_chat_open_counts', String(counts + 1));
 
     return () => {
+      unsubscribe();
       clearInterval(interval);
     };
   }, [isOpen, channelId]);
@@ -311,6 +343,7 @@ export default function LiveChat({ channelId, currentUser, isOpen, onClose }: Li
       return;
     }
 
+    const messageId = `msg_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const myMessage = {
       name: currentUser.name,
       username: currentUser.username,
@@ -322,22 +355,33 @@ export default function LiveChat({ channelId, currentUser, isOpen, onClose }: Li
       replyTo: replyingTo ? { id: replyingTo.id, text: replyingTo.text, username: replyingTo.username } : undefined
     };
 
-    // Post to server-backed chat controller
+    // 1. Post to Real-time Firebase Firestore
+    setDoc(doc(db, "chats", channelId, "messages", messageId), {
+      ...myMessage,
+      createdAt: new Date().toISOString()
+    }).catch(fErr => console.warn("Firestore chat post error:", fErr));
+
+    // 2. Post to server-backed chat controller (double sync / database backplane)
     fetch(`/api/stadium-chat/${channelId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(myMessage)
+      body: JSON.stringify({ ...myMessage, id: messageId })
     })
     .then(res => res.json())
     .then(data => {
       if (data.success && Array.isArray(data.messages)) {
-        setMessages(data.messages);
+        // Fallback updates from server if required
       }
     })
     .catch(err => {
       console.error("Failed to post message", err);
       // Client-side fallback if server fails
-      setMessages(prev => [...prev, { ...myMessage, id: `my-fallback-${Date.now()}` } as ChatMessage]);
+      setMessages(prev => {
+        if (!prev.some(m => m.id === messageId)) {
+          return [...prev, { ...myMessage, id: messageId } as ChatMessage];
+        }
+        return prev;
+      });
     });
     
     // Auto sync state for administrative settings trigger channel
@@ -365,6 +409,16 @@ export default function LiveChat({ channelId, currentUser, isOpen, onClose }: Li
     const targetUsername = moderatingMessage.username;
 
     if (type === 'ban') {
+      // Delete user's messages from Firestore in this channel
+      try {
+        messages.filter(m => m.username === targetUsername).forEach(m => {
+          deleteDoc(doc(db, "chats", channelId, "messages", m.id))
+            .catch(e => console.warn(e));
+        });
+      } catch (err) {
+        console.warn(err);
+      }
+
       // 1. Extreme ban server action: delete user chats from backend
       fetch(`/api/stadium-chat/${channelId}/delete-user`, {
         method: 'POST',
@@ -450,6 +504,11 @@ export default function LiveChat({ channelId, currentUser, isOpen, onClose }: Li
     }
 
     if (type === 'delete') {
+      // 1. Delete from Real-time Firebase Firestore
+      deleteDoc(doc(db, "chats", channelId, "messages", moderatingMessage.id))
+        .catch(fErr => console.warn("Firestore message deletion failed:", fErr));
+
+      // 2. Sync to Express Server
       fetch(`/api/stadium-chat/${channelId}/delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
